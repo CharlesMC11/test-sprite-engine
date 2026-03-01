@@ -2,7 +2,7 @@
 name = "sprite-baker"
 version = "0.1.0"
 description = "Bake data into a custom sprite file."
-readme = "README.txt"
+readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "opencv-python>=4.13.0.92",
