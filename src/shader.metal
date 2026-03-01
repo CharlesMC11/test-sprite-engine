@@ -35,7 +35,7 @@ kernel void sprite_render(constant Sprite& sprite [[buffer(0)]],
         texture2d<float, access::write> outTexture [[texture(0)]],
         uint2 gid [[thread_position_in_grid]])
 {
-    const auto pixel{sprite.pixels[gid.y * HEIGHT + gid.x]};
+    const auto pixel{sprite.pixels[gid.y * WIDTH + gid.x]};
 
     const ushort color{sprite.palette[pixel.index]};
     float r, g, b;
