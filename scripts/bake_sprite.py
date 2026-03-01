@@ -62,7 +62,10 @@ def bake(
 ) -> None:
     """Bake the data into a custom sprite file."""
 
-    header = struct.pack("<8s B B B 21x", b"SPRITE", mode.value, 0, 0)
+    name_bytes = out_name.encode()[:MAX_NAME_BUF]
+    header = struct.pack(
+        "<8s 16s B B B 5x", b"SPRITE", name_bytes, mode.value, 15, 29
+    )
 
     palette_bytes = bytearray()
     palette_size = len(palette)

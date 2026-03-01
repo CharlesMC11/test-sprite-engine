@@ -24,10 +24,11 @@ struct Pixel {
 
 struct alignas(32) Sprite {
     uchar magic[8];
+    uchar name[16];
     ColorMode mode;
     uchar anchor_x;
     uchar anchor_y;
-    uchar reserved[21];
+    uchar reserved[5];
     Color palette[MAX_PALETTE_SIZE];
     Pixel pixels[WIDTH * HEIGHT];
 };
