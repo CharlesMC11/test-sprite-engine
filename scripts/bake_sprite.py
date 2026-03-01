@@ -19,8 +19,8 @@ class ColorMode(IntEnum):
     SEA = enum.auto()  # R2G2B12
 
 
-def get_palette(img: np.ndarray) -> np.ndarray:
-    """Get the palette from an image."""
+def extract_palette(img: np.ndarray) -> np.ndarray:
+    """Extract the palette from an image."""
 
     pixels = img.reshape(-1, 3)
     unique_colors, counts = np.unique(pixels, axis=0, return_counts=True)
@@ -29,35 +29,36 @@ def get_palette(img: np.ndarray) -> np.ndarray:
     return unique_colors[sorted_indices[:MAX_PALETTE_SIZE]]
 
 
-def pack_pixel_bytes(pixels: np.ndarray, mode: ColorMode) -> int:
+def pack_color_to_16bit(bgr: np.ndarray, mode: ColorMode) -> np.ndarray:
     """Pack the color channels into a 16-bit unsigned int."""
 
-    result = 0x0
-
-    b, g, r = pixels.astype(np.uint16).T
+    b, g, r = bgr.astype(np.uint16).T
 
     if mode == ColorMode.DEFAULT:
-        result = (r >> 3) << 11 | (g >> 2) << 5 | b >> 3
+        packed_color = (r >> 3) << 11 | (g >> 2) << 5 | b >> 3
 
     elif mode == ColorMode.WARM:
-        result = (r >> 2) << 10 | (g >> 3) << 5 | b >> 3
+        packed_color = (r >> 2) << 10 | (g >> 3) << 5 | b >> 3
 
     elif mode == ColorMode.COOL:
-        result = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
+        packed_color = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
 
     elif mode == ColorMode.FOREST:
         g = (g / 0xFF * 0x3FF).astype(np.uint16)
-        result = (r >> 5) << 13 | g << 3 | b >> 5
+        packed_color = (r >> 5) << 13 | g << 3 | b >> 5
 
     elif mode == ColorMode.SEA:
         b = (b / 0xFF * 0xFFF).astype(np.uint16)
-        result = (r >> 6) << 14 | (g >> 6) << 12 | b
+        packed_color = (r >> 6) << 14 | (g >> 6) << 12 | b
 
-    return result
+    else:
+        raise ValueError("Invalid color matrix.")
+
+    return packed_color
 
 
 def bake(
-    img: np.ndarray, palette: np.ndarray, mode: ColorMode, out_name: str
+        image: np.ndarray, palette: np.ndarray, mode: ColorMode, out_name: str
 ) -> None:
     """Bake the data into a custom sprite file."""
 
@@ -65,22 +66,22 @@ def bake(
 
     palette_bytes = bytearray()
     palette_size = len(palette)
-    normalized_palette = pack_pixel_bytes(palette, mode)
+    packed_palette = pack_color_to_16bit(palette, mode)
     for i in range(MAX_PALETTE_SIZE):
         if i < palette_size:
-            color = normalized_palette[i]
+            color = packed_palette[i]
             palette_bytes.extend(struct.pack("<H", color))
         else:
-            palette_bytes.extend((struct.pack("<H", 0x0)))
+            palette_bytes.extend(struct.pack("<H", 0x0))
 
     pixel_bytes = bytearray()
     for y in range(HEIGHT):
         for x in range(WIDTH):
-            pixel = img[y, x]
+            pixel = image[y, x]
             alpha = (pixel[3] >> 6) << 4 if len(pixel) == 4 else 0x30
-            dists = np.linalg.norm(palette[:, :3] - pixel[:3], axis=1)
-            idx = np.argmin(dists).astype(np.uint8) & 0x0F
-            pixel_bytes.append(alpha | idx)
+            color_distances = np.linalg.norm(palette[:, :3] - pixel[:3], axis=1)
+            index = np.argmin(color_distances).astype(np.uint8) & 0x0F
+            pixel_bytes.append(alpha | index)
 
     with open(f"data/{out_name}.sprite", "wb") as f:
         f.write(header + palette_bytes + pixel_bytes)
@@ -90,8 +91,8 @@ def main() -> None:
     if len(sys.argv) < 3:
         raise ValueError("Not enough arguments.")
 
-    in_path = sys.argv[1]
-    out_name = sys.argv[2]
+    input_image_path = sys.argv[1]
+    output_sprite_name = sys.argv[2]
 
     try:
         mode = sys.argv[3].upper()
@@ -110,13 +111,13 @@ def main() -> None:
     except IndexError:
         mode = ColorMode.DEFAULT
 
-    img = cv2.imread(in_path, cv2.IMREAD_UNCHANGED)
-    if img is None:
+    image = cv2.imread(input_image_path, cv2.IMREAD_UNCHANGED)
+    if image is None:
         raise ValueError("Could not read input file.")
 
-    palette = get_palette(img[:, :, :3])
+    palette = extract_palette(image[:, :, :3])
 
-    bake(img, palette, mode, out_name)
+    bake(image, palette, mode, output_sprite_name)
 
 
 if __name__ == "__main__":
