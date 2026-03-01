@@ -18,7 +18,8 @@ using Color = ushort;
 struct Pixel {
     uchar index : 4;
     uchar alpha : 2;
-    uchar reserved : 2;
+    uchar glow : 1;
+    uchar reserved : 1;
 };
 
 struct alignas(32) Sprite {
