@@ -1,7 +1,7 @@
+import enum
 import struct
 import sys
 from enum import IntEnum
-import enum
 
 import cv2
 import numpy as np
@@ -30,6 +30,8 @@ def get_palette(img: np.ndarray) -> np.ndarray:
 
 
 def pack_pixel_bytes(pixels: np.ndarray, mode: ColorMode) -> int:
+    """Pack the color channels into a 16-bit unsigned int."""
+
     result = 0x0
 
     b, g, r = pixels.astype(np.uint16).T
@@ -55,8 +57,10 @@ def pack_pixel_bytes(pixels: np.ndarray, mode: ColorMode) -> int:
 
 
 def bake(
-        img: np.ndarray, palette: np.ndarray, mode: ColorMode, output_name: str
+    img: np.ndarray, palette: np.ndarray, mode: ColorMode, out_name: str
 ) -> None:
+    """Bake the data into a custom sprite file."""
+
     header = struct.pack("<8s B B B 21x", b"SPRITE", mode.value, 0, 0)
 
     palette_bytes = bytearray()
@@ -78,31 +82,33 @@ def bake(
             idx = np.argmin(dists).astype(np.uint8) & 0x0F
             pixel_bytes.append(alpha | idx)
 
-    with open(f"data/{output_name}.sprite", "wb") as f:
+    with open(f"data/{out_name}.sprite", "wb") as f:
         f.write(header + palette_bytes + pixel_bytes)
 
 
 def main() -> None:
-    if len(sys.argv) < 2:
-        sys.exit(1)
+    if len(sys.argv) < 3:
+        raise ValueError("Not enough arguments.")
 
     in_path = sys.argv[1]
+    out_name = sys.argv[2]
 
-    mode = sys.argv[2].upper()
-    if mode == ColorMode.DEFAULT.name:
+    try:
+        mode = sys.argv[3].upper()
+        if mode == ColorMode.DEFAULT.name:
+            mode = ColorMode.DEFAULT
+        elif mode == ColorMode.WARM.name:
+            mode = ColorMode.WARM
+        elif mode == ColorMode.COOL.name:
+            mode = ColorMode.COOL
+        elif mode == ColorMode.FOREST.name:
+            mode = ColorMode.FOREST
+        elif mode == ColorMode.SEA.name:
+            mode = ColorMode.SEA
+        else:
+            raise ValueError("Unknown color mode.")
+    except IndexError:
         mode = ColorMode.DEFAULT
-    elif mode == ColorMode.WARM.name:
-        mode = ColorMode.WARM
-    elif mode == ColorMode.COOL.name:
-        mode = ColorMode.COOL
-    elif mode == ColorMode.FOREST.name:
-        mode = ColorMode.FOREST
-    elif mode == ColorMode.SEA.name:
-        mode = ColorMode.SEA
-    else:
-        raise ValueError("Unknown color mode.")
-
-    out_path = sys.argv[3]
 
     img = cv2.imread(in_path, cv2.IMREAD_UNCHANGED)
     if img is None:
@@ -110,7 +116,7 @@ def main() -> None:
 
     palette = get_palette(img[:, :, :3])
 
-    bake(img, palette, mode, out_path)
+    bake(img, palette, mode, out_name)
 
 
 if __name__ == "__main__":

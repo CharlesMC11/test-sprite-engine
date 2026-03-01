@@ -9,3 +9,15 @@ dependencies = [
     "ruff>=0.15.4",
     "ty>=0.0.19",
 ]
+
+[tool.ruff]
+indent-width = 4
+line-length = 80
+
+[tool.ruff.format]
+docstring-code-format = true
+indent-style = "space"
+quote-style = "double"
+
+[tool.ruff.lint]
+select = ["I"]
