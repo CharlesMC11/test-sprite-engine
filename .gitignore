@@ -16,8 +16,5 @@ wheels/
 .idea
 .vscode
 
-#
-*.bin
-*.pal
 data/
 include/metal-cpp/
