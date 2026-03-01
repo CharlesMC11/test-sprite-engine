@@ -20,20 +20,20 @@ class ColorMode(IntEnum):
     SEA = enum.auto()  # R2G2B12
 
 
-def extract_palette(img: np.ndarray) -> np.ndarray:
+def extract_palette(image: np.ndarray) -> np.ndarray:
     """Extract the palette from an image."""
 
-    pixels = img.reshape(-1, 3)
+    pixels = image.reshape(-1, 3)
     unique_colors, counts = np.unique(pixels, axis=0, return_counts=True)
     sorted_indices = np.argsort(-counts)
 
     return unique_colors[sorted_indices[:MAX_PALETTE_SIZE]]
 
 
-def pack_color_to_16bit(bgr: np.ndarray, mode: ColorMode) -> np.ndarray:
+def pack_color_to_16bit(image_bgr: np.ndarray, mode: ColorMode) -> np.ndarray:
     """Pack the color channels into a 16-bit unsigned int."""
 
-    b, g, r = bgr.astype(np.uint16).T
+    b, g, r = image_bgr.astype(np.uint16).T
 
     if mode == ColorMode.DEFAULT:
         packed_color = (r >> 3) << 11 | (g >> 2) << 5 | b >> 3
@@ -59,12 +59,12 @@ def pack_color_to_16bit(bgr: np.ndarray, mode: ColorMode) -> np.ndarray:
 
 
 def bake(
-    image: np.ndarray, palette: np.ndarray, mode: ColorMode, out_name: str
+    output_name: str, image: np.ndarray, palette: np.ndarray, mode: ColorMode
 ) -> None:
     """Bake the data into a custom sprite file."""
 
-    name_bytes = out_name.encode()[:MAX_NAME_BUF]
-    header = struct.pack(
+    name_bytes = output_name.encode()[:MAX_NAME_BUF]
+    header_bytes = struct.pack(
         "<8s 16s B B B 5x", b"SPRITE", name_bytes, mode.value, 15, 29
     )
 
@@ -87,8 +87,8 @@ def bake(
             index = np.argmin(color_distances).astype(np.uint8) & 0x0F
             pixel_bytes.append(alpha | index)
 
-    with open(f"data/{out_name}.sprite", "wb") as f:
-        f.write(header + palette_bytes + pixel_bytes)
+    with open(f"data/{output_name}.sprite", "wb") as f:
+        f.write(header_bytes + palette_bytes + pixel_bytes)
 
 
 def main() -> None:
@@ -121,7 +121,7 @@ def main() -> None:
 
     palette = extract_palette(image[:, :, :3])
 
-    bake(image, palette, mode, output_sprite_name)
+    bake(output_sprite_name, image, palette, mode)
 
 
 if __name__ == "__main__":
