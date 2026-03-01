@@ -18,8 +18,6 @@ namespace sc {
         DEFAULT = 1, // R5G6B5
         WARM, // R6G5B5
         COOL, // R5G5B6
-        FOREST, // R3G10B3
-        SEA, // RG2B12
     } ColorMode;
 
     typedef uint16_t Color;

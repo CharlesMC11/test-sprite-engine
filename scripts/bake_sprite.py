@@ -16,8 +16,6 @@ class ColorMode(IntEnum):
     DEFAULT = 1  # R5G6B5
     WARM = enum.auto()  # R6G5B5
     COOL = enum.auto()  # R5G5B6
-    FOREST = enum.auto()  # R3G10B3
-    SEA = enum.auto()  # R2G2B12
 
 
 def extract_palette(image: np.ndarray) -> np.ndarray:
@@ -44,29 +42,17 @@ def pack_color_to_16bit(image_bgr: np.ndarray, mode: ColorMode) -> np.ndarray:
     elif mode == ColorMode.COOL:
         packed_color = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
 
-    elif mode == ColorMode.FOREST:
-        g = (g / 0xFF * 0x3FF).astype(np.uint16)
-        packed_color = (r >> 5) << 13 | g << 3 | b >> 5
-
-    elif mode == ColorMode.SEA:
-        b = (b / 0xFF * 0xFFF).astype(np.uint16)
-        packed_color = (r >> 6) << 14 | (g >> 6) << 12 | b
-
     else:
-        raise ValueError("Invalid color matrix.")
+        raise ValueError("Invalid color mode.")
 
     return packed_color
 
 
-def bake(
-    output_name: str, image: np.ndarray, palette: np.ndarray, mode: ColorMode
-) -> None:
+def bake(output_name: str, image: np.ndarray, palette: np.ndarray, mode: ColorMode) -> None:
     """Bake the data into a custom sprite file."""
 
     name_bytes = output_name.encode()[:MAX_NAME_BUF]
-    header_bytes = struct.pack(
-        "<8s 16s B B B 5x", b"SPRITE", name_bytes, mode.value, 15, 29
-    )
+    header_bytes = struct.pack("<8s 16s B B B 5x", b"SPRITE", name_bytes, mode.value, 15, 29)
 
     palette_bytes = bytearray()
     palette_size = len(palette)
@@ -106,10 +92,6 @@ def main() -> None:
             mode = ColorMode.WARM
         elif mode == ColorMode.COOL.name:
             mode = ColorMode.COOL
-        elif mode == ColorMode.FOREST.name:
-            mode = ColorMode.FOREST
-        elif mode == ColorMode.SEA.name:
-            mode = ColorMode.SEA
         else:
             raise ValueError("Unknown color mode.")
     except IndexError:

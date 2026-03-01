@@ -9,8 +9,6 @@ enum ColorMode : uchar {
     DEFAULT = 1, // R5G6B5
     WARM, // R6G5B5
     COOL, // R5G5B6
-    FOREST, // R3G10B3
-    SEA, // R2G2B12
 };
 
 using Color = ushort;
@@ -56,16 +54,6 @@ kernel void sprite_render(constant Sprite& sprite [[buffer(0)]],
         r = ((color >> 11) & 0x1F) / 31.0;
         g = ((color >> 5) & 0x1F) / 31.0;
         b = (color & 0x3F) / 63.0;
-        break;
-    case FOREST:
-        r = ((color >> 13) & 0x07) / 7.0;
-        g = ((color >> 3) & 0x3FF) / 1023.0;
-        b = (color & 0x07) / 7.0;
-        break;
-    case SEA:
-        r = ((color >> 14) & 0x03) / 3.0;
-        g = ((color >> 12) & 0x03) / 3.0;
-        b = (color & 0xFFF) / 4095.0;
         break;
     default:
         r = 0;
