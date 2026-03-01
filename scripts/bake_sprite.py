@@ -6,9 +6,10 @@ from enum import IntEnum
 import cv2
 import numpy as np
 
-HEIGHT: int = 32
-WIDTH: int = 32
-MAX_PALETTE_SIZE: int = 16
+HEIGHT = 32
+WIDTH = 32
+MAX_PALETTE_SIZE = 16
+MAX_NAME_BUF = 16
 
 
 class ColorMode(IntEnum):
@@ -58,7 +59,7 @@ def pack_color_to_16bit(bgr: np.ndarray, mode: ColorMode) -> np.ndarray:
 
 
 def bake(
-        image: np.ndarray, palette: np.ndarray, mode: ColorMode, out_name: str
+    image: np.ndarray, palette: np.ndarray, mode: ColorMode, out_name: str
 ) -> None:
     """Bake the data into a custom sprite file."""
 
