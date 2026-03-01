@@ -5,7 +5,7 @@ using namespace metal;
 #define HEIGHT 32
 #define MAX_PALETTE_SIZE 16
 
-enum ColorMode : uchar {
+enum ColorEncoding : uchar {
     DEFAULT = 1, // R5G6B5
     WARM, // R6G5B5
     COOL, // R5G5B6
@@ -23,7 +23,7 @@ struct Pixel {
 struct alignas(32) Sprite {
     uchar magic[8];
     uchar name[16];
-    ColorMode mode;
+    ColorEncoding encoding;
     uchar anchor_x;
     uchar anchor_y;
     uchar reserved[5];
@@ -39,7 +39,7 @@ kernel void sprite_render(constant Sprite& sprite [[buffer(0)]],
 
     const ushort color{sprite.palette[pixel.index]};
     float r, g, b;
-    switch (sprite.mode) {
+    switch (sprite.encoding) {
     case DEFAULT:
         r = ((color >> 11) & 0x1F) / 31.0;
         g = ((color >> 5) & 0x3F) / 63.0;

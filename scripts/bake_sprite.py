@@ -12,7 +12,7 @@ MAX_PALETTE_SIZE = 16
 MAX_NAME_BUF = 16
 
 
-class ColorMode(IntEnum):
+class ColorEncoding(IntEnum):
     DEFAULT = 1  # R5G6B5
     WARM = enum.auto()  # R6G5B5
     COOL = enum.auto()  # R5G5B6
@@ -28,18 +28,18 @@ def extract_palette(image: np.ndarray) -> np.ndarray:
     return unique_colors[sorted_indices[:MAX_PALETTE_SIZE]]
 
 
-def pack_color_to_16bit(image_bgr: np.ndarray, mode: ColorMode) -> np.ndarray:
+def pack_color_to_16bit(image_bgr: np.ndarray, encoding: ColorEncoding) -> np.ndarray:
     """Pack the color channels into a 16-bit unsigned int."""
 
     b, g, r = image_bgr.astype(np.uint16).T
 
-    if mode == ColorMode.DEFAULT:
+    if encoding == ColorEncoding.DEFAULT:
         packed_color = (r >> 3) << 11 | (g >> 2) << 5 | b >> 3
 
-    elif mode == ColorMode.WARM:
+    elif encoding == ColorEncoding.WARM:
         packed_color = (r >> 2) << 10 | (g >> 3) << 5 | b >> 3
 
-    elif mode == ColorMode.COOL:
+    elif encoding == ColorEncoding.COOL:
         packed_color = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
 
     else:
@@ -48,15 +48,15 @@ def pack_color_to_16bit(image_bgr: np.ndarray, mode: ColorMode) -> np.ndarray:
     return packed_color
 
 
-def bake(output_name: str, image: np.ndarray, palette: np.ndarray, mode: ColorMode) -> None:
+def bake(output_name: str, image: np.ndarray, palette: np.ndarray, encoding: ColorEncoding) -> None:
     """Bake the data into a custom sprite file."""
 
     name_bytes = output_name.encode()[:MAX_NAME_BUF]
-    header_bytes = struct.pack("<8s 16s B B B 5x", b"SPRITE", name_bytes, mode.value, 15, 29)
+    header_bytes = struct.pack("<8s 16s B B B 5x", b"SPRITE", name_bytes, encoding.value, 15, 29)
 
     palette_bytes = bytearray()
     palette_size = len(palette)
-    packed_palette = pack_color_to_16bit(palette, mode)
+    packed_palette = pack_color_to_16bit(palette, encoding)
     for i in range(MAX_PALETTE_SIZE):
         if i < palette_size:
             color = packed_palette[i]
@@ -85,17 +85,17 @@ def main() -> None:
     output_sprite_name = sys.argv[2]
 
     try:
-        mode = sys.argv[3].upper()
-        if mode == ColorMode.DEFAULT.name:
-            mode = ColorMode.DEFAULT
-        elif mode == ColorMode.WARM.name:
-            mode = ColorMode.WARM
-        elif mode == ColorMode.COOL.name:
-            mode = ColorMode.COOL
+        encoding = sys.argv[3].upper()
+        if encoding == ColorEncoding.DEFAULT.name:
+            encoding = ColorEncoding.DEFAULT
+        elif encoding == ColorEncoding.WARM.name:
+            encoding = ColorEncoding.WARM
+        elif encoding == ColorEncoding.COOL.name:
+            encoding = ColorEncoding.COOL
         else:
-            raise ValueError("Unknown color mode.")
+            raise ValueError("Unknown color encoding.")
     except IndexError:
-        mode = ColorMode.DEFAULT
+        encoding = ColorEncoding.DEFAULT
 
     image = cv2.imread(input_image_path, cv2.IMREAD_UNCHANGED)
     if image is None:
@@ -103,7 +103,7 @@ def main() -> None:
 
     palette = extract_palette(image[:, :, :3])
 
-    bake(output_sprite_name, image, palette, mode)
+    bake(output_sprite_name, image, palette, encoding)
 
 
 if __name__ == "__main__":

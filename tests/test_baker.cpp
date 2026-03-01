@@ -145,7 +145,7 @@ int main(const int argc, const char* argv[])
 
 void debug_sprite(sc::Sprite* sprite)
 {
-    std::printf("Magic: %.8s | Mode: %d\n", sprite->magic, sprite->mode); //
+    std::printf("Magic: %.8s | Encoding: %d\n", sprite->magic, sprite->encoding); //
     for (std::size_t y = 0; y < HEIGHT; ++y) {
         for (std::size_t x = 0; x < WIDTH; ++x) {
             const uint_fast8_t i{sprite->pixels[y * HEIGHT + x].index};
