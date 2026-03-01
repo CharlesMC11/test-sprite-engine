@@ -19,3 +19,5 @@ wheels/
 #
 *.bin
 *.pal
+data/
+include/metal-cpp/
