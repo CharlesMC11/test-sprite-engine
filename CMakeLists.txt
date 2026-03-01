@@ -3,24 +3,26 @@ project(pixel_tester C CXX ASM)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch arm64 -march=native
-    -falign-functions=16 -fcolor-diagnostics -Wall -Wextra -Wpedantic")
+set(MY_FLAGS "-arch arm64 -march=native -falign-functions=16 -fcolor-diagnostics -Wall -Wextra -Wpedantic")
 
-set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MY_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MY_FLAGS}")
 
-include_directories(include)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/include/metal-cpp")
 
 find_library(METAL_LIB Metal REQUIRED)
 find_library(QUARTZ_LIB QuartzCore REQUIRED)
 find_library(APPKIT_LIB AppKit REQUIRED)
 
-
 add_executable(pixel_tester
-        include/pixel.h
-        src/engine.s
-        src/shader.metal
-        tests/test_baker.c)
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/sprite.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/engine.s"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_baker.cpp"
+)
 
 target_link_libraries(pixel_tester
         ${METAL_LIB}
@@ -29,6 +31,9 @@ target_link_libraries(pixel_tester
 )
 
 add_custom_command(OUTPUT shader.metallib
-        COMMAND xcrun -sdk macosx metal -c src/shader.metal -o shader.air
+        COMMAND xcrun -sdk macosx metal -c "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal" -o shader.air
         COMMAND xcrun -sdk macosx metallib shader.air -o shader.metallib
-        DEPENDS src/shader.metal)
+        DEPENDS src/shader.metal
+)
+
+target_sources(pixel_tester PRIVATE shader.metallib)
