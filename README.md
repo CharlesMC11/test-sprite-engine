@@ -1,1 +1,0 @@
-Just something I’m playing with. I’m currently taking classes on C programming and assembly. After reading about the GBA’s hardware and picture processing unit, and how Pokémon Emerald utilized it, I was inspired to try something similar but implementing it on my arm-based CPU.
