@@ -73,9 +73,10 @@ def bake(
     for y in range(HEIGHT):
         for x in range(WIDTH):
             pixel = img[y, x]
+            alpha = (pixel[3] >> 6) << 4 if len(pixel) == 4 else 0x30
             dists = np.linalg.norm(palette[:, :3] - pixel[:3], axis=1)
             idx = np.argmin(dists).astype(np.uint8) & 0x0F
-            pixel_bytes.append(idx)
+            pixel_bytes.append(alpha | idx)
 
     with open(f"data/{output_name}.sprite", "wb") as f:
         f.write(header + palette_bytes + pixel_bytes)
@@ -103,11 +104,11 @@ def main() -> None:
 
     out_path = sys.argv[3]
 
-    img = cv2.imread(in_path, cv2.IMREAD_COLOR_BGR)
+    img = cv2.imread(in_path, cv2.IMREAD_UNCHANGED)
     if img is None:
         raise ValueError("Could not read input file.")
 
-    palette = get_palette(img)
+    palette = get_palette(img[:, :, :3])
 
     bake(img, palette, mode, out_path)
 

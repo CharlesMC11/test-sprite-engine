@@ -28,7 +28,8 @@ namespace sc {
 
     typedef struct {
         uint8_t index : 4;
-        uint8_t reserved : 4;
+        uint8_t alpha : 2;
+        uint8_t reserved : 2;
     } Pixel;
 
     typedef struct alignas(32) Sprite {
