@@ -14,7 +14,6 @@ namespace sc {
 #define HEIGHT 32
 #define MAX_PALETTE_SIZE 16
 
-    // Color Bit Distribution
     typedef enum ColorMode : uint8_t {
         DEFAULT = 1, // R5G6B5
         WARM, // R6G5B5
@@ -23,7 +22,6 @@ namespace sc {
         SEA, // RG2B12
     } ColorMode;
 
-    // BRGA
     typedef uint16_t Color;
 
     typedef struct {
