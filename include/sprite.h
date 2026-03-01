@@ -37,6 +37,7 @@ namespace sc {
         ColorMode mode;
         uint8_t anchor_x;
         uint8_t anchor_y;
+        uint8_t reserved[21];
         Color palette[MAX_PALETTE_SIZE];
         Pixel pixels[WIDTH * HEIGHT];
     } Sprite;
