@@ -108,7 +108,7 @@ int main(const int argc, const char* argv[])
             textureData.data(), WIDTH * 4 * sizeof(float), region, 0);
 
     // 4. Generate the PPM File
-    FILE* f = std::fopen("output_preview.ppm", "w");
+    FILE* f = std::fopen("data/preview.ppm", "w");
     if (!f) {
         std::printf("Error: Could not create PPM file.\n");
         return 1;
