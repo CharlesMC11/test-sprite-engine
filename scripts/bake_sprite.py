@@ -100,7 +100,7 @@ def main() -> None:
     elif mode == ColorMode.SEA.name:
         mode = ColorMode.SEA
     else:
-        raise ValueError("Unknown mode.")
+        raise ValueError("Unknown color mode.")
 
     out_path = sys.argv[3]
 
