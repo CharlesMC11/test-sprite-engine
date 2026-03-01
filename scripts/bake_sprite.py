@@ -1,6 +1,7 @@
 import struct
 import sys
 from enum import IntEnum
+import enum
 
 import cv2
 import numpy as np
@@ -11,10 +12,11 @@ MAX_PALETTE_SIZE: int = 16
 
 
 class ColorMode(IntEnum):
-    DEFAULT = 0  # R5G6B5
-    WARM = 2  # R6G5B5
-    FOREST = 3  # R3G10B3
-    SEA = 5  # R2G2B12
+    DEFAULT = 1  # R5G6B5
+    WARM = enum.auto()  # R6G5B5
+    COOL = enum.auto()  # R5G5B6
+    FOREST = enum.auto()  # R3G10B3
+    SEA = enum.auto()  # R2G2B12
 
 
 def get_palette(img: np.ndarray) -> np.ndarray:
@@ -37,6 +39,9 @@ def pack_pixel_bytes(pixels: np.ndarray, mode: ColorMode) -> int:
 
     elif mode == ColorMode.WARM:
         result = (r >> 2) << 10 | (g >> 3) << 5 | b >> 3
+
+    elif mode == ColorMode.COOL:
+        result = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
 
     elif mode == ColorMode.FOREST:
         g = (g / 0xFF * 0x3FF).astype(np.uint16)
@@ -87,6 +92,8 @@ def main() -> None:
         mode = ColorMode.DEFAULT
     elif mode == ColorMode.WARM.name:
         mode = ColorMode.WARM
+    elif mode == ColorMode.COOL.name:
+        mode = ColorMode.COOL
     elif mode == ColorMode.FOREST.name:
         mode = ColorMode.FOREST
     elif mode == ColorMode.SEA.name:

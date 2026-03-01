@@ -16,10 +16,11 @@ namespace sc {
 
     // Color Bit Distribution
     typedef enum ColorMode : uint8_t {
-        DEFAULT = 1, // 5-6-5
-        WARM = 2, // 6-5-5
-        FOREST = 3, // 3-10-3
-        SEA = 5, // 2-2-12
+        DEFAULT = 1, // R5G6B5
+        WARM, // R6G5B5
+        COOL, // R5G5B6
+        FOREST, // R3G10B3
+        SEA, // RG2B12
     } ColorMode;
 
     // BRGA
