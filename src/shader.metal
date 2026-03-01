@@ -37,9 +37,7 @@ kernel void sprite_render(constant Sprite& sprite [[buffer(0)]],
 {
     const auto pixel{sprite.pixels[gid.y * HEIGHT + gid.x]};
 
-    const auto idx{pixel.index & 0x0F};
-    const ushort color{sprite.palette[idx]};
-
+    const ushort color{sprite.palette[pixel.index]};
     float r, g, b;
     switch (sprite.mode) {
     case DEFAULT:
