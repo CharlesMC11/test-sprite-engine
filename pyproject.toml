@@ -1,7 +1,7 @@
 [project]
-name = "sprite-baker"
-version = "0.2.0"
-description = "Bake data into a custom sprite file."
+name = "pipeline-tools"
+version = "0.2.1"
+description = "Compile artworks into sprites, and preview them."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
@@ -9,6 +9,10 @@ dependencies = [
     "ruff==0.15.5",
     "ty==0.0.21",
 ]
+
+[project.scripts]
+bake = "pipeline.compiler:main"
+preview = "pipeline.interpreter:main"
 
 [tool.ruff]
 indent-width = 4
