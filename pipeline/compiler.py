@@ -1,21 +1,34 @@
-import enum
 import struct
 import sys
-from enum import IntEnum
 
 import cv2
 import numpy as np
 
-HEIGHT = 32
-WIDTH = 32
-MAX_PALETTE_SIZE = 16
-MAX_NAME_BUF = 16
+from pipeline.core import (
+    HEIGHT,
+    WIDTH,
+    MAX_PALETTE_SIZE,
+    SPRITE_METADATA,
+    ColorEncoding,
+)
 
 
-class ColorEncoding(IntEnum):
-    DEFAULT = 1  # R5G6B5
-    WARM = enum.auto()  # R6G5B5
-    COOL = enum.auto()  # R5G5B6
+def calculate_hitbox(image: np.ndarray) -> tuple[int, int, int, int]:
+    """"""
+
+    if image.shape[2] == 4:
+        alpha = image[:, :, 3]
+    else:
+        alpha = np.ones((HEIGHT, WIDTH)) * 0xFF
+
+    visible_coords = np.argwhere(alpha > 0)
+    if visible_coords.size > 0:
+        min_y, min_x = visible_coords.min(axis=0)
+        max_y, max_x = visible_coords.max(axis=0)
+    else:
+        min_x = min_y = max_x = max_y = 0
+
+    return min_x, min_y, max_x, max_y
 
 
 def extract_palette(image: np.ndarray) -> np.ndarray:
@@ -28,8 +41,10 @@ def extract_palette(image: np.ndarray) -> np.ndarray:
     return unique_colors[sorted_indices[:MAX_PALETTE_SIZE]]
 
 
-def pack_color_to_16bit(image_bgr: np.ndarray, encoding: ColorEncoding) -> np.ndarray:
-    """Pack the color channels into a 16-bit unsigned int."""
+def pack_color_to_16bit(
+    image_bgr: np.ndarray, encoding: ColorEncoding
+) -> np.ndarray:
+    """Pack the 8-bit BGR channels into an uint16."""
 
     b, g, r = image_bgr.astype(np.uint16).T
 
@@ -48,11 +63,28 @@ def pack_color_to_16bit(image_bgr: np.ndarray, encoding: ColorEncoding) -> np.nd
     return packed_color
 
 
-def bake(output_name: str, image: np.ndarray, palette: np.ndarray, encoding: ColorEncoding) -> None:
-    """Bake the data into a custom sprite file."""
+def compile_sprite(
+    output_name: str,
+    image: np.ndarray,
+    palette: np.ndarray,
+    encoding: ColorEncoding,
+) -> None:
+    """Compile the image into a sprite file."""
 
-    name_bytes = output_name.encode()[:MAX_NAME_BUF]
-    header_bytes = struct.pack("<8s 16s B B B 5x", b"SPRITE", name_bytes, encoding.value, 15, 29)
+    min_x, min_y, max_x, max_y = calculate_hitbox(image)
+    anchor_x = (max_x - min_x) // 2
+    anchor_y = max_y
+
+    metadata_bytes = struct.pack(
+        f"<{SPRITE_METADATA}",
+        min_x,
+        min_y,
+        max_x,
+        max_y,
+        anchor_x,
+        anchor_y,
+        encoding.value,
+    )
 
     palette_bytes = bytearray()
     palette_size = len(palette)
@@ -62,19 +94,25 @@ def bake(output_name: str, image: np.ndarray, palette: np.ndarray, encoding: Col
             color = packed_palette[i]
             palette_bytes.extend(struct.pack("<H", color))
         else:
-            palette_bytes.extend(struct.pack("<H", 0x0))
+            palette_bytes.extend(struct.pack("<H", 0x00))
 
-    pixel_bytes = bytearray()
-    for y in range(HEIGHT):
-        for x in range(WIDTH):
-            pixel = image[y, x]
-            alpha = (pixel[3] >> 6) << 4 if len(pixel) == 4 else 0x30
-            color_distances = np.linalg.norm(palette[:, :3] - pixel[:3], axis=1)
-            index = np.argmin(color_distances).astype(np.uint8) & 0x0F
-            pixel_bytes.append(alpha | index)
+    pixels = image[:, :, :3].reshape(-1, 3)
+    diffs = pixels[:, np.newaxis, :] - palette[np.newaxis, :, :3]
+    distances = np.linalg.norm(diffs, axis=2)
+    indices = np.argmin(distances, axis=1)
+
+    if image.shape[2] == 4:
+        alphas = image[:, :, 3].flatten() >> 6 & 0x03
+    else:
+        alphas = np.full(HEIGHT * WIDTH, 0x03, dtype=np.uint8)
+
+    packed_pixels = alphas << 4 | indices & 0x0F
+    pixel_bytes = packed_pixels.astype(np.uint8).tobytes()
+
+    padding_bytes = struct.pack("<Q", 0)
 
     with open(f"data/{output_name}.sprite", "wb") as f:
-        f.write(header_bytes + palette_bytes + pixel_bytes)
+        f.write(metadata_bytes + palette_bytes + pixel_bytes + padding_bytes)
 
 
 def main() -> None:
@@ -103,7 +141,7 @@ def main() -> None:
 
     palette = extract_palette(image[:, :, :3])
 
-    bake(output_sprite_name, image, palette, encoding)
+    compile_sprite(output_sprite_name, image, palette, encoding)
 
 
 if __name__ == "__main__":
