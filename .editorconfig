@@ -10,4 +10,5 @@ tab_width = 4
 trim_trailing_whitespace = true
 
 [*.s]
+indent_size = 8
 tab_width = 8
