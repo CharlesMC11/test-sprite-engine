@@ -20,18 +20,18 @@ struct Pixel {
     uchar reserved : 1;
 };
 
-struct alignas(32) Sprite {
-    uchar magic[8];
-    uchar name[16];
+struct alignas(16) Sprite {
+    uchar min_x, min_y;
+    uchar max_x, max_y;
+    uchar anchor_x, anchor_y;
     ColorEncoding encoding;
-    uchar anchor_x;
-    uchar anchor_y;
-    uchar reserved[5];
+    uchar reserved;
     Color palette[MAX_PALETTE_SIZE];
     Pixel pixels[WIDTH * HEIGHT];
+    ulong padding;
 };
 
-kernel void sprite_render(constant Sprite& sprite [[buffer(0)]],
+[[kernel]] void renderSprite(constant Sprite& sprite [[buffer(0)]],
         texture2d<float, access::write> outTexture [[texture(0)]],
         uint2 gid [[thread_position_in_grid]])
 {
