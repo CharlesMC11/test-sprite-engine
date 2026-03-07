@@ -7,15 +7,14 @@ void debug_sprite(const sc::memory_map<sc::sprite>& sprite);
 
 int main(const int argc, const char* argv[])
 {
-    if (argc < 2)
+    if (argc < 2) [[unlikely]]
         return 1;
 
-    const sc::memory_map<sc::sprite> loader{argv[1]};
-    if (!loader)
     const sc::memory_map<sc::sprite> sprite{argv[1]};
+    if (!sprite) [[unlikely]]
         return 1;
 
-    debug_sprite(loader);
+    debug_sprite(sprite);
 
     // render(loader.data());
 }
