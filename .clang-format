@@ -8,7 +8,7 @@ AlignConsecutiveDeclarations: false
 AlignOperands: false
 AlignTrailingComments: false
 AlwaysBreakTemplateDeclarations: Yes
-BraceWrapping: 
+BraceWrapping:
   AfterCaseLabel: false
   AfterClass: false
   AfterControlStatement: false
@@ -28,13 +28,16 @@ BraceWrapping:
 BreakBeforeBraces: Custom
 ColumnLimit: 80
 ContinuationIndentWidth: 8
-IncludeCategories: 
-  - Regex: '^<.*'
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^<.*\.h*'
     Priority: 1
-  - Regex: '^".*'
+  - Regex: '^<.*'
     Priority: 2
-  - Regex: '.*'
+  - Regex: '^".*'
     Priority: 3
+  - Regex: '.*'
+    Priority: 4
 IncludeIsMainRegex: '([-_](test|unittest))?$'
 IndentWidth: 4
 InsertNewlineAtEOF: true
