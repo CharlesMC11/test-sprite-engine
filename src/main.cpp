@@ -12,6 +12,7 @@ int main(const int argc, const char* argv[])
 
     const sc::memory_map<sc::sprite> loader{argv[1]};
     if (!loader)
+    const sc::memory_map<sc::sprite> sprite{argv[1]};
         return 1;
 
     debug_sprite(loader);
