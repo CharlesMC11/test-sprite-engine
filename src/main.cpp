@@ -21,8 +21,7 @@ int main(const int argc, const char* argv[])
 
 void debug_sprite(const sc::memory_map<sc::sprite>& sprite)
 {
-    printf("Encoding: %d\n",
-            sprite->encoding); //
+    printf("Encoding: %d\n", sprite->encoding);
     for (uint_fast8_t y = 0; y < HEIGHT; ++y) {
         for (uint_fast8_t x = 0; x < WIDTH; ++x) {
             const uint_fast8_t i = sprite->pixels[y * WIDTH + x].index;
