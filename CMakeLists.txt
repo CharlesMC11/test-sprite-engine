@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 4.1)
-project(pixel_tester C CXX ASM Swift)
+project(pixel_tester C CXX ASM)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(MY_FLAGS "-arch arm64 -march=native -falign-functions=16 -fcolor-diagnostics -Wall -Wextra -Wpedantic")
@@ -21,22 +21,10 @@ find_library(APPKIT_LIB AppKit REQUIRED)
 add_executable(pixel_tester
         "${CMAKE_CURRENT_SOURCE_DIR}/include/sprite.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/bridge.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/memory_map.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/engine.s"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/main.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/test_frontend.swift"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/renderer.swift"
-)
-
-set(BRIDGING_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/include/bridge.h")
-set_target_properties(pixel_tester PROPERTIES
-    Swift_BRIDGE_HEADER "${BRIDGING_HEADER}"
-    Swift_MODULE_NAME "pixel_tester"
-)
-
-target_compile_options(pixel_tester PRIVATE
-    $<$<COMPILE_LANGUAGE:Swift>:-import-objc-header>
-    $<$<COMPILE_LANGUAGE:Swift>:${BRIDGING_HEADER}>
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
 )
 
 target_link_libraries(pixel_tester
