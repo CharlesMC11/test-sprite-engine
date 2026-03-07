@@ -1,5 +1,4 @@
-#ifndef SPRITE_H
-#define SPRITE_H
+#pragma once
 
 #ifdef __cplusplus
 #include <cstdint>
@@ -15,35 +14,33 @@ namespace sc {
 #define HEIGHT 32
 #define MAX_PALETTE_SIZE 16
 
-    typedef enum ColorEncoding : uint8_t {
+    typedef enum color_encoding : uint8_t {
         DEFAULT = 1, // R5G6B5
         WARM, // R6G5B5
         COOL, // R5G5B6
-    } ColorEncoding;
+    } color_encoding;
 
-    typedef uint16_t Color;
+    typedef uint16_t color;
 
-    typedef struct Pixel {
+    typedef struct pixel {
         uint8_t index : 4;
         uint8_t alpha : 2;
         uint8_t glow : 1;
         uint8_t reserved : 1;
-    } Pixel;
+    } pixel;
 
-    typedef struct __attribute__((aligned(16))) Sprite {
+    typedef struct __attribute__((aligned(16))) sprite {
         uint8_t min_x, min_y;
         uint8_t max_x, max_y;
         uint8_t anchor_x, anchor_y;
-        ColorEncoding encoding;
+        color_encoding encoding;
         uint8_t reserved;
-        Color palette[MAX_PALETTE_SIZE];
-        Pixel pixels[WIDTH * HEIGHT];
+        color palette[MAX_PALETTE_SIZE];
+        pixel pixels[WIDTH * HEIGHT];
         uint64_t padding;
-    } Sprite;
+    } sprite;
 
 #ifdef __cplusplus
     } // extern "C"
 } // namespace sc
 #endif
-
-#endif // SPRITE_H
