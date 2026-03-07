@@ -44,10 +44,6 @@ namespace sc {
 
         buffer_ = static_cast<T*>(
                 mmap(nullptr, sizeof(T), PROT_READ, MAP_SHARED, fd, 0));
-        if (buffer_ == MAP_FAILED) {
-            close(fd);
-            return;
-        }
 
         close(fd);
     }
