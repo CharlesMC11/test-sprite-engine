@@ -20,7 +20,7 @@ namespace sc {
         auto* library{device->newLibrary(library_path, &error)};
 
         const auto* fn_name{
-                NS::String::string("renderSprite", NS::UTF8StringEncoding)};
+                NS::String::string("render_sprite", NS::UTF8StringEncoding)};
         auto* function{library->newFunction(fn_name)};
 
         pso_ = NS::TransferPtr(
@@ -41,7 +41,7 @@ namespace sc {
 
         encoder->setComputePipelineState(pso_.get());
 
-        encoder->setBytes(sprite.pixels, sizeof(sprite.pixels), 0);
+        encoder->setBytes(&sprite, sizeof(sprite), 0);
 
         const auto* out_texture{
                 reinterpret_cast<const CA::MetalDrawable*>(drawable)
