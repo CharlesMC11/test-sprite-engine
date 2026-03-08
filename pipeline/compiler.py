@@ -2,7 +2,7 @@
 Sprite Compiler.
 
 Bakes a 32×32 source (BGR/RGBA) image and optional glow masks into a specialized
-1072-byte binary format.
+1,072-byte binary format.
 
 The binary layout contains:
 - Metadata (8 bytes): Hitbox and anchor data.
