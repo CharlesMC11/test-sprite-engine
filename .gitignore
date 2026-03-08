@@ -27,4 +27,4 @@ vendor/
 *.png
 *.atlas
 *.sprite
-atlas_indices.h
+atlas_index.hpp

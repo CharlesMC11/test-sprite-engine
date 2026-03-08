@@ -20,7 +20,7 @@ find_library(QUARTZ_LIB QuartzCore REQUIRED)
 
 add_executable(pixel_tester
         "${CMAKE_CURRENT_SOURCE_DIR}/include/atlas.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/atlas_indices.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/atlas_index.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/bridge.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/sprite.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/memory_map.hpp"

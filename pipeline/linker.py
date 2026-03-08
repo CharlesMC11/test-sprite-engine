@@ -97,7 +97,7 @@ class AtlasLinker:
             for blob in self._sprite_blobs:
                 f.write(blob)
 
-        self._generate_header(output_path.with_name("atlas_indices.hpp"))
+        self._generate_header(output_path.with_name("atlas_index.hpp"))
 
     # Protected methods
 

@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "atlas_indices.hpp"
+#include "atlas_index.hpp"
 #include "sprite.hpp"
 
 namespace sc {
@@ -22,7 +22,7 @@ namespace sc {
                 std::size_t i) const noexcept;
 
         [[nodiscard]] constexpr const sprite& operator[](
-                atlas_indices i) const noexcept;
+                atlas_index i) const noexcept;
 
     private:
         char magic_[8];
@@ -42,7 +42,7 @@ namespace sc {
     }
 
     [[nodiscard]] constexpr const sprite& atlas::operator[](
-            const atlas_indices i) const noexcept
+            const atlas_index i) const noexcept
     {
         return (*this)[static_cast<std::size_t>(i)];
     }
