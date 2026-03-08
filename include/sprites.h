@@ -30,8 +30,8 @@ namespace sc {
     } pixel;
 
     typedef struct __attribute__((aligned(16))) sprite {
-        uint8_t min_x, min_y;
-        uint8_t max_x, max_y;
+        uint8_t hb_min_x, hb_min_y;
+        uint8_t hb_max_x, hb_max_y;
         uint8_t anchor_x, anchor_y;
         color_encoding encoding;
         uint8_t reserved;
@@ -39,6 +39,12 @@ namespace sc {
         pixel pixels[WIDTH * HEIGHT];
         uint64_t padding;
     } sprite;
+
+    typedef struct __attribute__((aligned(16))) atlas {
+        char magic[8];
+        uint64_t count;
+        sprite data[];
+    } atlas;
 
 #ifdef __cplusplus
     } // extern "C"

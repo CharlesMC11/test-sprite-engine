@@ -1,5 +1,5 @@
 #include "memory_map.hpp"
-#include "sprite.h"
+#include "sprites.h"
 
 extern void render(const sc::sprite* sprite);
 
