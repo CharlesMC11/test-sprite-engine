@@ -1,5 +1,10 @@
+/**
+ * @file atlas.hpp
+ * @brief
+ */
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #include "atlas_index.hpp"
@@ -7,8 +12,17 @@
 
 namespace sc {
 
+    /**
+     * @class atlas
+     * @brief A contiguous collection of sprites.
+     *
+     * This class is designed to live within an `sc::memory_map`. It uses a
+     * flexible array member (`data_`) to provide indexed access to sprites
+     * loaded directly from an `.atlas` file.
+     */
     class alignas(16) atlas final {
     public:
+        // Delete constructors because the atlas is mapped, not instantiated.
         atlas() = delete;
         ~atlas() = delete;
         atlas(const atlas&) = delete;

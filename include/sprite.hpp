@@ -38,7 +38,8 @@ namespace sc {
     /// \brief 16-bit–packed color, encoding determined by `color_encoding`.
     using color = uint16_t;
 
-    /// \brief 8-bit packed index/metadata pixel. See `PIXEL_` masks for mapping.
+    /// \brief 8-bit packed index/metadata pixel. See `PIXEL_` masks for
+    /// mapping.
     using pixel = uint8_t;
 
     /**

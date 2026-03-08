@@ -1,3 +1,7 @@
+/**
+ * @file memory_map.hpp
+ * @brief RAII wrapper for POSIX memory-mapped files.
+ */
 #pragma once
 
 #include <fcntl.h>
@@ -10,10 +14,22 @@
 
 namespace sc {
 
+    /**
+     * @concept mappable
+     * @brief Requirements for types to be safe to direct memory mapping.
+     *
+     * Type must be 16-byte aligned and follow Standard Layout to ensure the CPU
+     * and GPU interpret the raw bytes identically.
+     */
     template<typename T>
     concept mappable = alignof(T) == 16 && std::is_standard_layout_v<T> &&
             !std::is_polymorphic_v<T>;
 
+    /**
+     * @class memory_map
+     * @brief Manages `mmap`/`munmap` lifecycle for a specific file path.
+     * @tparam T The type to cast the mapped memory to.
+     */
     template<mappable T>
     class memory_map final {
     public:

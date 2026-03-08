@@ -1,3 +1,7 @@
+/**
+ * @file renderer.hpp
+ * @brief
+ */
 #pragma once
 
 #include <Metal/Metal.hpp>
@@ -6,10 +10,23 @@
 
 namespace sc {
 
+    /**
+     * @class renderer
+     * @brief High-level interface for the Metal Compute pipeline.
+     *
+     * Orchestrates the dispatch of kernels to the GPU using `sc::sprite` data
+     * as primary input.
+     */
     class renderer {
     public:
         explicit renderer(MTL::Device* device);
 
+        /**
+         * @brief Encode a draw command for a single sprite.
+         * @param rpd The current render pass descriptor.
+         * @param drawable The destination drawable/texture.
+         * @param sprite The source data to render.
+         */
         void draw(const MTL::RenderPassDescriptor* rpd,
                 const MTL::Drawable* drawable, const sprite& sprite) const;
 
