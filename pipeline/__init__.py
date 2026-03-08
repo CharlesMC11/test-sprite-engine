@@ -2,12 +2,10 @@ import enum
 from enum import IntEnum
 from typing import Final
 
+MAX_PALETTE_SIZE: Final[int] = 16
 SPRITE_HEIGHT: Final[int] = 32
 SPRITE_WIDTH: Final[int] = 32
-MAX_PALETTE_SIZE: Final[int] = 16
-
 SPRITE_SIZE_BYTES: Final[int] = 1_072
-
 SPRITE_METADATA: Final[str] = "BBBBBBB1x"
 """8-byte sprite metadata. 
 
