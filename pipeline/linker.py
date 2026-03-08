@@ -120,7 +120,7 @@ class AtlasLinker:
 
         for i, name in enumerate(self._sprite_names):
             clean_name = name.replace(" ", "_").replace("-", "_").upper()
-            lines.append(f"{' ' * 8}{clean_name} = {i},")
+            lines.append(f"{' ' * 8}{clean_name},")
 
         lines.extend(
             [
