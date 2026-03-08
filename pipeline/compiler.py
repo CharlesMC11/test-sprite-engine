@@ -278,7 +278,7 @@ def main() -> None:
         "--encoding",
         default=ColorEncoding.DEFAULT,
         type=lambda e: ColorEncoding[e.upper()],
-        choices=tuple(ColorEncoding),
+        choices=[e.name for e in ColorEncoding],
         help="Color encoding (Default, Warm, or Cool)",
     )
     parser.add_argument(
