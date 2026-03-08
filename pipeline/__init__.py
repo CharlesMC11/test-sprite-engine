@@ -1,5 +1,5 @@
-from enum import IntEnum
 import enum
+from enum import IntEnum
 from typing import Final
 
 SPRITE_HEIGHT: Final[int] = 32

@@ -6,6 +6,14 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 
+from pipeline import (
+    MAX_PALETTE_SIZE,
+    SPRITE_HEIGHT,
+    SPRITE_METADATA,
+    SPRITE_WIDTH,
+    ColorEncoding,
+)
+
 type BGRImage = npt.NDArray[np.uint8]
 type AlphaMask = npt.NDArray[np.uint8]
 type GlowMask = npt.NDArray[np.uint8]
@@ -13,14 +21,6 @@ type Palette = npt.NDArray[np.uint8]
 
 type PackedColors = npt.NDArray[np.uint16]
 type BakedPixels = npt.NDArray[np.uint8]
-
-from pipeline import (
-    SPRITE_HEIGHT,
-    SPRITE_WIDTH,
-    MAX_PALETTE_SIZE,
-    SPRITE_METADATA,
-    ColorEncoding,
-)
 
 
 def calculate_hitbox(mask: AlphaMask) -> tuple[int, int, int, int]:

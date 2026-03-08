@@ -1,15 +1,15 @@
-import cv2
-import sys
 import struct
+import sys
 from typing import Final
 
+import cv2
 import numpy as np
 
 from pipeline import (
-    ColorEncoding,
-    SPRITE_METADATA,
     SPRITE_HEIGHT,
+    SPRITE_METADATA,
     SPRITE_WIDTH,
+    ColorEncoding,
 )
 
 SCALE_2BIT_TO_8: Final[int] = 0xFF // 0x03
