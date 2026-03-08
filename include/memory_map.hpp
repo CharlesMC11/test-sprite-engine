@@ -78,7 +78,7 @@ namespace sc {
     template<mappable T>
     memory_map<T>::~memory_map() noexcept
     {
-        if (buffer_)
+        if (buffer_) [[likely]]
             munmap(const_cast<T*>(buffer_), size_);
     }
 
