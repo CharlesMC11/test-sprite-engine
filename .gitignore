@@ -10,15 +10,21 @@ dist/
 wheels/
 *.egg-info
 
-*.zip
-
 # Virtual environments
 .venv
+
+# System files
 
 .DS_Store
 .idea
 .vscode
 
+# Project files
 data/
 vendor/
+
+*.clip
+*.png
+*.atlas
+*.sprite
 atlas_indices.h
