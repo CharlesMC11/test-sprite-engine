@@ -11,7 +11,10 @@ set(MY_FLAGS "-arch arm64 -march=native -falign-functions=16 -fcolor-diagnostics
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MY_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MY_FLAGS}")
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/vendor/metal-cpp")
+include_directories(
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform"
+        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/metal-cpp")
 
 find_library(APPKIT_LIB AppKit REQUIRED)
 find_library(METAL_LIB Metal REQUIRED)
@@ -19,14 +22,10 @@ find_library(METALKIT_LIB MetalKit REQUIRED)
 find_library(QUARTZ_LIB QuartzCore REQUIRED)
 
 add_executable(pixel_tester
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/atlas.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/atlas_index.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/bridge.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/sprite.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/memory_map.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/engine.s"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/core/renderer.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCAppDelegate.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCViewport.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/main.mm"
 )
 
 target_link_libraries(pixel_tester
@@ -42,4 +41,5 @@ add_custom_command(OUTPUT shader.metallib
         DEPENDS src/shader.metal
 )
 
-target_sources(pixel_tester PRIVATE shader.metallib)
+add_custom_target(shaders DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/build/shader.metallib")
+add_dependencies(pixel_tester shaders)

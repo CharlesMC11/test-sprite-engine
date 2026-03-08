@@ -1,0 +1,34 @@
+#import "SCAppDelegate.h"
+
+#import <Cocoa/Cocoa.h>
+#import <MetalKit/MetalKit.h>
+
+@implementation SCAppDelegate
+
+- (void)applicationDidFinishLaunching:(NSNotification*)notification
+{
+    auto frame = NSMakeRect(0, 0, 800, 600);
+    self.window = [[NSWindow alloc]
+            initWithContentRect:frame
+                      styleMask:(NSWindowStyleMaskTitled |
+                                        NSWindowStyleMaskClosable |
+                                        NSWindowStyleMaskResizable)
+                        backing:NSBackingStoreBuffered
+                          defer:NO
+
+    ];
+    [self.window setTitle:@"Test Sprite Engine"];
+    [self.window center];
+
+    id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+    self.view = [[SCViewport alloc] initWithFrame:frame device:device];
+    self.window.contentView = self.view;
+
+    [self.window makeKeyAndOrderFront:nil];
+}
+
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender
+{
+    return YES;
+}
+@end
