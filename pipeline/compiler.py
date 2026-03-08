@@ -191,21 +191,32 @@ class SpriteCompiler:
 
 def main() -> None:
     parser = ArgumentParser("Sprite Compiler", description=__doc__)
-    parser.add_argument("input_image_path")
+    parser.add_argument(
+        "source_image", help="Path to the source BGR/RGBA image."
+    )
+    parser.add_argument(
+        "output_path", type=Path, help="Target path for the 1072-byte sprite."
+    )
     parser.add_argument(
         "-e",
         "--encoding",
         default=ColorEncoding.DEFAULT,
         type=lambda e: ColorEncoding[e.upper()],
         choices=tuple(ColorEncoding),
+        help="Color encoding (Default, Warm, or Cool)",
     )
-    parser.add_argument("-g", "--glow_map", default=None)
-    parser.add_argument("-o", "--output_sprite_path", type=Path, required=True)
+    parser.add_argument(
+        "-g",
+        "--glow_mask",
+        default=None,
+        type=Path,
+        help="Optional grayscale mask for glow mapping.",
+    )
 
     args = parser.parse_args()
 
     compiler = SpriteCompiler(args.encoding)
-    compiler.ingest_asset(args.input_image_path, args.glow_map)
+    compiler.ingest_asset(args.source_image, args.glow_mask)
     compiler.compile(args.output_sprite_path)
 
 
