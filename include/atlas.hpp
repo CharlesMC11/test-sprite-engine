@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "atlas_indices.h"
-#include "sprite.h"
+#include "atlas_indices.hpp"
+#include "sprite.hpp"
 
 namespace sc {
 
@@ -17,6 +17,9 @@ namespace sc {
         atlas& operator=(atlas&&) = delete;
 
         [[nodiscard]] constexpr std::uint64_t size() const noexcept;
+
+        [[nodiscard]] constexpr const sprite& operator[](
+                std::size_t i) const noexcept;
 
         [[nodiscard]] constexpr const sprite& operator[](
                 atlas_indices i) const noexcept;
@@ -33,9 +36,15 @@ namespace sc {
     }
 
     [[nodiscard]] constexpr const sprite& atlas::operator[](
-            const atlas_indices i) const noexcept
+            const std::size_t i) const noexcept
     {
         return data_[i];
+    }
+
+    [[nodiscard]] constexpr const sprite& atlas::operator[](
+            const atlas_indices i) const noexcept
+    {
+        return (*this)[static_cast<std::size_t>(i)];
     }
 
 } // namespace sc
