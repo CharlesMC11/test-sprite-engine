@@ -9,7 +9,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <string_view>
 #include <type_traits>
 
 namespace sc {
