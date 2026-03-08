@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <cstddef>
 #include <type_traits>
 
 namespace sc {
@@ -62,7 +63,7 @@ namespace sc {
             close(fd);
             return;
         }
-        size_ = st.st_size;
+        size_ = static_cast<std::size_t>(st.st_size);
 
         const void* result = mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd, 0);
         if (result == MAP_FAILED) [[unlikely]] {
