@@ -12,9 +12,9 @@ The binary layout contains:
 """
 
 import struct
-from pathlib import Path
 from argparse import ArgumentParser
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Final
 
 from pipeline import SPRITE_SIZE_BYTES
