@@ -17,9 +17,15 @@ namespace sc {
      * Orchestrates the dispatch of kernels to the GPU using `sc::sprite` data
      * as primary input.
      */
-    class renderer {
+    class renderer final {
     public:
         explicit renderer(MTL::Device* device);
+        ~renderer() = default;
+
+        renderer(const renderer&) = delete;
+        renderer(renderer&&) = delete;
+        renderer& operator=(const renderer&) = delete;
+        renderer& operator=(renderer&&) = delete;
 
         /**
          * @brief Encode a draw command for a single sprite.
