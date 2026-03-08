@@ -37,7 +37,7 @@ namespace sc {
     void renderer::draw(const MTL::RenderPassDescriptor* rpd,
             const MTL::Drawable* drawable, const sprite& sprite) const
     {
-        if (!(rpd && drawable))
+        if (!(pso_ && rpd && drawable)) [[unlikely]]
             return;
 
         auto* buffer{command_queue_->commandBuffer()};
