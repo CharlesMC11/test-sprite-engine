@@ -97,7 +97,7 @@ class AtlasLinker:
             for blob in self._sprite_blobs:
                 f.write(blob)
 
-        self._generate_header(output_path.with_name("atlas_indices.h"))
+        self._generate_header(output_path.with_name("atlas_indices.hpp"))
 
     # Protected methods
 
@@ -111,16 +111,11 @@ class AtlasLinker:
         lines = [
             "#pragma once",
             "",
-            "#ifdef __cplusplus",
             "#include <cstdint>",
             "",
             "namespace sc {",
-            f'{" " * 4}extern "C" {{',
-            "#else",
-            "#include <stdint.h>",
-            "#endif",
             "",
-            f"{' ' * 4}typedef enum atlas_indices : uint64_t {{",
+            f"{' ' * 4}enum class atlas_indices : std::uint64_t {{",
         ]
 
         for i, name in enumerate(self._sprite_names):
@@ -129,12 +124,9 @@ class AtlasLinker:
 
         lines.extend(
             [
-                f"{' ' * 4}}} atlas_indices;",
+                f"{' ' * 4}}};",
                 "",
-                "#ifdef __cplusplus",
-                f'{" " * 4}}} // extern "C"',
                 "} // namespace sc",
-                "#endif",
                 "",
             ]
         )
