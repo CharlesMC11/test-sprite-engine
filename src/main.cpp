@@ -3,7 +3,7 @@
 
 extern void render(const sc::sprite* sprite);
 
-void debug_sprite(const sc::memory_map<sc::sprite>& sprite);
+void debug_sprite(const sc::sprite& sprite);
 
 int main(const int argc, const char* argv[])
 {
@@ -12,25 +12,27 @@ int main(const int argc, const char* argv[])
         return 1;
     }
 
-    const sc::memory_map<sc::atlas> sprite{argv[1]};
-    if (!sprite) [[unlikely]] {
+    const sc::memory_map<sc::atlas> atlas{argv[1]};
+    if (!atlas) [[unlikely]] {
         perror("Could not load sprites");
         return 1;
     }
 
-    printf("Count: %llu, Size: %zu", sprite->size(), sprite.size());
+    printf("Count: %llu, Size: %zu\n", atlas->size(), atlas.size());
 
-    // debug_sprite(sprite);
+    for (std::size_t i{0}; i < atlas->size(); ++i) {
+        debug_sprite((*atlas)[i]);
+    }
 
     // render(loader.data());
 }
 
-void debug_sprite(const sc::memory_map<sc::sprite>& sprite)
+void debug_sprite(const sc::sprite& sprite)
 {
-    printf("Encoding: %d\n", sprite->encoding);
-    for (uint_fast8_t y = 0; y < HEIGHT; ++y) {
-        for (uint_fast8_t x = 0; x < WIDTH; ++x) {
-            const uint_fast8_t i = sprite->pixels[y * WIDTH + x].index;
+    printf("Encoding: %u\n", static_cast<std::uint8_t>(sprite.encoding));
+    for (uint_fast8_t y = 0; y < sc::HEIGHT; ++y) {
+        for (uint_fast8_t x = 0; x < sc::WIDTH; ++x) {
+            const uint_fast8_t i = sprite.pixels[y * sc::WIDTH + x].index;
 
             printf("%c", i > 0 ? '#' : ' ');
         }
