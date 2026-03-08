@@ -23,7 +23,7 @@ find_library(QUARTZ_LIB QuartzCore REQUIRED)
 
 add_executable(pixel_tester
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCAppDelegate.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCViewport.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCStage.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/renderer.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/main.mm"
 )

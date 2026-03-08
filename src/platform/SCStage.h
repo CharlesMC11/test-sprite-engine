@@ -2,5 +2,5 @@
 
 #import <MetalKit/MetalKit.h>
 
-@interface SCViewport : MTKView <MTKViewDelegate>
+@interface SCStage : MTKView <MTKViewDelegate>
 @end

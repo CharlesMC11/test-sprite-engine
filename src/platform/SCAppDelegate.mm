@@ -3,6 +3,8 @@
 #import <Cocoa/Cocoa.h>
 #import <MetalKit/MetalKit.h>
 
+#import "SCStage.h"
+
 @implementation SCAppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification*)notification
@@ -21,7 +23,7 @@
     [self.window center];
 
     id<MTLDevice> device = MTLCreateSystemDefaultDevice();
-    self.view = [[SCViewport alloc] initWithFrame:frame device:device];
+    self.view = [[SCStage alloc] initWithFrame:frame device:device];
     self.window.contentView = self.view;
 
     [self.window makeKeyAndOrderFront:nil];
