@@ -30,6 +30,7 @@
 {
     delete _renderer;
     delete _atlas;
+    [super dealloc];
 }
 
 - (void)drawInMTKView:(MTKView*)view
