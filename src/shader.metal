@@ -1,38 +1,38 @@
 #include <metal_stdlib>
-using namespace metal;
 
-#define WIDTH 32
 #define HEIGHT 32
+#define WIDTH 32
 #define MAX_PALETTE_SIZE 16
 
-enum ColorEncoding : uchar {
+enum class color_encoding : uchar {
     DEFAULT = 1, // R5G6B5
     WARM, // R6G5B5
     COOL, // R5G5B6
 };
 
-using Color = ushort;
+using color = ushort;
 
-struct Pixel {
+struct pixel {
     uchar index : 4;
     uchar alpha : 2;
     uchar glow : 1;
     uchar reserved : 1;
 };
 
-struct alignas(16) Sprite {
+struct alignas(16) sprite {
     uchar min_x, min_y;
     uchar max_x, max_y;
     uchar anchor_x, anchor_y;
-    ColorEncoding encoding;
+    color_encoding encoding;
     uchar reserved;
-    Color palette[MAX_PALETTE_SIZE];
-    Pixel pixels[WIDTH * HEIGHT];
+    color palette[MAX_PALETTE_SIZE];
+    pixel pixels[HEIGHT * WIDTH];
     ulong padding;
 };
 
-[[kernel]] void renderSprite(constant Sprite& sprite [[buffer(0)]],
-        texture2d<float, access::write> outTexture [[texture(0)]],
+[[kernel]] void render_sprite(constant sprite& sprite [[buffer(0)]],
+        metal::texture2d<float, metal::access::write> out_texture
+        [[texture(0)]],
         uint2 gid [[thread_position_in_grid]])
 {
     const auto pixel{sprite.pixels[gid.y * WIDTH + gid.x]};
@@ -40,17 +40,17 @@ struct alignas(16) Sprite {
     const ushort color{sprite.palette[pixel.index]};
     float r, g, b;
     switch (sprite.encoding) {
-    case DEFAULT:
+    case color_encoding::DEFAULT:
         r = ((color >> 11) & 0x1F) / 31.0;
         g = ((color >> 5) & 0x3F) / 63.0;
         b = (color & 0x1F) / 31.0;
         break;
-    case WARM:
+    case color_encoding::WARM:
         r = ((color >> 10) & 0x3F) / 63.0;
         g = ((color >> 5) & 0x1F) / 31.0;
         b = (color & 0x1F) / 31.0;
         break;
-    case COOL:
+    case color_encoding::COOL:
         r = ((color >> 11) & 0x1F) / 31.0;
         g = ((color >> 5) & 0x1F) / 31.0;
         b = (color & 0x3F) / 63.0;
@@ -63,5 +63,5 @@ struct alignas(16) Sprite {
     }
     const float a{pixel.alpha / 3.0};
 
-    outTexture.write(float4(r, g, b, a), gid);
+    out_texture.write(float4(r, g, b, a), gid);
 }
