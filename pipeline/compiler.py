@@ -1,3 +1,16 @@
+"""
+Sprite Compiler.
+
+Bakes a 32×32 source (BGR/RGBA) image and optional glow masks into a specialized
+1072-byte binary format.
+
+The binary layout contains:
+- Metadata (8 bytes): Hitbox and anchor data.
+- Palette (32 bytes): 16 colors as 16-bit packed integers.
+- Pixels (1,024 bytes): 8-bit packed values [R][G][AA][IIII].
+- Padding (8 bytes): For 16-byte alignment.
+"""
+
 import struct
 from argparse import ArgumentParser
 from pathlib import Path
@@ -24,7 +37,12 @@ type BakedPixels = npt.NDArray[np.uint8]
 
 
 def calculate_hitbox(mask: AlphaMask) -> tuple[int, int, int, int]:
-    """Calculate the hitbox of a sprite."""
+    """
+    Calculate the hitbox of a sprite based from an alpha mask.
+
+    :param mask: An alpha mask to calculate the hitbox from.
+    :returns: The top-left and bottom-right coordinates of the hitbox.
+    """
 
     visible_coords = np.argwhere(mask > 0)
     if visible_coords.size > 0:
@@ -39,7 +57,13 @@ def calculate_hitbox(mask: AlphaMask) -> tuple[int, int, int, int]:
 def pack_colors_to_16bit(
     image_bgr: BGRImage, encoding: ColorEncoding
 ) -> PackedColors:
-    """Pack the 8-bit BGR channels into an uint16."""
+    """
+    Pack the 8-bit BGR channels into 16-bit integers.
+
+    :param image_bgr: The original color channels to pack.
+    :param encoding: The color encoding mode to use.
+    :returns: The packed 16-bit colors.
+    """
 
     b, g, r = image_bgr.astype(np.uint16).T
 
@@ -59,7 +83,7 @@ def pack_colors_to_16bit(
 
 
 class SpriteCompiler:
-    """"""
+    """Compiles a source image into a sprite file."""
 
     # Type annotations
 
@@ -84,10 +108,27 @@ class SpriteCompiler:
     def ingest_asset(
         self, image_path: str, glow_mask_path: Path | None
     ) -> None:
-        """"""
+        """
+        Validate the source asset.
+
+        Split the source image into color and alpha channels, flatten the pixel
+        grid for evaluation, and pre-threshold the glow mask.
+
+        :param image_path: The filesystem path to a 32×32 BGR/RGBA image.
+        :param glow_mask_path: Optional path to a 32×32 grayscale glow mask.
+
+        :raises RuntimeError: If OpenCV fails to read the assets.
+        :raises ValueError: If the image dimensions are not 32×32.
+        """
 
         if (image := cv2.imread(image_path, cv2.IMREAD_UNCHANGED)) is None:
-            raise ValueError("Could not read image file!")
+            raise RuntimeError("Could not read source image.")
+
+        h, w = image.shape[:2]
+        if h != SPRITE_HEIGHT or w != SPRITE_WIDTH:
+            raise ValueError(
+                f"Asset dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
+            )
 
         if image.shape[2] >= 4:
             self._source_image = image[:, :, :3]
@@ -110,7 +151,11 @@ class SpriteCompiler:
         self._palette = self._extract_palette()
 
     def compile(self, output_path: Path) -> None:
-        """Compile the image into a sprite file."""
+        """
+        Compile the image into a sprite file.
+
+        :param output_path: The path to save the sprite to.
+        """
 
         hitbox = calculate_hitbox(self._source_alpha)
         hb_min_x, hb_min_y, hb_max_x, hb_max_y = hitbox
@@ -150,7 +195,14 @@ class SpriteCompiler:
     # Protected methods
 
     def _ingest_glow_mask(self, glow_mask_path: Path) -> None:
-        """"""
+        """
+        Ingest the glow mask.
+
+        :param glow_mask_path: The path to the glow mask.
+        :raises FileNotFoundError: If the glow mask is missing.
+        :raises RuntimeError: If OpenCV fails to read the mask.
+        :raises ValueError: If the mask dimensions are not 32×32.
+        """
 
         if not glow_mask_path.exists():
             raise FileNotFoundError(f"Missing glow map file: {glow_mask_path}")
@@ -159,10 +211,20 @@ class SpriteCompiler:
         ) is None:
             raise RuntimeError(f"Could not read glow mask: {glow_mask_path}.")
 
+        h, w = glow_mask[:2]
+        if h!= SPRITE_HEIGHT or w != SPRITE_WIDTH:
+            raise ValueError(
+                f"Mask dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
+            )
+
         self._glow_bits = (glow_mask.flatten() > 0x80).astype(np.uint8)
 
     def _extract_palette(self) -> Palette:
-        """Extract the palette from an image."""
+        """
+        Extract 16 unique colors from the source image.
+
+        :returns: The 16 unique colors that were extracted.
+        """
 
         unique_colors, counts = np.unique(
             self._pixel_flat_list, axis=0, return_counts=True
@@ -172,7 +234,11 @@ class SpriteCompiler:
         return unique_colors[sorted_indices[:MAX_PALETTE_SIZE]]
 
     def _index_colors(self):
-        """Calculate the indices based on the extracted palette."""
+        """
+        Calculate the color indices for the extracted palette.
+
+        :returns: The indices to colors in the palette.
+        """
 
         color_deltas = self._pixel_flat_list[:, np.newaxis, :] - self._palette
         distances = np.linalg.norm(color_deltas, axis=2)
@@ -180,7 +246,17 @@ class SpriteCompiler:
         return np.argmin(distances, axis=1)
 
     def _bake_pixels(self) -> BakedPixels:
-        """"""
+        """
+        Bake the pixel surface into a final 8-bit format.
+
+        The Bit Mapping:
+        - [7] Reserved: Always 0.
+        - [6] Glow: Boolean signal (0 or 1).
+        - [4–5] Alpha: 2-bit transparency (0–3).
+        - [0–3] Palette Index: Pointer to one of the 16 colors.
+
+        :returns: The baked pixels.
+        """
 
         indices = self._index_colors() & 0x0F
         alphas = (self._source_alpha.flatten() >> 6) & 0x03
@@ -217,7 +293,7 @@ def main() -> None:
 
     compiler = SpriteCompiler(args.encoding)
     compiler.ingest_asset(args.source_image, args.glow_mask)
-    compiler.compile(args.output_sprite_path)
+    compiler.compile(args.output_path)
 
 
 if __name__ == "__main__":
