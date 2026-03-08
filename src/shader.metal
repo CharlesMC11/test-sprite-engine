@@ -9,7 +9,7 @@
 {
     const auto pixel{sprite.pixels[gid.y * sc::SPRITE_WIDTH + gid.x]};
 
-    const ushort color{sprite.palette[(pixel & sc::PIXEL_INDEX_MASK) << 4]};
+    const ushort color{sprite.palette[pixel & sc::PIXEL_INDEX_MASK]};
     float r{1.0}, g{1.0}, b{1.0};
     switch (sprite.encoding) {
     case sc::color_encoding::DEFAULT:
@@ -30,7 +30,7 @@
     default:
         break;
     }
-    const float a{((pixel & sc::PIXEL_ALPHA_MASK) << 2) / 3.0};
+    const float a{((pixel & sc::PIXEL_ALPHA_MASK) >> 4) / 3.0};
 
     out_texture.write(float4(r, g, b, a), gid);
 }
