@@ -25,12 +25,21 @@ ATLAS_MAGIC: Final[bytes] = b"SC ATLAS"
 class AtlasLinker:
     """Assembles multiple `.sprite` files into a singler memory-mappable atlas."""
 
+    # Type annotations
+
     _sprite_blobs: list[bytes]
     _sprite_names: list[str]
+
+    # Magic methods
 
     def __init__(self):
         self._sprite_blobs = []
         self._sprite_names = []
+
+    def __len__(self) -> int:
+        return len(self._sprite_blobs)
+
+    # Public methods
 
     def add_from_file_list(self, list_path: Path) -> None:
         """
@@ -48,9 +57,6 @@ class AtlasLinker:
 
         self.add_sprites(paths)
 
-    def __len__(self) -> int:
-        return len(self._sprite_blobs)
-
     def add_sprites(self, sprite_paths: Sequence[Path]) -> None:
         """
         Ingest and validate sprite binaries.
@@ -66,7 +72,9 @@ class AtlasLinker:
 
             blob = path.read_bytes()
             if len(blob) != SPRITE_SIZE_BYTES:
-                raise ValueError(f"{path.name} must be {SPRITE_SIZE_BYTES} bytes.")
+                raise ValueError(
+                    f"{path.name} must be {SPRITE_SIZE_BYTES} bytes."
+                )
 
             self._sprite_blobs.append(blob)
             self._sprite_names.append(path.stem)
@@ -89,6 +97,50 @@ class AtlasLinker:
             for blob in self._sprite_blobs:
                 f.write(blob)
 
+        self._generate_header(output_path.with_name("atlas_indices.h"))
+
+    # Protected methods
+
+    def _generate_header(self, header_path: Path) -> None:
+        """
+        Generate a C header mapping sprite names to their atlas indices.
+
+        :param header_path: The path to save the header to.
+        """
+
+        lines = [
+            "#pragma once",
+            "",
+            "#ifdef __cplusplus",
+            "#include <cstdint>",
+            "",
+            "namespace sc {",
+            f'{" " * 4}extern "C" {{',
+            "#else",
+            "#include <stdint.h>",
+            "#endif",
+            "",
+            f"{' ' * 4}typedef enum atlas_indices : uint64_t {{",
+        ]
+
+        for i, name in enumerate(self._sprite_names):
+            clean_name = name.replace(" ", "_").replace("-", "_").upper()
+            lines.append(f"{' ' * 8}{clean_name} = {i},")
+
+        lines.extend(
+            [
+                f"{' ' * 4}}} atlas_indices;",
+                "",
+                "#ifdef __cplusplus",
+                f'{" " * 4}}} // extern "C"',
+                "} // namespace sc",
+                "#endif",
+                "",
+            ]
+        )
+
+        header_path.write_text("\n".join(lines))
+
 
 def main() -> None:
     parser = ArgumentParser("Atlas Linker", description=__doc__)
@@ -96,7 +148,7 @@ def main() -> None:
         "output_path", type=Path, help="Target path for the sprite atlas."
     )
     parser.add_argument(
-        "-i", '--input', nargs='*', type=Path, help="Paths to the sprite files."
+        "-i", "--input", nargs="*", type=Path, help="Paths to the sprite files."
     )
     parser.add_argument(
         "-f",
@@ -121,5 +173,5 @@ def main() -> None:
     linker.link(args.output_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
