@@ -212,7 +212,7 @@ class SpriteCompiler:
             raise RuntimeError(f"Could not read glow mask: {glow_mask_path}.")
 
         h, w = glow_mask[:2]
-        if h!= SPRITE_HEIGHT or w != SPRITE_WIDTH:
+        if h != SPRITE_HEIGHT or w != SPRITE_WIDTH:
             raise ValueError(
                 f"Mask dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
             )
