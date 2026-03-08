@@ -8,6 +8,7 @@
 #define SC_CONSTANT constant constexpr
 #else
 #define SC_CONSTANT constexpr
+#include <cstdint>
 #endif
 
 namespace sc {
