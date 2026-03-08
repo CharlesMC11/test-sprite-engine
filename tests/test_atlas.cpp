@@ -1,8 +1,6 @@
 #include "atlas.hpp"
 #include "memory_map.hpp"
 
-extern void render(const sc::sprite* sprite);
-
 void debug_sprite(const sc::sprite& sprite);
 
 int main(const int argc, const char* argv[])
