@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 
 #include "atlas_index.hpp"
 #include "sprite.hpp"
@@ -38,8 +39,16 @@ namespace sc {
         [[nodiscard]] constexpr const sprite& operator[](
                 atlas_index i) const noexcept;
 
+        [[nodiscard]] constexpr bool is_valid(
+                std::size_t mapped_size) const noexcept;
+
     private:
-        char magic_[8];
+        static constexpr std::size_t EXPECTED_MAGIC_SIZE{8};
+
+        static constexpr char EXPECTED_MAGIC[EXPECTED_MAGIC_SIZE]{
+                'S', 'C', ' ', 'A', 'T', 'L', 'A', 'S'};
+
+        char magic_[EXPECTED_MAGIC_SIZE];
         uint64_t count_;
         sprite data_[];
     };
@@ -59,6 +68,13 @@ namespace sc {
             const atlas_index i) const noexcept
     {
         return (*this)[static_cast<std::size_t>(i)];
+    }
+
+    [[nodiscard]] constexpr bool atlas::is_valid(
+            const std::size_t mapped_size) const noexcept
+    {
+        return std::memcmp(magic_, EXPECTED_MAGIC, EXPECTED_MAGIC_SIZE) == 0 &&
+                sizeof(atlas) + count_ * sizeof(sprite) == mapped_size;
     }
 
 } // namespace sc
