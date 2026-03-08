@@ -7,6 +7,8 @@
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
 
+#include <iostream>
+
 namespace sc {
 
     renderer::renderer(MTL::Device* device)
@@ -25,6 +27,8 @@ namespace sc {
 
         pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
+        if (!pso_) [[unlikely]]
+            std::cerr << error->localizedDescription() << std::endl;
 
         function->release();
         library->release();
