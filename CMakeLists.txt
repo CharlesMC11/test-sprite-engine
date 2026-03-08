@@ -38,8 +38,8 @@ target_link_libraries(pixel_tester
 add_custom_command(OUTPUT shader.metallib
         COMMAND xcrun -sdk macosx metal -c -I "${CMAKE_CURRENT_SOURCE_DIR}/include"
             "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal" -o shader.air
-        COMMAND xcrun -sdk macosx metallib shader.air -o shader.metallib
-        DEPENDS src/shader.metal
+        COMMAND xcrun -sdk macosx metallib shader.air -o "${CMAKE_CURRENT_SOURCE_DIR}/assets/shader.metallib"
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal"
 )
 
 add_custom_target(shaders DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/shader.metallib")

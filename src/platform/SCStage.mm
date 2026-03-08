@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include "constants.hpp"
 #include "atlas.hpp"
 #include "memory_map.hpp"
 #include "renderer.hpp"
@@ -21,7 +22,7 @@
         self.delegate = self;
 
         _memory_map = std::make_unique<sc::memory_map<sc::atlas>>(
-                "data/master.atlas");
+                sc::paths::CHARACTER_ATLAS);
         if (!(_memory_map && *_memory_map)) {
             NSLog(@"FATAL: Could not map atlas file.");
             abort();

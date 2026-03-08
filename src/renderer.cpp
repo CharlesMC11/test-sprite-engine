@@ -9,6 +9,8 @@
 
 #include <iostream>
 
+#include "constants.hpp"
+
 namespace sc {
 
     renderer::renderer(MTL::Device* device)
@@ -18,7 +20,7 @@ namespace sc {
         NS::Error* error{nullptr};
 
         const auto* library_path{NS::String::string(
-                "build/shader.metallib", NS::UTF8StringEncoding)};
+                paths::SHADER_LIB, NS::UTF8StringEncoding)};
         auto* library{device->newLibrary(library_path, &error)};
 
         const auto* fn_name{
