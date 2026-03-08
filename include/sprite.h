@@ -40,12 +40,6 @@ namespace sc {
         uint64_t padding;
     } sprite;
 
-    typedef struct __attribute__((aligned(16))) atlas {
-        char magic[8];
-        uint64_t count;
-        sprite data[];
-    } atlas;
-
 #ifdef __cplusplus
     } // extern "C"
 } // namespace sc

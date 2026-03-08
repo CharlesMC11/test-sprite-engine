@@ -27,9 +27,11 @@ namespace sc {
         [[nodiscard]] constexpr const T& operator*() const noexcept;
         [[nodiscard]] explicit constexpr operator bool() const noexcept;
 
+        [[nodiscard]] constexpr std::size_t size() const noexcept;
         [[nodiscard]] constexpr const T* data() const noexcept;
 
     private:
+        std::size_t size_{0};
         const T* buffer_ = nullptr;
     };
 
@@ -41,13 +43,13 @@ namespace sc {
             return;
 
         struct stat st;
-        if (fstat(fd, &st) < 0 || st.st_size != sizeof(T)) [[unlikely]] {
+        if (fstat(fd, &st) < 0) [[unlikely]] {
             close(fd);
             return;
         }
+        size_ = st.st_size;
 
-        const void* result =
-                mmap(nullptr, sizeof(T), PROT_READ, MAP_SHARED, fd, 0);
+        const void* result = mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd, 0);
         if (result == MAP_FAILED) [[unlikely]] {
             close(fd);
             return;
@@ -61,7 +63,7 @@ namespace sc {
     memory_map<T>::~memory_map() noexcept
     {
         if (buffer_)
-            munmap(const_cast<T*>(buffer_), sizeof(T));
+            munmap(const_cast<T*>(buffer_), size_);
     }
 
     template<mappable T>
@@ -80,6 +82,12 @@ namespace sc {
     [[nodiscard]] constexpr memory_map<T>::operator bool() const noexcept
     {
         return buffer_ != nullptr;
+    }
+
+    template<mappable T>
+    [[nodiscard]] constexpr std::size_t memory_map<T>::size() const noexcept
+    {
+        return size_;
     }
 
     template<mappable T>
