@@ -13,15 +13,6 @@
 
 namespace sc {
 
-    /// \brief Bits 0–3: Palette index
-    SC_CONSTANT uint8_t PIXEL_INDEX_MASK{0x0F};
-
-    /// \brief Bits 4–5: 2-bit transparency
-    SC_CONSTANT uint8_t PIXEL_ALPHA_MASK{0x30};
-
-    /// \brief Bit 6: Glow flag
-    SC_CONSTANT uint8_t PIXEL_GLOW_MASK{0x40};
-
     SC_CONSTANT uint32_t SPRITE_MAX_PALETTE_SIZE{16};
     SC_CONSTANT uint32_t SPRITE_HEIGHT{32};
     SC_CONSTANT uint32_t SPRITE_WIDTH{32};
@@ -39,9 +30,18 @@ namespace sc {
     /// \brief 16-bit–packed color, encoding determined by `color_encoding`.
     using color = uint16_t;
 
-    /// \brief 8-bit packed index/metadata pixel. See `PIXEL_` masks for
-    /// mapping.
-    using pixel = uint8_t;
+    /**
+     * @union pixel
+     * @brief 8-bit packed index/metadata pixel.
+     */
+    union pixel {
+        uint8_t buffer;
+        struct {
+            uint8_t index : 4;
+            uint8_t alpha : 2;
+            uint8_t glow : 1;
+        };
+    };
 
     /**
      * @struct sprite
