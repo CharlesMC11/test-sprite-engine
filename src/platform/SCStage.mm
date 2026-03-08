@@ -10,7 +10,7 @@
 #include "renderer.hpp"
 
 @implementation SCStage {
-    std::unique_ptr<sc::memory_map<sc::atlas>> _memory_map;
+    std::unique_ptr<sc::memory_map<sc::atlas>> _loader;
     const sc::atlas* _atlas;
     std::unique_ptr<sc::renderer> _renderer;
 }
@@ -21,15 +21,15 @@
     if (self) {
         self.delegate = self;
 
-        _memory_map = std::make_unique<sc::memory_map<sc::atlas>>(
+        _loader = std::make_unique<sc::memory_map<sc::atlas>>(
                 sc::paths::CHARACTER_ATLAS);
-        if (!(_memory_map && *_memory_map)) {
+        if (!(_loader && *_loader)) {
             NSLog(@"FATAL: Could not map atlas file.");
             abort();
         }
 
-        _atlas = &(**_memory_map);
-        if (!_atlas->is_valid(_memory_map->size())) {
+        _atlas = &(**_loader);
+        if (!_atlas->is_valid(_loader->size())) {
             NSLog(@"FATAL: Atlas header validation failed.");
             abort();
         }
