@@ -11,8 +11,8 @@
 namespace sc {
 
     template<typename T>
-    concept mappable = alignof(T) == 16 && std::is_trivially_copyable_v<T> &&
-            std::is_standard_layout_v<T>;
+    concept mappable = alignof(T) == 16 && std::is_standard_layout_v<T> &&
+            !std::is_polymorphic_v<T>;
 
     template<mappable T>
     class memory_map final {
