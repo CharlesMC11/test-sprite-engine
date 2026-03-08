@@ -48,7 +48,7 @@ namespace sc {
                         ->texture()};
         encoder->setTexture(out_texture, 0);
 
-        const auto grid_size{MTL::Size(WIDTH, HEIGHT, 1)};
+        const auto grid_size{MTL::Size(SC_SPRITE_WIDTH, SC_SPRITE_HEIGHT, 1)};
         const auto thread_group_size{MTL::Size(8, 8, 1)};
         encoder->dispatchThreads(grid_size, thread_group_size);
 

@@ -22,9 +22,9 @@ find_library(METALKIT_LIB MetalKit REQUIRED)
 find_library(QUARTZ_LIB QuartzCore REQUIRED)
 
 add_executable(pixel_tester
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/core/renderer.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCAppDelegate.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCViewport.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/renderer.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/main.mm"
 )
 
@@ -36,7 +36,7 @@ target_link_libraries(pixel_tester
 )
 
 add_custom_command(OUTPUT shader.metallib
-        COMMAND xcrun -sdk macosx metal -c "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal" -o shader.air
+        COMMAND xcrun -sdk macosx metal -c -I "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal" -o shader.air
         COMMAND xcrun -sdk macosx metallib shader.air -o shader.metallib
         DEPENDS src/shader.metal
 )
