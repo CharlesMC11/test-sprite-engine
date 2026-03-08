@@ -1,18 +1,24 @@
 import cv2
 import sys
 import struct
+from typing import Final
 
 import numpy as np
 
-from pipeline.core import ColorEncoding, SPRITE_METADATA, HEIGHT, WIDTH
+from pipeline import (
+    ColorEncoding,
+    SPRITE_METADATA,
+    SPRITE_HEIGHT,
+    SPRITE_WIDTH,
+)
 
-SCALE_2BIT_TO_8 = 0xFF // 0x03
-SCALE_5BIT_TO_8 = 0xFF // 0x1F
-SCALE_6BIT_TO_8 = 0xFF // 0x3F
+SCALE_2BIT_TO_8: Final[int] = 0xFF // 0x03
+SCALE_5BIT_TO_8: Final[int] = 0xFF // 0x1F
+SCALE_6BIT_TO_8: Final[int] = 0xFF // 0x3F
 
 
 def unpack_16bit_to_color(
-        raw_buffer: bytes, encoding: ColorEncoding
+    raw_buffer: bytes, encoding: ColorEncoding
 ) -> np.ndarray:
     """Unpack the uint16 into 8-bit BGR channels."""
 
@@ -60,8 +66,10 @@ def decompile_sprite(filename: str):
     indices = pixels & 0x0F
     alphas = (pixels >> 4) & 0x03
 
-    image_bgr = unpacked_palette[indices].reshape((HEIGHT, WIDTH, 3))
-    alpha_mask = alphas.reshape((HEIGHT, WIDTH)) * SCALE_2BIT_TO_8
+    image_bgr = unpacked_palette[indices].reshape(
+        (SPRITE_HEIGHT, SPRITE_WIDTH, 3)
+    )
+    alpha_mask = alphas.reshape((SPRITE_HEIGHT, SPRITE_WIDTH)) * SCALE_2BIT_TO_8
     alpha_mask = alpha_mask.astype(np.uint8)
 
     return cv2.merge((image_bgr, alpha_mask))
