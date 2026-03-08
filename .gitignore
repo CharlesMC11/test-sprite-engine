@@ -20,7 +20,7 @@ wheels/
 .vscode
 
 # Project files
-data/
+assets/
 vendor/
 
 *.clip
