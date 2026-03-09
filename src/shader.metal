@@ -1,5 +1,6 @@
 #include <metal_stdlib>
 
+#include "constants.hpp"
 #include "sprite.hpp"
 
 [[kernel]] void render_sprite(constant sc::sprite& sprite [[buffer(0)]],
@@ -62,6 +63,10 @@
     const auto entity_pos{
             float2(instance_x[entity_idx], instance_y[entity_idx])};
     const auto screen_coord{uint2(entity_pos) + local_id};
+
+    if (screen_coord.x >= sc::ui::SCREEN_WIDTH ||
+            screen_coord.y >= sc::ui::SCREEN_HEIGHT)
+        return;
 
     constant sc::sprite& sprite{atlas[atlas_idx]};
     const auto pixel{sprite.pixels[local_id.y * sc::SPRITE_WIDTH + local_id.x]};

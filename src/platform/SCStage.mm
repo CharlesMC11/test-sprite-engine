@@ -9,6 +9,7 @@
 #include "constants.hpp"
 #include "memory_map.hpp"
 #include "renderer.hpp"
+#include "sprite.hpp"
 #include "transform_registry.hpp"
 
 @implementation SCStage {
@@ -25,6 +26,11 @@
         self.preferredFramesPerSecond = 120;
 
         self.delegate = self;
+
+        self.drawableSize =
+                CGSizeMake(sc::ui::SCREEN_WIDTH, sc::ui::SCREEN_HEIGHT);
+
+        self.layer.magnificationFilter = kCAFilterNearest;
 
         _loader = std::make_unique<sc::memory_map<sc::atlas>>(
                 sc::paths::CHARACTER_ATLAS);
@@ -44,11 +50,12 @@
 
         self.framebufferOnly = false;
 
-        _registry.add_entity(sc::ui::SCREEN_WIDTH / 2,
-                sc::ui::SCREEN_HEIGHT / 2, sc::atlas_index::LANCIS);
+        _registry.add_entity(
+                (sc::ui::SCREEN_WIDTH / 2) - (sc::SPRITE_WIDTH / 2),
+                (sc::ui::SCREEN_HEIGHT / 2) - (sc::SPRITE_HEIGHT / 2),
+                sc::atlas_index::LANCIS);
 
-        _registry.add_entity(sc::ui::SCREEN_WIDTH * 3 / 4,
-                sc::ui::SCREEN_HEIGHT * 3 / 4, sc::atlas_index::HEART);
+        _registry.add_entity(0, 0, sc::atlas_index::HEART);
     }
 
     return self;
