@@ -27,4 +27,4 @@ vendor/
 *.png
 *.atlas
 *.sprite
-atlas_index.hpp
+entity_id.hpp
