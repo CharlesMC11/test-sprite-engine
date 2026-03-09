@@ -3,10 +3,13 @@
 #include "sprite.hpp"
 
 [[kernel]] void render_sprite(constant sc::sprite& sprite [[buffer(0)]],
+        constant float2& position [[buffer(1)]],
         metal::texture2d<float, metal::access::read_write> out_texture
         [[texture(0)]],
         uint2 gid [[thread_position_in_grid]])
 {
+    const auto screen_coord{gid + uint2(position)};
+
     const auto pixel{sprite.pixels[gid.y * sc::SPRITE_WIDTH + gid.x]};
 
     const ushort packed_color{sprite.palette[pixel.index]};
@@ -33,10 +36,10 @@
     const float a{pixel.alpha / 3.0};
 
     const auto sprite_color{float4(r, g, b, a)};
-    const float4 background{out_texture.read(gid)};
+    const float4 background{out_texture.read(screen_coord)};
 
     float4 out_color{(sprite_color * a) + (background * (1 - a))};
     out_color.a = 1.0;
 
-    out_texture.write(out_color, gid);
+    out_texture.write(out_color, screen_coord);
 }
