@@ -19,7 +19,8 @@ from typing import Final
 
 from pipeline import SPRITE_SIZE_BYTES
 
-ATLAS_MAGIC: Final[bytes] = b"SC ATLAS"
+SPRITE_BANK_MAGIC: Final[bytes] = b"SC ATLAS"
+ENUM_NAME: Final[str] = "entity_id"
 
 
 class AtlasLinker:
@@ -90,14 +91,14 @@ class AtlasLinker:
         """
 
         count = len(self._sprite_blobs)
-        header = struct.pack("<8sQ", ATLAS_MAGIC, count)
+        header = struct.pack("<8sQ", SPRITE_BANK_MAGIC, count)
 
         with output_path.open("wb") as f:
             f.write(header)
             for blob in self._sprite_blobs:
                 f.write(blob)
 
-        self._generate_header(output_path.with_name("atlas_index.hpp"))
+        self._generate_header(output_path.with_name(f"{ENUM_NAME}.hpp"))
 
     # Protected methods
 
@@ -115,7 +116,7 @@ class AtlasLinker:
             "",
             "namespace sc {",
             "",
-            f"{' ' * 4}enum class atlas_indices : std::uint64_t {{",
+            f"{' ' * 4}enum class {ENUM_NAME} : std::uint64_t {{",
         ]
 
         for i, name in enumerate(self._sprite_names):
