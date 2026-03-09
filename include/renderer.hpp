@@ -6,7 +6,9 @@
 
 #include <Metal/Metal.hpp>
 
+#include "atlas.hpp"
 #include "sprite.hpp"
+#include "transform_registry.hpp"
 
 namespace sc {
 
@@ -28,21 +30,33 @@ namespace sc {
         renderer& operator=(renderer&&) = delete;
 
         /**
-         * @brief Encode a draw command for a single sprite.
-         * @param rpd The current render pass descriptor.
+         * @brief
          * @param drawable The destination drawable/texture.
+         */
+        void begin_frame(const MTL::Drawable* drawable);
+
+        /**
+         * @brief Encode a draw command for a single sprite.
          * @param sprite The source data to render.
          * @param pos_x
          * @param pos_y
          */
-        void draw(const MTL::RenderPassDescriptor* rpd,
-                const MTL::Drawable* drawable, const sprite& sprite,
-                float pos_x, float pos_y) const;
+        void draw(const sprite& sprite, float pos_x, float pos_y) const;
+
+        void draw(const transform_registry& registry, const atlas& atlas) const;
+
+        /**
+         * @brief
+         */
+        void end_frame(const MTL::Drawable* drawable);
 
     private:
         NS::SharedPtr<MTL::Device> device_;
         NS::SharedPtr<MTL::CommandQueue> command_queue_;
         NS::SharedPtr<MTL::ComputePipelineState> pso_{nullptr};
+
+        MTL::CommandBuffer* buffer_{nullptr};
+        MTL::ComputeCommandEncoder* encoder_{nullptr};
     };
 
 } // namespace sc
