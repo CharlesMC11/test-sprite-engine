@@ -4,12 +4,11 @@
  */
 #pragma once
 
-#ifdef __METAL_VERSION__
-#define SC_CONSTANT constant constexpr
-#else
-#define SC_CONSTANT constexpr
+#ifndef __METAL_VERSION__
 #include <cstdint>
 #endif
+
+#include "constants.hpp"
 
 namespace sc {
 
@@ -50,7 +49,7 @@ namespace sc {
      * Uses 16-byte alignment to satisfy AArch64 SIMD and Metal address space
      * for constant memory.
      */
-    struct alignas(16) sprite {
+    struct alignas(memory::ALIGNMENT) sprite final {
         uint8_t hb_min_x, hb_min_y; ///< Hitbox minimum bounds (top-left)
         uint8_t hb_max_x, hb_max_y; ///< Hitbox maximum bounds (bottom-right)
         uint8_t anchor_x, anchor_y; ///< Local origin

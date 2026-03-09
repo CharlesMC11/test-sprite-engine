@@ -32,9 +32,12 @@ namespace sc {
          * @param rpd The current render pass descriptor.
          * @param drawable The destination drawable/texture.
          * @param sprite The source data to render.
+         * @param pos_x
+         * @param pos_y
          */
         void draw(const MTL::RenderPassDescriptor* rpd,
-                const MTL::Drawable* drawable, const sprite& sprite) const;
+                const MTL::Drawable* drawable, const sprite& sprite,
+                float pos_x, float pos_y) const;
 
     private:
         NS::SharedPtr<MTL::Device> device_;

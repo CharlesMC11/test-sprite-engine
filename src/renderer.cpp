@@ -37,7 +37,8 @@ namespace sc {
     }
 
     void renderer::draw(const MTL::RenderPassDescriptor* rpd,
-            const MTL::Drawable* drawable, const sprite& sprite) const
+            const MTL::Drawable* drawable, const sprite& sprite,
+            const float pos_x, const float pos_y) const
     {
         if (!(pso_ && rpd && drawable)) [[unlikely]]
             return;
@@ -48,6 +49,12 @@ namespace sc {
         encoder->setComputePipelineState(pso_.get());
 
         encoder->setBytes(&sprite, sizeof(sprite), 0);
+
+        const struct {
+            float x;
+            float y;
+        } pos{pos_x, pos_y};
+        encoder->setBytes(&pos, sizeof(pos), 1);
 
         const auto* out_texture{
                 reinterpret_cast<const CA::MetalDrawable*>(drawable)
