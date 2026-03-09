@@ -4,12 +4,13 @@
 #import <MetalKit/MetalKit.h>
 
 #import "SCStage.h"
+#include "constants.hpp"
 
 @implementation SCAppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification*)notification
 {
-    auto frame = NSMakeRect(0, 0, 800, 600);
+    auto frame = NSMakeRect(0, 0, sc::ui::SCREEN_WIDTH, sc::ui::SCREEN_HEIGHT);
     self.window = [[NSWindow alloc]
             initWithContentRect:frame
                       styleMask:(NSWindowStyleMaskTitled |

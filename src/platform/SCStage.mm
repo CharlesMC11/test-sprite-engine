@@ -4,8 +4,8 @@
 
 #include <memory>
 
-#include "constants.hpp"
 #include "atlas.hpp"
+#include "constants.hpp"
 #include "memory_map.hpp"
 #include "renderer.hpp"
 

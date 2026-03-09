@@ -19,8 +19,8 @@ namespace sc {
     {
         NS::Error* error{nullptr};
 
-        const auto* library_path{NS::String::string(
-                paths::SHADER_LIB, NS::UTF8StringEncoding)};
+        const auto* library_path{
+                NS::String::string(paths::SHADER_LIB, NS::UTF8StringEncoding)};
         auto* library{device->newLibrary(library_path, &error)};
 
         const auto* fn_name{

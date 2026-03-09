@@ -3,11 +3,24 @@
  * @brief
  */
 #pragma once
+#include <cstddef>
 
-namespace sc::paths {
+namespace sc {
 
-    static constexpr auto CHARACTER_ATLAS{"assets/master.atlas"};
+    namespace paths {
 
-    static constexpr auto SHADER_LIB{"assets/shader.metallib"};
+        static constexpr auto CHARACTER_ATLAS{"assets/master.atlas"};
 
-} // namespace sc::paths
+        static constexpr auto SHADER_LIB{"assets/shader.metallib"};
+
+    } // namespace paths
+
+    namespace ui {
+
+        static constexpr std::size_t SCREEN_WIDTH{240};
+
+        static constexpr std::size_t SCREEN_HEIGHT{160};
+
+    } // namespace ui
+
+} // namespace sc
