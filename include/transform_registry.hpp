@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <vector>
 
 #include "atlas_index.hpp"
@@ -39,8 +40,10 @@ namespace sc {
         /**
          * @brief
          * @param dt
+         * @param screen_width
+         * @param screen_height
          */
-        void update(float dt) noexcept;
+        void update(float dt, float screen_width, float screen_height) noexcept;
 
         /**
          * @brief
@@ -78,12 +81,16 @@ namespace sc {
         return x.size();
     }
 
-    inline void transform_registry::update(const float dt) noexcept
+    inline void transform_registry::update(const float dt,
+            const float screen_width, const float screen_height) noexcept
     {
+        const auto max_x{screen_width - static_cast<float>(SPRITE_WIDTH)};
+        const auto max_y{screen_height - static_cast<float>(SPRITE_HEIGHT)};
+
         /// TODO: Use NEON / assembly
         for (std::size_t i{0}; i < x.size(); ++i) {
-            x[i] += dx[i] * dt;
-            y[i] += dy[i] * dt;
+            x[i] = std::clamp(x[i] + dx[i] * dt, 0.0f, max_x);
+            y[i] = std::clamp(y[i] + dy[i] * dt, 0.0f, max_y);
         }
     }
 

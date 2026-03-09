@@ -27,8 +27,8 @@ namespace sc {
 
     namespace ui {
 
-        static SC_CONSTANT auto SCREEN_WIDTH{240u};
-        static SC_CONSTANT auto SCREEN_HEIGHT{160u};
+        static SC_CONSTANT uint32_t SCREEN_WIDTH{240u};
+        static SC_CONSTANT uint32_t SCREEN_HEIGHT{160u};
 
     } // namespace ui
 
