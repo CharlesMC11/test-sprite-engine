@@ -36,38 +36,42 @@ namespace sc {
         library->release();
     }
 
-    void renderer::draw(const MTL::RenderPassDescriptor* rpd,
-            const MTL::Drawable* drawable, const sprite& sprite,
-            const float pos_x, const float pos_y) const
+    void renderer::begin_frame(const MTL::Drawable* drawable)
     {
-        if (!(pso_ && rpd && drawable)) [[unlikely]]
-            return;
+        buffer_ = command_queue_->commandBuffer();
+        encoder_ = buffer_->computeCommandEncoder();
+        encoder_->setComputePipelineState(pso_.get());
 
-        auto* buffer{command_queue_->commandBuffer()};
-        auto* encoder{buffer->computeCommandEncoder()};
+        const auto* out_texture{
+                reinterpret_cast<const CA::MetalDrawable*>(drawable)
+                        ->texture()};
+        encoder_->setTexture(out_texture, 0);
+    }
 
-        encoder->setComputePipelineState(pso_.get());
-
-        encoder->setBytes(&sprite, sizeof(sprite), 0);
+    void renderer::draw(
+            const sprite& sprite, const float pos_x, const float pos_y) const
+    {
+        encoder_->setBytes(&sprite, sizeof(sprite), 0);
 
         const struct {
             float x;
             float y;
         } pos{pos_x, pos_y};
-        encoder->setBytes(&pos, sizeof(pos), 1);
-
-        const auto* out_texture{
-                reinterpret_cast<const CA::MetalDrawable*>(drawable)
-                        ->texture()};
-        encoder->setTexture(out_texture, 0);
+        encoder_->setBytes(&pos, sizeof(pos), 1);
 
         const auto grid_size{MTL::Size(SPRITE_WIDTH, SPRITE_HEIGHT, 1)};
         const auto thread_group_size{MTL::Size(8, 8, 1)};
-        encoder->dispatchThreads(grid_size, thread_group_size);
+        encoder_->dispatchThreads(grid_size, thread_group_size);
+    }
 
-        encoder->endEncoding();
-        buffer->presentDrawable(drawable);
-        buffer->commit();
+    void renderer::end_frame(const MTL::Drawable* drawable)
+    {
+        encoder_->endEncoding();
+        buffer_->presentDrawable(drawable);
+        buffer_->commit();
+
+        encoder_ = nullptr;
+        buffer_ = nullptr;
     }
 
 } // namespace sc
