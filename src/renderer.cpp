@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+#include "atlas_index.hpp"
 #include "constants.hpp"
 
 namespace sc {
@@ -24,7 +25,7 @@ namespace sc {
         auto* library{device->newLibrary(library_path, &error)};
 
         const auto* fn_name{
-                NS::String::string("render_sprite", NS::UTF8StringEncoding)};
+                NS::String::string("render_registry", NS::UTF8StringEncoding)};
         auto* function{library->newFunction(fn_name)};
 
         pso_ = NS::TransferPtr(
@@ -61,6 +62,24 @@ namespace sc {
 
         const auto grid_size{MTL::Size(SPRITE_WIDTH, SPRITE_HEIGHT, 1)};
         const auto thread_group_size{MTL::Size(8, 8, 1)};
+        encoder_->dispatchThreads(grid_size, thread_group_size);
+    }
+
+    void renderer::draw(
+            const transform_registry& registry, const atlas& atlas) const
+    {
+        encoder_->setBytes(&atlas[0], sizeof(sprite) * atlas.size(), 0);
+        encoder_->setBytes(
+                registry.x.data(), sizeof(float) * registry.size(), 1);
+        encoder_->setBytes(
+                registry.y.data(), sizeof(float) * registry.size(), 2);
+        encoder_->setBytes(registry.sprite_ids.data(),
+                sizeof(atlas_index) * registry.size(), 3);
+
+        const MTL::Size grid_size{
+                SPRITE_WIDTH * registry.size(), SPRITE_HEIGHT, 1};
+        const MTL::Size thread_group_size{SPRITE_WIDTH, SPRITE_HEIGHT, 1};
+
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }
 

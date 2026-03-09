@@ -6,7 +6,9 @@
 
 #include <Metal/Metal.hpp>
 
+#include "atlas.hpp"
 #include "sprite.hpp"
+#include "transform_registry.hpp"
 
 namespace sc {
 
@@ -40,6 +42,8 @@ namespace sc {
          * @param pos_y
          */
         void draw(const sprite& sprite, float pos_x, float pos_y) const;
+
+        void draw(const transform_registry& registry, const atlas& atlas) const;
 
         /**
          * @brief

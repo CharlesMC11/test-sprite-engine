@@ -60,13 +60,9 @@
     _registry.update(deltaTime);
 
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
-
     _renderer->begin_frame(drawable);
 
-    for (std::size_t i{0}; i < _registry.size(); ++i) {
-        const sc::sprite& sprite = (*_atlas)[_registry.sprite_ids[i]];
-        _renderer->draw(sprite, _registry.x[i], _registry.y[i]);
-    }
+    _renderer->draw(_registry, *_atlas);
 
     _renderer->end_frame(drawable);
 }
