@@ -18,6 +18,7 @@ namespace sc {
      */
     struct transform_registry final {
 
+        /// TODO: Make custom allocator
         std::vector<float> x, y, dx, dy;
         std::vector<atlas_index> sprite_ids;
 

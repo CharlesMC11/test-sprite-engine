@@ -46,6 +46,7 @@ namespace sc {
     private:
         static constexpr std::size_t EXPECTED_MAGIC_SIZE{8};
 
+        // Should this be std::array?
         static constexpr char EXPECTED_MAGIC[EXPECTED_MAGIC_SIZE]{
                 'S', 'C', ' ', 'A', 'T', 'L', 'A', 'S'};
 
@@ -74,6 +75,7 @@ namespace sc {
     [[nodiscard]] constexpr bool atlas::is_valid(
             const std::size_t mapped_size) const noexcept
     {
+        // Maybe look into std::ranges?
         return std::memcmp(magic_, EXPECTED_MAGIC, EXPECTED_MAGIC_SIZE) == 0 &&
                 sizeof(atlas) + count_ * sizeof(sprite) == mapped_size;
     }
