@@ -1,13 +1,16 @@
 [project]
 name = "pipeline-tools"
-version = "0.2.1"
+version = "0.3.0"
 description = "Compile artworks into sprites, and preview them."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "opencv-python>=4.13.0.92",
-    "ruff==0.15.5",
-    "ty==0.0.21",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.5",
 ]
 
 [project.scripts]
