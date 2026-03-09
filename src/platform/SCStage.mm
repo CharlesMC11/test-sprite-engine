@@ -9,7 +9,7 @@
 #include "constants.hpp"
 #include "memory_map.hpp"
 #include "renderer.hpp"
-#include "transform_registry.h"
+#include "transform_registry.hpp"
 
 @implementation SCStage {
     std::unique_ptr<sc::memory_map<sc::atlas>> _loader;
@@ -43,12 +43,6 @@
                 std::make_unique<sc::renderer>((__bridge MTL::Device*) device);
 
         self.framebufferOnly = false;
-
-        _registry.x.reserve(8);
-        _registry.y.reserve(8);
-        _registry.vx.reserve(8);
-        _registry.vy.reserve(8);
-        _registry.sprite_ids.reserve(8);
 
         _registry.add_entity(sc::ui::SCREEN_WIDTH / 2,
                 sc::ui::SCREEN_HEIGHT / 2, sc::atlas_index::LANCIS);
@@ -96,16 +90,16 @@
 
     switch (event.keyCode) {
     case 13: // W
-        _registry.vy[0] = -speed;
+        _registry.dy[0] = -speed;
         break;
     case 0: // A
-        _registry.vx[0] = -speed;
+        _registry.dx[0] = -speed;
         break;
     case 1: // S
-        _registry.vy[0] = speed;
+        _registry.dy[0] = speed;
         break;
     case 2: // D
-        _registry.vx[0] = speed;
+        _registry.dx[0] = speed;
         break;
     }
 }
@@ -115,11 +109,11 @@
     switch (event.keyCode) {
     case 13:
     case 1:
-        _registry.vy[0] = 0;
+        _registry.dy[0] = 0;
         break; // Stop Vertical
     case 0:
     case 2:
-        _registry.vx[0] = 0;
+        _registry.dx[0] = 0;
         break; // Stop Horizontal
     }
 }
