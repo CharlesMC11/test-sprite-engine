@@ -4,19 +4,19 @@
 
 #include <memory>
 
-#include "atlas.hpp"
-#include "atlas_index.hpp"
 #include "constants.hpp"
-#include "memory_map.hpp"
-#include "renderer.hpp"
+#include "entity_id.hpp"
+#include "entity_layout.hpp"
+#include "mapped_asset.hpp"
+#include "render_bridge.hpp"
 #include "sprite.hpp"
-#include "transform_registry.hpp"
+#include "sprite_bank.hpp"
 
 @implementation SCStage {
-    std::unique_ptr<sc::memory_map<sc::atlas>> _loader;
-    const sc::atlas* _atlas;
-    std::unique_ptr<sc::renderer> _renderer;
-    sc::transform_registry _registry;
+    std::unique_ptr<sc::mapped_asset<sc::sprite_bank>> _loader;
+    std::unique_ptr<sc::render_bridge> _bridge;
+    const sc::sprite_bank* _bank;
+    sc::entity_layout _layout;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame device:(id<MTLDevice>)device
@@ -27,35 +27,35 @@
 
         self.delegate = self;
 
-        self.drawableSize =
-                CGSizeMake(sc::ui::SCREEN_WIDTH, sc::ui::SCREEN_HEIGHT);
+        self.drawableSize = CGSizeMake(
+                sc::display::SCREEN_WIDTH, sc::display::SCREEN_HEIGHT);
 
         self.layer.magnificationFilter = kCAFilterNearest;
 
-        _loader = std::make_unique<sc::memory_map<sc::atlas>>(
-                sc::paths::CHARACTER_ATLAS);
+        _loader = std::make_unique<sc::mapped_asset<sc::sprite_bank>>(
+                sc::assets::CHARACTER_SPRITE_BANK);
         if (!(_loader && *_loader)) {
-            NSLog(@"FATAL: Could not map atlas file.");
+            NSLog(@"FATAL: Could not map sprite bank file.");
             abort();
         }
 
-        _atlas = &(**_loader);
-        if (!_atlas->is_valid(_loader->size())) {
-            NSLog(@"FATAL: Atlas header validation failed.");
+        _bank = &(**_loader);
+        if (!_bank->is_valid(_loader->size())) {
+            NSLog(@"FATAL: sprite bank header validation failed.");
             abort();
         }
 
-        _renderer =
-                std::make_unique<sc::renderer>((__bridge MTL::Device*) device);
+        _bridge = std::make_unique<sc::render_bridge>(
+                (__bridge MTL::Device*) device);
 
         self.framebufferOnly = false;
 
-        _registry.add_entity(
-                (sc::ui::SCREEN_WIDTH / 2) - (sc::SPRITE_WIDTH / 2),
-                (sc::ui::SCREEN_HEIGHT / 2) - (sc::SPRITE_HEIGHT / 2),
-                sc::atlas_index::LANCIS);
+        const auto id{sc::entity_id::LANCIS};
+        const sc::sprite& sprite{(*_bank)[id]};
+        _layout.spawn((sc::display::SCREEN_WIDTH - sc::SPRITE_WIDTH - sprite.anchor_x) * 0.5f,
+                (sc::display::SCREEN_HEIGHT - sc::SPRITE_HEIGHT - sprite.anchor_y) * 0.5f, id);
 
-        _registry.add_entity(0, 0, sc::atlas_index::HEART);
+        _layout.spawn(0, 0, sc::entity_id::HEART);
     }
 
     return self;
@@ -64,14 +64,14 @@
 - (void)drawInMTKView:(MTKView*)view
 {
     float deltaTime = 1.0f / view.preferredFramesPerSecond;
-    _registry.update(deltaTime, sc::ui::SCREEN_WIDTH, sc::ui::SCREEN_HEIGHT);
+    _layout.update(
+            deltaTime, sc::display::SCREEN_WIDTH, sc::display::SCREEN_HEIGHT);
 
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
-    _renderer->begin_frame(drawable);
-
-    _renderer->draw(_registry, *_atlas);
-
-    _renderer->end_frame(drawable);
+    _bridge->begin_frame(drawable);
+    _bridge->clear(drawable);
+    _bridge->draw(*_bank, _layout);
+    _bridge->end_frame(drawable);
 }
 
 - (void)mtkView:(nonnull MTKView*)view drawableSizeWillChange:(CGSize)size
@@ -94,16 +94,16 @@
 
     switch (event.keyCode) {
     case 13: // W
-        _registry.dy[0] = -speed;
+        _layout.dy[0] = -speed;
         break;
     case 0: // A
-        _registry.dx[0] = -speed;
+        _layout.dx[0] = -speed;
         break;
     case 1: // S
-        _registry.dy[0] = speed;
+        _layout.dy[0] = speed;
         break;
     case 2: // D
-        _registry.dx[0] = speed;
+        _layout.dx[0] = speed;
         break;
     }
 }
@@ -111,13 +111,13 @@
 - (void)keyUp:(NSEvent*)event
 {
     switch (event.keyCode) {
-    case 13:
-    case 1:
-        _registry.dy[0] = 0;
+    case 13: // W
+    case 1: // A
+        _layout.dy[0] = 0;
         break; // Stop Vertical
-    case 0:
-    case 2:
-        _registry.dx[0] = 0;
+    case 0: // S
+    case 2: // D
+        _layout.dx[0] = 0;
         break; // Stop Horizontal
     }
 }
