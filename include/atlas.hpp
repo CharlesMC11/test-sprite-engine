@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include "atlas_index.hpp"
+#include "constants.hpp"
 #include "sprite.hpp"
 
 namespace sc {
@@ -21,7 +22,7 @@ namespace sc {
      * flexible array member (`data_`) to provide indexed access to sprites
      * loaded directly from an `.atlas` file.
      */
-    class alignas(16) atlas final {
+    class alignas(memory::ALIGNMENT) atlas final {
     public:
         // Delete constructors because the atlas is mapped, not instantiated.
         atlas() = delete;

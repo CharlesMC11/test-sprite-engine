@@ -3,23 +3,32 @@
  * @brief
  */
 #pragma once
-#include <cstddef>
+
+#ifdef __METAL_VERSION__
+#define SC_CONSTANT constant constexpr
+#else
+#define SC_CONSTANT constexpr
+#endif
 
 namespace sc {
 
+    namespace memory {
+
+        static SC_CONSTANT auto ALIGNMENT{16u};
+
+    } // namespace memory
+
     namespace paths {
 
-        static constexpr auto CHARACTER_ATLAS{"assets/master.atlas"};
-
-        static constexpr auto SHADER_LIB{"assets/shader.metallib"};
+        static SC_CONSTANT auto CHARACTER_ATLAS{"assets/master.atlas"};
+        static SC_CONSTANT auto SHADER_LIB{"assets/shader.metallib"};
 
     } // namespace paths
 
     namespace ui {
 
-        static constexpr std::size_t SCREEN_WIDTH{240};
-
-        static constexpr std::size_t SCREEN_HEIGHT{160};
+        static SC_CONSTANT auto SCREEN_WIDTH{240u};
+        static SC_CONSTANT auto SCREEN_HEIGHT{160u};
 
     } // namespace ui
 
