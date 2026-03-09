@@ -13,24 +13,24 @@
 
 namespace sc {
 
-    namespace memory {
+    namespace sys {
 
         static SC_CONSTANT auto ALIGNMENT{16u};
 
-    } // namespace memory
+    } // namespace sys
 
-    namespace paths {
+    namespace assets {
 
-        static SC_CONSTANT auto CHARACTER_ATLAS{"assets/master.atlas"};
+        static SC_CONSTANT auto CHARACTER_SPRITE_BANK{"assets/master.atlas"};
         static SC_CONSTANT auto SHADER_LIB{"assets/shader.metallib"};
 
-    } // namespace paths
+    } // namespace assets
 
-    namespace ui {
+    namespace display {
 
         static SC_CONSTANT uint32_t SCREEN_WIDTH{240u};
         static SC_CONSTANT uint32_t SCREEN_HEIGHT{160u};
 
-    } // namespace ui
+    } // namespace display
 
 } // namespace sc

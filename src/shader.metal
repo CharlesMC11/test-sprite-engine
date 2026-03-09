@@ -3,8 +3,7 @@
 #include "constants.hpp"
 #include "sprite.hpp"
 
-[[kernel]] void render_sprite(constant sc::sprite& sprite [[buffer(0)]],
-        constant float2& position [[buffer(1)]],
+[[kernel]] void k_clear_screen(
         metal::texture2d<float, metal::access::read_write> out_texture
         [[texture(0)]],
         uint2 gid [[thread_position_in_grid]])
@@ -48,17 +47,14 @@
 [[kernel]] void render_registry(constant sc::sprite* atlas [[buffer(0)]],
         constant float* instance_x [[buffer(1)]],
         constant float* instance_y [[buffer(2)]],
+[[kernel]] void k_draw_sprites(constant sc::sprite* srpites [[buffer(0)]],
         constant uint64_t* sprite_ids [[buffer(3)]],
         metal::texture2d<float, metal::access::read_write> out_texture
         [[texture(0)]],
         uint2 gid [[thread_position_in_grid]],
         uint2 iid [[threadgroup_position_in_grid]])
 {
-
-    uint entity_idx{iid.x};
-    float2 pos = float2(instance_x[entity_idx], instance_y[entity_idx]);
-    uint64_t atlas_idx = sprite_ids[entity_idx];
-    uint2 local_id = gid & 31;
+    const uint2 local_id = gid & (sc::SPRITE_WIDTH - 1);
 
     const auto entity_pos{
             float2(instance_x[entity_idx], instance_y[entity_idx])};

@@ -30,10 +30,10 @@ namespace sc {
     using color = uint16_t;
 
     /**
-     * @union pixel
+     * @union pixel_unit
      * @brief 8-bit packed index/metadata pixel.
      */
-    union pixel {
+    union pixel_unit {
         uint8_t buffer;
         struct {
             uint8_t index : 4;
@@ -47,15 +47,15 @@ namespace sc {
      * @brief A hardware-aware sprite definition.
      *
      * Uses 16-byte alignment to satisfy AArch64 SIMD and Metal address space
-     * for constant memory.
+     * for constant sys.
      */
-    struct alignas(memory::ALIGNMENT) sprite final {
+    struct alignas(sys::ALIGNMENT) sprite final {
         uint8_t hb_min_x, hb_min_y; ///< Hitbox minimum bounds (top-left)
         uint8_t hb_max_x, hb_max_y; ///< Hitbox maximum bounds (bottom-right)
         uint8_t anchor_x, anchor_y; ///< Local origin
         color_encoding encoding; ///< Channel packing used in palette
         color palette[SPRITE_MAX_PALETTE_SIZE]; ///< 16-color LUT
-        pixel pixels[SPRITE_HEIGHT * SPRITE_HEIGHT]; ///< Row-major pixel data
+        pixel_unit pixels[SPRITE_HEIGHT * SPRITE_HEIGHT]; ///< Row-major pixels
     };
 
 } // namespace sc
