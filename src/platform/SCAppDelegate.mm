@@ -11,8 +11,8 @@
 - (void)applicationDidFinishLaunching:(NSNotification*)notification
 {
     const auto scale = 4.0f;
-    auto frame = NSMakeRect(
-            0, 0, sc::ui::SCREEN_WIDTH * scale, sc::ui::SCREEN_HEIGHT * scale);
+    auto frame = NSMakeRect(0, 0, sc::display::SCREEN_WIDTH * scale,
+            sc::display::SCREEN_HEIGHT * scale);
     self.window = [[NSWindow alloc]
             initWithContentRect:frame
                       styleMask:(NSWindowStyleMaskTitled |
