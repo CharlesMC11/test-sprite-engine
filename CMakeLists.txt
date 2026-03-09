@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.1)
-project(pixel_tester C CXX ASM OBJCXX)
+project(test-sprite-engine C CXX ASM OBJCXX)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -21,14 +21,14 @@ find_library(METAL_LIB Metal REQUIRED)
 find_library(METALKIT_LIB MetalKit REQUIRED)
 find_library(QUARTZ_LIB QuartzCore REQUIRED)
 
-add_executable(pixel_tester
+add_executable(test-sprite-engine
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCAppDelegate.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCStage.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/renderer.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/main.mm"
 )
 
-target_link_libraries(pixel_tester
+target_link_libraries(test-sprite-engine
         ${APPKIT_LIB}
         ${METAL_LIB}
         ${METALKIT_LIB}
@@ -43,4 +43,4 @@ add_custom_command(OUTPUT shader.metallib
 )
 
 add_custom_target(shaders DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/shader.metallib")
-add_dependencies(pixel_tester shaders)
+add_dependencies(test-sprite-engine shaders)
