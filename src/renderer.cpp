@@ -24,13 +24,21 @@ namespace sc {
                 NS::String::string(paths::SHADER_LIB, NS::UTF8StringEncoding)};
         auto* library{device->newLibrary(library_path, &error)};
 
-        const auto* fn_name{
+        auto* fn_name{
                 NS::String::string("render_registry", NS::UTF8StringEncoding)};
         auto* function{library->newFunction(fn_name)};
 
-        pso_ = NS::TransferPtr(
+        draw_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
-        if (!pso_) [[unlikely]]
+        if (!draw_pso_) [[unlikely]]
+            std::cerr << error->localizedDescription() << std::endl;
+
+        fn_name = NS::String::string("clear_screen", NS::UTF8StringEncoding);
+        function = library->newFunction(fn_name);
+
+        clear_pso_ = NS::TransferPtr(
+                device_->newComputePipelineState(function, &error));
+        if (!clear_pso_) [[unlikely]]
             std::cerr << error->localizedDescription() << std::endl;
 
         function->release();
@@ -41,12 +49,33 @@ namespace sc {
     {
         buffer_ = command_queue_->commandBuffer();
         encoder_ = buffer_->computeCommandEncoder();
-        encoder_->setComputePipelineState(pso_.get());
+        encoder_->setComputePipelineState(draw_pso_.get());
 
         const auto* out_texture{
                 reinterpret_cast<const CA::MetalDrawable*>(drawable)
                         ->texture()};
         encoder_->setTexture(out_texture, 0);
+    }
+
+    // FIXME
+    void renderer::clear(const MTL::Drawable* drawable)
+    {
+        auto* out_texture =
+                reinterpret_cast<const CA::MetalDrawable*>(drawable)->texture();
+
+        // 1. Switch to the Clear PSO
+        encoder_->setComputePipelineState(clear_pso_.get());
+        encoder_->setTexture(out_texture, 0);
+
+        // 2. Dispatch across the whole 240x160 screen
+        MTL::Size grid_size = MTL::Size(ui::SCREEN_WIDTH, ui::SCREEN_HEIGHT, 1);
+        MTL::Size thread_group_size =
+                MTL::Size(16, 16, 1); // Standard block size
+
+        encoder_->dispatchThreads(grid_size, thread_group_size);
+
+        // 3. Switch back to the Registry PSO for the next calls
+        encoder_->setComputePipelineState(clear_pso_.get());
     }
 
     void renderer::draw(

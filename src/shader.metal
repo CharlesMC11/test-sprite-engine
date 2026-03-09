@@ -3,6 +3,19 @@
 #include "constants.hpp"
 #include "sprite.hpp"
 
+[[kernel]] void clear_screen(texture2d<float, access::read_write> out_texture
+        [[texture(0)]],
+        uint2 gid [[thread_position_in_grid]])
+{
+    if (gid.x >= out_texture.get_width() || gid.y >= out_texture.get_height()) {
+        return;
+    }
+
+    float4 background_color = float4(0.06, 0.22, 0.06, 1.0);
+
+    out_texture.write(background_color, gid);
+}
+
 [[kernel]] void render_sprite(constant sc::sprite& sprite [[buffer(0)]],
         constant float2& position [[buffer(1)]],
         metal::texture2d<float, metal::access::read_write> out_texture

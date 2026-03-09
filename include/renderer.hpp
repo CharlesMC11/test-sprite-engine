@@ -35,6 +35,8 @@ namespace sc {
          */
         void begin_frame(const MTL::Drawable* drawable);
 
+        void clear(const MTL::Drawable* drawable);
+
         /**
          * @brief Encode a draw command for a single sprite.
          * @param sprite The source data to render.
@@ -53,7 +55,8 @@ namespace sc {
     private:
         NS::SharedPtr<MTL::Device> device_;
         NS::SharedPtr<MTL::CommandQueue> command_queue_;
-        NS::SharedPtr<MTL::ComputePipelineState> pso_{nullptr};
+        NS::SharedPtr<MTL::ComputePipelineState> clear_pso_{nullptr};
+        NS::SharedPtr<MTL::ComputePipelineState> draw_pso_{nullptr};
 
         MTL::CommandBuffer* buffer_{nullptr};
         MTL::ComputeCommandEncoder* encoder_{nullptr};
