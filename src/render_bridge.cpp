@@ -112,8 +112,8 @@ namespace sc {
         encoder_->setBytes(layout.y.data(), sizeof(float) * layout.size(), 2);
         encoder_->setBytes(layout.entity_ids.data(),
                 sizeof(sys::ENTITY_ID_T) * layout.size(), 3);
-        encoder_->setBytes(
-                layout.draw_order.data(), sizeof(uint32_t) * layout.size(), 4);
+        encoder_->setBytes(layout.draw_order.data(),
+                sizeof(sys::INDEX_T) * layout.size(), 4);
 
         const auto count{static_cast<std::uint32_t>(layout.size())};
         encoder_->setBytes(&count, sizeof(count), 5);

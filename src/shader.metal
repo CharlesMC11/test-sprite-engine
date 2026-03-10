@@ -49,7 +49,7 @@ inline float4 unpack_color(constant sc::sprite& sprite, sc::pixel_unit p)
         constant float* x_coords [[buffer(1)]],
         constant float* y_coords [[buffer(2)]],
         constant sc::sys::ENTITY_ID_T* sprite_ids [[buffer(3)]],
-        constant uint* draw_order [[buffer(4)]],
+        constant sc::sys::INDEX_T* draw_order [[buffer(4)]],
         constant uint& entity_count [[buffer(5)]],
         texture2d<float, access::read_write> out_texture [[texture(0)]],
         uint2 gid [[thread_position_in_grid]])

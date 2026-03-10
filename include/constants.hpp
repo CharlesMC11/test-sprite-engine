@@ -17,6 +17,7 @@ namespace sc {
 
         static SC_CONSTANT auto ALIGNMENT{16u};
         using ENTITY_ID_T = uint32_t;
+        using INDEX_T = uint32_t;
 
     } // namespace sys
 
