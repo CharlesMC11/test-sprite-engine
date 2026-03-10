@@ -6,7 +6,7 @@ atlas binary.
 
 The binary layout contains:
 - Header (16 bytes):
-    - Magic (8 bytes): b"Atlas   " (space added).
+    - Magic (8 bytes): b"SC ATLAS" (space added).
     - Count (8 bytes): uint64 sprite count.
 - Data (N * 1,072 bytes): Contiguous array of sprite structures.
 """
@@ -112,7 +112,7 @@ class AtlasLinker:
         lines = [
             "#pragma once",
             "",
-            "#include <core.hh",
+            '#include "core.hh"',
             "",
             "namespace sc::sprites {",
             "",
@@ -127,7 +127,7 @@ class AtlasLinker:
             [
                 f"{' ' * 4}}};",
                 "",
-                "} // namespace sc",
+                "} // namespace sc::sprites",
                 "",
             ]
         )

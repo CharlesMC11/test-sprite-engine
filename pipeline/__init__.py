@@ -24,3 +24,11 @@ class ColorEncoding(IntEnum):
     DEFAULT = 1  # R5G6B5
     WARM = enum.auto()  # R6G5B5
     COOL = enum.auto()  # R5G5B6
+
+
+class PhysicsType(IntEnum):
+    NONE = 0
+    ACTOR = enum.auto()
+    STATIC = enum.auto()
+    SENSOR = enum.auto()
+    PROJECTILE = enum.auto()
