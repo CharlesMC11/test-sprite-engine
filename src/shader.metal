@@ -1,42 +1,94 @@
 #include <metal_stdlib>
 
+#include "definitions.hpp"
 #include "sprite.hpp"
 
-[[kernel]] void render_sprite(constant sc::sprite& sprite [[buffer(0)]],
-        metal::texture2d<float, metal::access::read_write> out_texture
+using namespace metal;
+
+[[kernel]] void k_clear_screen(texture2d<float, access::read_write> out_texture
         [[texture(0)]],
         uint2 gid [[thread_position_in_grid]])
 {
-    const auto pixel{sprite.pixels[gid.y * sc::SPRITE_WIDTH + gid.x]};
+    if (gid.x >= out_texture.get_width() || gid.y >= out_texture.get_height()) {
+        return;
+    }
 
-    const ushort packed_color{sprite.palette[pixel.index]};
-    float r{1.0}, g{1.0}, b{1.0};
+    float4 bg_color = float4(0.06, 0.22, 0.06, 1.0);
+
+    out_texture.write(bg_color, gid);
+}
+
+inline float4 unpack_color(constant sc::sprite& sprite, sc::pixel_unit p)
+{
+    const ushort packed_color{sprite.palette[p.index]};
+    float r{1.0f}, g{1.0f}, b{1.0f};
     switch (sprite.encoding) {
     case sc::color_encoding::DEFAULT:
-        r = ((packed_color >> 11) & 0x1F) / 31.0;
-        g = ((packed_color >> 5) & 0x3F) / 63.0;
-        b = (packed_color & 0x1F) / 31.0;
+        r = ((packed_color >> 11) & 0x1F) / 31.0f;
+        g = ((packed_color >> 5) & 0x3F) / 63.0f;
+        b = (packed_color & 0x1F) / 31.0f;
         break;
     case sc::color_encoding::WARM:
-        r = ((packed_color >> 10) & 0x3F) / 63.0;
-        g = ((packed_color >> 5) & 0x1F) / 31.0;
-        b = (packed_color & 0x1F) / 31.0;
+        r = ((packed_color >> 10) & 0x3F) / 63.0f;
+        g = ((packed_color >> 5) & 0x1F) / 31.0f;
+        b = (packed_color & 0x1F) / 31.0f;
         break;
     case sc::color_encoding::COOL:
-        r = ((packed_color >> 11) & 0x1F) / 31.0;
-        g = ((packed_color >> 5) & 0x1F) / 31.0;
-        b = (packed_color & 0x3F) / 63.0;
+        r = ((packed_color >> 11) & 0x1F) / 31.0f;
+        g = ((packed_color >> 5) & 0x1F) / 31.0f;
+        b = (packed_color & 0x3F) / 63.0f;
         break;
     default:
         break;
     }
-    const float a{pixel.alpha / 3.0};
 
-    const auto sprite_color{float4(r, g, b, a)};
-    const float4 background{out_texture.read(gid)};
+    return float4(r, g, b, 1.0f);
+}
 
-    float4 out_color{(sprite_color * a) + (background * (1 - a))};
-    out_color.a = 1.0;
+[[kernel]] void k_draw_sprites(constant sc::sprite* sprites [[buffer(0)]],
+        constant float* x_coords [[buffer(1)]],
+        constant float* y_coords [[buffer(2)]],
+        constant float* z_coords [[buffer(3)]],
+        constant sc::sys::entity_id_t* sprite_ids [[buffer(4)]],
+        constant sc::sys::index_t* draw_order [[buffer(5)]],
+        constant uint& entity_count [[buffer(6)]],
+        texture2d<float, access::read_write> out_texture [[texture(0)]],
+        uint2 gid [[thread_position_in_grid]])
+{
+    if (gid.x >= sc::display::WIDTH || gid.y >= sc::display::HEIGHT)
+        return;
+
+    float4 out_color{out_texture.read(gid)};
+
+    for (uint i{0}; i < entity_count; ++i) {
+        const uint entity_idx{draw_order[i]};
+
+        const auto entity_coord{float2(x_coords[entity_idx],
+                y_coords[entity_idx] - z_coords[entity_idx])};
+        const auto local_coord{int2(gid) - int2(floor(entity_coord))};
+
+        if (local_coord.x < 0 ||
+                static_cast<uint>(local_coord.x) >= sc::SPRITE_WIDTH ||
+                local_coord.y < 0 ||
+                static_cast<uint>(local_coord.y) >= sc::SPRITE_HEIGHT)
+            continue;
+
+        constant sc::sprite& sprite{sprites[sprite_ids[entity_idx]]};
+        const auto pixel{sprite.pixels[local_coord.y * sc::SPRITE_WIDTH +
+                local_coord.x]};
+
+        if (pixel.alpha == 0x00)
+            continue;
+
+        const float a{pixel.alpha / 3.0f};
+        const auto sprite_color{unpack_color(sprite, pixel)};
+        if (a < 1.0f) {
+            out_color = (sprite_color * a) + (out_color * (1.0f - a));
+            out_color.a = 1.0f;
+        }
+        else
+            out_color = sprite_color;
+    }
 
     out_texture.write(out_color, gid);
 }

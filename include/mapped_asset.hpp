@@ -1,5 +1,5 @@
 /**
- * @file memory_map.hpp
+ * @file mapped_asset.hpp
  * @brief RAII wrapper for POSIX memory-mapped files.
  */
 #pragma once
@@ -26,18 +26,18 @@ namespace sc {
             !std::is_polymorphic_v<T>;
 
     /**
-     * @class memory_map
+     * @class mapped_asset
      * @brief Manages `mmap`/`munmap` lifecycle for a specific file path.
      * @tparam T The type to cast the mapped memory to.
      */
     template<mappable T>
-    class memory_map final {
+    class mapped_asset final {
     public:
-        [[nodiscard]] explicit memory_map(const char path[]) noexcept;
-        ~memory_map() noexcept;
+        [[nodiscard]] explicit mapped_asset(const char path[]) noexcept;
+        ~mapped_asset() noexcept;
 
-        memory_map(const memory_map&) = delete;
-        memory_map& operator=(const memory_map&) = delete;
+        mapped_asset(const mapped_asset&) = delete;
+        mapped_asset& operator=(const mapped_asset&) = delete;
 
         [[nodiscard]] constexpr const T* operator->() const noexcept;
         [[nodiscard]] constexpr const T& operator*() const noexcept;
@@ -52,7 +52,7 @@ namespace sc {
     };
 
     template<mappable T>
-    memory_map<T>::memory_map(const char path[]) noexcept
+    mapped_asset<T>::mapped_asset(const char path[]) noexcept
     {
         const int fd{open(path, O_RDONLY)};
         if (fd < 0) [[unlikely]]
@@ -76,38 +76,39 @@ namespace sc {
     }
 
     template<mappable T>
-    memory_map<T>::~memory_map() noexcept
+    mapped_asset<T>::~mapped_asset() noexcept
     {
         if (buffer_) [[likely]]
             munmap(const_cast<T*>(buffer_), size_);
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr const T* memory_map<T>::operator->() const noexcept
+    [[nodiscard]] constexpr const T*
+    mapped_asset<T>::operator->() const noexcept
     {
         return buffer_;
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr const T& memory_map<T>::operator*() const noexcept
+    [[nodiscard]] constexpr const T& mapped_asset<T>::operator*() const noexcept
     {
         return *buffer_;
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr memory_map<T>::operator bool() const noexcept
+    [[nodiscard]] constexpr mapped_asset<T>::operator bool() const noexcept
     {
         return buffer_ != nullptr;
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr std::size_t memory_map<T>::size() const noexcept
+    [[nodiscard]] constexpr std::size_t mapped_asset<T>::size() const noexcept
     {
         return size_;
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr const T* memory_map<T>::data() const noexcept
+    [[nodiscard]] constexpr const T* mapped_asset<T>::data() const noexcept
     {
         return buffer_;
     }
