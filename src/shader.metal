@@ -79,19 +79,15 @@ inline float4 unpack_color(constant sc::sprite& sprite, sc::pixel_unit p)
         if (pixel.alpha == 0x00)
             continue;
 
-        out_color = unpack_color(sprite, pixel);
+        const float a{pixel.alpha / 3.0f};
+        const auto sprite_color{unpack_color(sprite, pixel)};
+        if (a < 1.0f) {
+            out_color = (sprite_color * a) + (out_color * (1.0f - a));
+            out_color.a = 1.0f;
+        }
+        else
+            out_color = sprite_color;
     }
-
-    // const float a{pixel.alpha / 3.0f};
-    // const auto sprite_color{};
-    // const auto u_local_coord{uint2(screen_coord)};
-    // if (a < 1.0f) {
-    //     const float4 background{out_texture.read(u_local_coord)};
-    //     out_color = (sprite_color * a) + (background * (1.0f - a));
-    //     out_color.a = 1.0f;
-    // }
-    // else
-    //     out_color = sprite_color;
 
     out_texture.write(out_color, gid);
 }
