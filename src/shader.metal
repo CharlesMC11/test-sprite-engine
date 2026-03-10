@@ -48,9 +48,10 @@ inline float4 unpack_color(constant sc::sprite& sprite, sc::pixel_unit p)
 [[kernel]] void k_draw_sprites(constant sc::sprite* sprites [[buffer(0)]],
         constant float* x_coords [[buffer(1)]],
         constant float* y_coords [[buffer(2)]],
-        constant sc::sys::entity_id_t* sprite_ids [[buffer(3)]],
-        constant sc::sys::index_t* draw_order [[buffer(4)]],
-        constant uint& entity_count [[buffer(5)]],
+        constant float* z_coords [[buffer(3)]],
+        constant sc::sys::entity_id_t* sprite_ids [[buffer(4)]],
+        constant sc::sys::index_t* draw_order [[buffer(5)]],
+        constant uint& entity_count [[buffer(6)]],
         texture2d<float, access::read_write> out_texture [[texture(0)]],
         uint2 gid [[thread_position_in_grid]])
 {
@@ -62,8 +63,8 @@ inline float4 unpack_color(constant sc::sprite& sprite, sc::pixel_unit p)
     for (uint i{0}; i < entity_count; ++i) {
         const uint entity_idx{draw_order[i]};
 
-        const auto entity_coord{
-                float2(x_coords[entity_idx], y_coords[entity_idx])};
+        const auto entity_coord{float2(x_coords[entity_idx],
+                y_coords[entity_idx] - z_coords[entity_idx])};
         const auto local_coord{int2(gid) - int2(floor(entity_coord))};
 
         if (local_coord.x < 0 ||

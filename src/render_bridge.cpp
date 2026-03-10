@@ -81,13 +81,14 @@ namespace sc {
         encoder_->setBuffer(sprite_buffer_.get(), 0, 0);
         encoder_->setBytes(layout.x.data(), sizeof(float) * layout.size(), 1);
         encoder_->setBytes(layout.y.data(), sizeof(float) * layout.size(), 2);
+        encoder_->setBytes(layout.z.data(), sizeof(float) * layout.size(), 3);
         encoder_->setBytes(layout.entity_ids.data(),
-                sizeof(sys::entity_id_t) * layout.size(), 3);
+                sizeof(sys::entity_id_t) * layout.size(), 4);
         encoder_->setBytes(layout.draw_order.data(),
-                sizeof(sys::index_t) * layout.size(), 4);
+                sizeof(sys::index_t) * layout.size(), 5);
 
         const auto count{static_cast<std::uint32_t>(layout.size())};
-        encoder_->setBytes(&count, sizeof(count), 5);
+        encoder_->setBytes(&count, sizeof(count), 6);
 
         const MTL::Size grid_size{display::WIDTH, display::HEIGHT, 1};
         const MTL::Size thread_group_size{16, 16, 1};

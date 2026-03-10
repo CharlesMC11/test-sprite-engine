@@ -14,6 +14,7 @@
 #include "entity_id.hpp"
 #include "sprite.hpp"
 #include "sprite_bank.hpp"
+
 namespace sc {
 
     /**
@@ -23,7 +24,7 @@ namespace sc {
     struct entity_layout final {
 
         /// TODO: Make custom allocator
-        std::vector<float> x, y, dx, dy;
+        std::vector<float> x, y, z, dx, dy;
         std::vector<entity_id> entity_ids;
         std::vector<sys::index_t> draw_order;
 
@@ -38,31 +39,33 @@ namespace sc {
         [[nodiscard]] constexpr std::size_t size() const noexcept;
 
         /**
-         * @brief
-         * @param n
+         * @brief Reserve space in the registry.
+         * @param n The number of entries to reserve.
          */
         void reserve(std::size_t n) noexcept;
 
         /**
-         * @brief
-         * @param start_x
-         * @param start_y
-         * @param id
+         * @brief Add a new entity to the layout.
+         * @param start_x The starting horizontal position.
+         * @param start_y The starting vertical position.
+         * @param start_z The starting aerial position.
+         * @param id The entity's ID.
          */
-        void spawn(float start_x, float start_y, entity_id id) noexcept;
+        void spawn(float start_x, float start_y, float start_z,
+                entity_id id) noexcept;
 
         void resolve_collision(const sprite_bank& bank, const sprite& a,
-                sys::index_t a_idx, float& next_x, float& next_y) noexcept;
+                sys::index_t ai, float& ax, float& ay, float& az) noexcept;
 
         /**
-         * @brief
-         * @param bank
-         * @param dt
-         * @param screen_width
-         * @param screen_height
+         * @brief Update the current layout.
+         * @param bank The sprite bank.
+         * @param dt The delta time.
+         * @param display_width The display's width.
+         * @param display_height The display's height.
          */
-        void update(const sprite_bank& bank, float dt, float screen_width,
-                float screen_height) noexcept;
+        void update(const sprite_bank& bank, float dt, float display_width,
+                float display_height) noexcept;
 
     private:
         bool needs_sort_{false};
@@ -88,6 +91,7 @@ namespace sc {
         if (aligned > x.capacity()) {
             x.reserve(aligned);
             y.reserve(aligned);
+            z.reserve(aligned);
             dx.reserve(aligned);
             dy.reserve(aligned);
             entity_ids.reserve(aligned);
@@ -96,13 +100,14 @@ namespace sc {
     }
 
     inline void entity_layout::spawn(const float start_x, const float start_y,
-            const entity_id id) noexcept
+            const float start_z, const entity_id id) noexcept
     {
         if (x.capacity() == x.size()) [[unlikely]]
             this->reserve(x.size() * 2);
 
         x.push_back(start_x);
         y.push_back(start_y);
+        z.push_back(start_z);
         dx.push_back(0.0f);
         dy.push_back(0.0f);
         entity_ids.push_back(id);
@@ -116,13 +121,16 @@ namespace sc {
      * @param a The 1st entity.
      * @param ax The 1st entity's x-coordinate.
      * @param ay The 2st entity's y-coordinate.
+     * @param az The 2st entity's z-coordinate.
      * @param b The 2nd entity.
      * @param bx The 2nd entity's x-coordinate.
      * @param by The 2nd entity's y-coordinate.
+     * @param bz The 2nd entity's z-coordinate.
      * @return
      */
     inline bool has_collision(const sprite& a, const float ax, const float ay,
-            const sprite& b, const float bx, const float by) noexcept
+            const float az, const sprite& b, const float bx, const float by,
+            const float bz) noexcept
     {
         const bool overlap_x1{ax + static_cast<float>(a.hb_left) <
                 bx + static_cast<float>(b.hb_right)};
@@ -137,26 +145,27 @@ namespace sc {
     }
 
     inline void entity_layout::resolve_collision(const sprite_bank& bank,
-            const sprite& a, const sys::index_t a_idx, float& next_x,
-            float& next_y) noexcept
+            const sprite& a, const sys::index_t ai, float& ax, float& ay,
+            float& az) noexcept
     {
         for (sys::index_t i{0}; i < entity_ids.size(); ++i) {
-            if (a_idx == i)
+            if (ai == i)
                 continue;
 
             if (const sprite& b{bank[entity_ids[i]]};
-                    has_collision(a, next_x, next_y, b, x[i], y[i])) {
-                next_x = x[a_idx];
-                next_y = y[a_idx];
-                dx[a_idx] = 0.0f;
-                dy[a_idx] = 0.0f;
+                    has_collision(a, ax, ay, az, b, x[i], y[i], z[i])) {
+                ax = x[ai];
+                ay = y[ai];
+                az = z[ai];
+                dx[ai] = 0.0f;
+                dy[ai] = 0.0f;
                 return;
             }
         }
     }
 
     inline void entity_layout::update(const sprite_bank& bank, const float dt,
-            const float screen_width, const float screen_height) noexcept
+            const float display_width, const float display_height) noexcept
     {
         for (std::size_t i{0}; i < entity_ids.size(); ++i) {
             const entity_id id{entity_ids[i]};
@@ -164,6 +173,8 @@ namespace sc {
 
             float& rx{x[i]};
             float& ry{y[i]};
+            float& rz{z[i]};
+
             float& rdx{dx[i]};
             float& rdy{dy[i]};
 
@@ -177,8 +188,9 @@ namespace sc {
                 next_x = -static_cast<float>(sprite.hb_left);
                 rdx = 0.0f;
             }
-            else if (next_x + sprite.hb_right > screen_width) {
-                next_x = screen_width - static_cast<float>(sprite.hb_right);
+            else if (next_x + static_cast<float>(sprite.hb_right) >
+                    display_width) {
+                next_x = display_width - static_cast<float>(sprite.hb_right);
                 rdx = 0.0f;
             }
 
@@ -186,12 +198,13 @@ namespace sc {
                 next_y = -static_cast<float>(sprite.hb_top);
                 rdy = 0.0f;
             }
-            else if (next_y + sprite.hb_bottom > screen_height) {
-                next_y = screen_height - static_cast<float>(sprite.hb_bottom);
+            else if (next_y + static_cast<float>(sprite.hb_bottom) >
+                    display_height) {
+                next_y = display_height - static_cast<float>(sprite.hb_bottom);
                 rdy = 0.0f;
             }
 
-            resolve_collision(bank, sprite, i, next_x, next_y);
+            resolve_collision(bank, sprite, i, next_x, next_y, rz);
 
             rx = next_x;
             ry = next_y;

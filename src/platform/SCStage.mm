@@ -57,10 +57,10 @@
                         0.5f,
                 (sc::display::HEIGHT - sc::SPRITE_HEIGHT - sprite.anchor_y) *
                         0.5f,
-                id);
+                0.0f, id);
 
         _layout.spawn(sc::display::HEIGHT * 0.75f, sc::display::HEIGHT * 0.75f,
-                sc::entity_id::HEART);
+                0.0f, sc::entity_id::HEART);
     }
 
     return self;
