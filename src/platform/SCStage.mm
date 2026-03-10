@@ -112,10 +112,10 @@
 {
     switch (event.keyCode) {
     case 13: // W
-    case 1: // A
+    case 1: // S
         _layout.dy[0] = 0;
         break; // Stop Vertical
-    case 0: // S
+    case 0: // A
     case 2: // D
         _layout.dx[0] = 0;
         break; // Stop Horizontal

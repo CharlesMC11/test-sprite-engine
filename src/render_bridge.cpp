@@ -60,8 +60,7 @@ namespace sc {
     void render_bridge::clear(const MTL::Drawable* buffer)
     {
         auto* out_texture =
-                reinterpret_cast<const
-                CA::MetalDrawable*>(buffer)->texture();
+                reinterpret_cast<const CA::MetalDrawable*>(buffer)->texture();
 
         // 1. Switch to the Clear PSO
         encoder_->setComputePipelineState(clear_pso_.get());
