@@ -29,6 +29,8 @@ namespace sc {
         render_bridge& operator=(const render_bridge&) = delete;
         render_bridge& operator=(render_bridge&&) = delete;
 
+        void set_sprite_bank(const sprite_bank& bank);
+
         /**
          * @brief
          * @param buffer The destination drawable/texture.
@@ -45,8 +47,7 @@ namespace sc {
          */
         void draw(const sprite& sprite, float pos_x, float pos_y) const;
 
-        void draw(
-                const sprite_bank& sprites, const entity_layout& layout) const;
+        void draw(const entity_layout& layout) const;
 
         /**
          * @brief
@@ -58,8 +59,9 @@ namespace sc {
         NS::SharedPtr<MTL::CommandQueue> queue_;
         NS::SharedPtr<MTL::ComputePipelineState> clear_pso_{nullptr};
         NS::SharedPtr<MTL::ComputePipelineState> sprite_pso_{nullptr};
+        NS::SharedPtr<MTL::Buffer> sprite_buffer_{nullptr};
 
-        MTL::CommandBuffer* buffer_{nullptr};
+        MTL::CommandBuffer* command_buffer_{nullptr};
         MTL::ComputeCommandEncoder* encoder_{nullptr};
     };
 

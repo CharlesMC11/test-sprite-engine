@@ -45,6 +45,7 @@
 
         _bridge = std::make_unique<sc::render_bridge>(
                 (__bridge MTL::Device*) device);
+        _bridge->set_sprite_bank(*_bank);
 
         self.framebufferOnly = false;
 
@@ -72,7 +73,7 @@
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
     _bridge->begin_frame(drawable);
     _bridge->clear(drawable);
-    _bridge->draw(*_bank, _layout);
+    _bridge->draw(_layout);
     _bridge->end_frame(drawable);
 }
 
@@ -92,7 +93,7 @@
 
 - (void)keyDown:(NSEvent*)event
 {
-    const float speed{200.0f}; // Pixels per second
+    const float speed{400.0f}; // Pixels per second
 
     switch (event.keyCode) {
     case 13: // W

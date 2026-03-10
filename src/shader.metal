@@ -18,29 +18,9 @@ using namespace metal;
     out_texture.write(bg_color, gid);
 }
 
-[[kernel]] void k_draw_sprites(constant sc::sprite* sprites [[buffer(0)]],
-        constant float* x_coords [[buffer(1)]],
-        constant float* y_coords [[buffer(2)]],
-        constant uint64_t* sprite_ids [[buffer(3)]],
-        texture2d<float, access::read_write> out_texture [[texture(0)]],
-        uint2 gid [[threadgroup_position_in_grid]],
-        uint2 tid [[thread_position_in_threadgroup]])
+inline float4 unpack_color(constant sc::sprite& sprite, sc::pixel_unit p)
 {
-    const uint entity_idx{gid.x};
-    const auto entity_coord{float2(x_coords[entity_idx], y_coords[entity_idx])};
-    const auto sscreen_coord{int2(entity_coord) + int2(tid)};
-    if (sscreen_coord.x >= sc::display::SCREEN_WIDTH ||
-            sscreen_coord.y >= sc::display::SCREEN_HEIGHT)
-        return;
-
-    const auto screen_coord{uint2(sscreen_coord)};
-    constant sc::sprite& sprite{sprites[sprite_ids[entity_idx]]};
-    const auto pixel{sprite.pixels[tid.y * sc::SPRITE_WIDTH + tid.x]};
-
-    if (pixel.alpha == 0x00)
-        return;
-
-    const ushort packed_color{sprite.palette[pixel.index]};
+    const ushort packed_color{sprite.palette[p.index]};
     float r{1.0f}, g{1.0f}, b{1.0f};
     switch (sprite.encoding) {
     case sc::color_encoding::DEFAULT:
@@ -61,16 +41,57 @@ using namespace metal;
     default:
         break;
     }
-    const float a{pixel.alpha / 3.0f};
-    const auto sprite_color{float4(r, g, b, a)};
-    float4 out_color;
-    if (a < 1) {
-        const float4 background{out_texture.read(screen_coord)};
-        out_color = (sprite_color * a) + (background * (1.0f - a));
-        out_color.a = 1.0f;
-    }
-    else
-        out_color = sprite_color;
 
-    out_texture.write(out_color, screen_coord);
+    return float4(r, g, b, 1.0f);
+}
+
+[[kernel]] void k_draw_sprites(constant sc::sprite* sprites [[buffer(0)]],
+        constant float* x_coords [[buffer(1)]],
+        constant float* y_coords [[buffer(2)]],
+        constant sc::sys::ENTITY_ID_T* sprite_ids [[buffer(3)]],
+        constant uint* draw_order [[buffer(4)]],
+        constant uint& entity_count [[buffer(5)]],
+        texture2d<float, access::read_write> out_texture [[texture(0)]],
+        uint2 gid [[thread_position_in_grid]])
+{
+    if (gid.x >= sc::display::WIDTH || gid.y >= sc::display::HEIGHT)
+        return;
+
+    float4 out_color{out_texture.read(gid)};
+
+    for (uint i{0}; i < entity_count; ++i) {
+        const uint entity_idx{draw_order[i]};
+
+        const auto entity_coord{
+                float2(x_coords[entity_idx], y_coords[entity_idx])};
+        const auto local_coord{int2(gid) - int2(floor(entity_coord))};
+
+        if (local_coord.x < 0 ||
+                static_cast<uint>(local_coord.x) >= sc::SPRITE_WIDTH ||
+                local_coord.y < 0 ||
+                static_cast<uint>(local_coord.y) >= sc::SPRITE_HEIGHT)
+            continue;
+
+        constant sc::sprite& sprite{sprites[sprite_ids[entity_idx]]};
+        const auto pixel{sprite.pixels[local_coord.y * sc::SPRITE_WIDTH +
+                local_coord.x]};
+
+        if (pixel.alpha == 0x00)
+            continue;
+
+        out_color = unpack_color(sprite, pixel);
+    }
+
+    // const float a{pixel.alpha / 3.0f};
+    // const auto sprite_color{};
+    // const auto u_local_coord{uint2(screen_coord)};
+    // if (a < 1.0f) {
+    //     const float4 background{out_texture.read(u_local_coord)};
+    //     out_color = (sprite_color * a) + (background * (1.0f - a));
+    //     out_color.a = 1.0f;
+    // }
+    // else
+    //     out_color = sprite_color;
+
+    out_texture.write(out_color, gid);
 }

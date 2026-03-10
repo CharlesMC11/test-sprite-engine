@@ -4,14 +4,16 @@
  */
 #pragma once
 
+#include <arm_neon.h>
+
 #include <algorithm>
+#include <numeric>
 #include <vector>
 
 #include "constants.hpp"
 #include "entity_id.hpp"
 #include "sprite.hpp"
 #include "sprite_bank.hpp"
-
 namespace sc {
 
     /**
@@ -23,6 +25,7 @@ namespace sc {
         /// TODO: Make custom allocator
         std::vector<float> x, y, dx, dy;
         std::vector<entity_id> entity_ids;
+        std::vector<uint32_t> draw_order;
 
         explicit entity_layout(
                 std::size_t reserve_count = sys::ALIGNMENT) noexcept;
@@ -56,6 +59,9 @@ namespace sc {
          * @param id
          */
         void spawn(float start_x, float start_y, entity_id id) noexcept;
+
+    private:
+        bool needs_sort_{false};
     };
 
     inline entity_layout::entity_layout(
@@ -76,6 +82,7 @@ namespace sc {
             dx.reserve(aligned);
             dy.reserve(aligned);
             entity_ids.reserve(aligned);
+            draw_order.reserve(aligned);
         }
     }
 
@@ -87,7 +94,6 @@ namespace sc {
     inline void entity_layout::update(const float dt, const float screen_width,
             const float screen_height, const sprite_bank& bank) noexcept
     {
-        /// TODO: Use NEON / assembly
         for (std::size_t i{0}; i < x.size(); ++i) {
             const auto& sprite{bank[entity_ids[i]]};
 
@@ -114,6 +120,17 @@ namespace sc {
 
             x[i] = next_x;
             y[i] = next_y;
+
+            if (std::abs(dy[i]) > 0.001f)
+                needs_sort_ = true;
+        }
+
+        if (needs_sort_) {
+            std::ranges::sort(draw_order.begin(), draw_order.end(),
+                    [&](const uint32_t a, const uint32_t b) {
+                        return y[a] < y[b];
+                    });
+            needs_sort_ = false;
         }
     }
 
@@ -128,6 +145,9 @@ namespace sc {
         dx.push_back(0.0f);
         dy.push_back(0.0f);
         entity_ids.push_back(id);
+        draw_order.push_back(static_cast<std::uint32_t>(x.size() - 1));
+
+        needs_sort_ = true;
     }
 
 } // namespace sc

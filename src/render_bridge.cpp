@@ -8,6 +8,7 @@
 #include <QuartzCore/QuartzCore.hpp>
 
 #include <iostream>
+#include <numeric>
 
 #include "constants.hpp"
 #include "entity_id.hpp"
@@ -45,10 +46,20 @@ namespace sc {
         library->release();
     }
 
+    void render_bridge::set_sprite_bank(const sprite_bank& bank)
+    {
+        const std::size_t size{sizeof(sprite) * bank.size()};
+
+        sprite_buffer_ = NS::TransferPtr(
+                device_->newBuffer(size, MTL::ResourceStorageModeShared));
+
+        std::memcpy(sprite_buffer_->contents(), &bank[0], size);
+    }
+
     void render_bridge::begin_frame(const MTL::Drawable* buffer)
     {
-        buffer_ = queue_->commandBuffer();
-        encoder_ = buffer_->computeCommandEncoder();
+        command_buffer_ = queue_->commandBuffer();
+        encoder_ = command_buffer_->computeCommandEncoder();
         encoder_->setComputePipelineState(sprite_pso_.get());
 
         const auto* out_texture{
@@ -93,19 +104,22 @@ namespace sc {
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }
 
-    void render_bridge::draw(
-            const sprite_bank& sprites, const entity_layout& layout) const
+    void render_bridge::draw(const entity_layout& layout) const
     {
-        encoder_->setBytes(&sprites[0], sizeof(sprite) * sprites.size(), 0);
+
+        encoder_->setBuffer(sprite_buffer_.get(), 0, 0);
         encoder_->setBytes(layout.x.data(), sizeof(float) * layout.size(), 1);
         encoder_->setBytes(layout.y.data(), sizeof(float) * layout.size(), 2);
+        encoder_->setBytes(layout.entity_ids.data(),
+                sizeof(sys::ENTITY_ID_T) * layout.size(), 3);
         encoder_->setBytes(
-                layout.entity_ids.data(), sizeof(entity_id) * layout.size(), 3);
+                layout.draw_order.data(), sizeof(uint32_t) * layout.size(), 4);
 
-        const MTL::Size grid_size{
-                SPRITE_WIDTH * layout.size(), SPRITE_HEIGHT, 1};
-        const MTL::Size thread_group_size{SPRITE_WIDTH, SPRITE_HEIGHT, 1};
+        const auto count{static_cast<std::uint32_t>(layout.size())};
+        encoder_->setBytes(&count, sizeof(count), 5);
+
         const MTL::Size grid_size{display::WIDTH, display::HEIGHT, 1};
+        const MTL::Size thread_group_size{16, 16, 1};
 
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }
@@ -113,11 +127,11 @@ namespace sc {
     void render_bridge::end_frame(const MTL::Drawable* buffer)
     {
         encoder_->endEncoding();
-        buffer_->presentDrawable(buffer);
-        buffer_->commit();
+        command_buffer_->presentDrawable(buffer);
+        command_buffer_->commit();
 
         encoder_ = nullptr;
-        buffer_ = nullptr;
+        command_buffer_ = nullptr;
     }
 
 } // namespace sc
