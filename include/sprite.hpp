@@ -8,7 +8,7 @@
 #include <cstdint>
 #endif
 
-#include "constants.hpp"
+#include "definitions.hpp"
 
 namespace sc {
 

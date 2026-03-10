@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <cstring>
 
-#include "constants.hpp"
+#include "definitions.hpp"
 #include "entity_id.hpp"
 #include "sprite.hpp"
 

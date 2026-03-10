@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include "constants.hpp"
+#include "definitions.hpp"
 #include "entity_id.hpp"
 #include "entity_layout.hpp"
 #include "mapped_asset.hpp"
@@ -80,7 +80,7 @@
         _layout.dx[0] += speed;
 
     float deltaTime = 1.0f / view.preferredFramesPerSecond;
-    _layout.update(deltaTime, sc::display::WIDTH, sc::display::HEIGHT, *_bank);
+    _layout.update(*_bank, deltaTime, sc::display::WIDTH, sc::display::HEIGHT);
 
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
     _bridge->begin_frame(drawable);

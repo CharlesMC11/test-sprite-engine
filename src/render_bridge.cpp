@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-#include "constants.hpp"
+#include "definitions.hpp"
 
 namespace sc {
 
@@ -82,9 +82,9 @@ namespace sc {
         encoder_->setBytes(layout.x.data(), sizeof(float) * layout.size(), 1);
         encoder_->setBytes(layout.y.data(), sizeof(float) * layout.size(), 2);
         encoder_->setBytes(layout.entity_ids.data(),
-                sizeof(sys::ENTITY_ID_T) * layout.size(), 3);
+                sizeof(sys::entity_id_t) * layout.size(), 3);
         encoder_->setBytes(layout.draw_order.data(),
-                sizeof(sys::INDEX_T) * layout.size(), 4);
+                sizeof(sys::index_t) * layout.size(), 4);
 
         const auto count{static_cast<std::uint32_t>(layout.size())};
         encoder_->setBytes(&count, sizeof(count), 5);

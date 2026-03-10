@@ -10,7 +10,7 @@
 #include <numeric>
 #include <vector>
 
-#include "constants.hpp"
+#include "definitions.hpp"
 #include "entity_id.hpp"
 #include "sprite.hpp"
 #include "sprite_bank.hpp"
@@ -25,7 +25,7 @@ namespace sc {
         /// TODO: Make custom allocator
         std::vector<float> x, y, dx, dy;
         std::vector<entity_id> entity_ids;
-        std::vector<sys::INDEX_T> draw_order;
+        std::vector<sys::index_t> draw_order;
 
         explicit entity_layout(
                 std::size_t reserve_count = sys::ALIGNMENT) noexcept;

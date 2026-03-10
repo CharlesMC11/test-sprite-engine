@@ -4,7 +4,7 @@
 #import <MetalKit/MetalKit.h>
 
 #import "SCStage.h"
-#include "constants.hpp"
+#include "definitions.hpp"
 
 @implementation SCAppDelegate
 

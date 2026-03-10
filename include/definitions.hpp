@@ -1,5 +1,5 @@
 /**
- * @file constants.hpp
+ * @file definitions.hpp
  * @brief
  */
 #pragma once
@@ -16,8 +16,8 @@ namespace sc {
     namespace sys {
 
         static SC_CONSTANT auto ALIGNMENT{16u};
-        using ENTITY_ID_T = uint32_t;
-        using INDEX_T = uint32_t;
+        using entity_id_t = uint32_t;
+        using index_t = uint32_t;
 
     } // namespace sys
 
