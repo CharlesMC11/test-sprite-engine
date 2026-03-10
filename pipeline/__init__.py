@@ -6,17 +6,17 @@ MAX_PALETTE_SIZE: Final[int] = 16
 SPRITE_HEIGHT: Final[int] = 32
 SPRITE_WIDTH: Final[int] = 32
 SPRITE_SIZE_BYTES: Final[int] = 1_072
-SPRITE_METADATA: Final[str] = "BBBBBBB1x"
+SPRITE_METADATA: Final[str] = "BBBBBBBB"
 """8-byte sprite metadata. 
 
-- hitbox_min_x
-- hitbox_min_y
-- hitbox_max_x
-- hitbox_max_y
+- left
+- top
+- right
+- bottom
 - anchor_x
 - anchor_y
 - color_encoding
-- reserved
+- phys_type
 """
 
 

@@ -55,7 +55,7 @@ def calculate_hitbox(mask: AlphaMask) -> tuple[int, int, int, int]:
 
 
 def pack_colors_to_16bit(
-    image_bgr: BGRImage, encoding: ColorEncoding
+        image_bgr: BGRImage, encoding: ColorEncoding
 ) -> PackedColors:
     """
     Pack the 8-bit BGR channels into 16-bit integers.
@@ -106,7 +106,7 @@ class SpriteCompiler:
     # Public methods
 
     def ingest_asset(
-        self, image_path: str, glow_mask_path: Path | None
+            self, image_path: str, glow_mask_path: Path | None
     ) -> None:
         """
         Validate the source asset.
@@ -157,17 +157,17 @@ class SpriteCompiler:
         :param output_path: The path to save the sprite to.
         """
 
-        hitbox = calculate_hitbox(self._source_alpha)
-        hb_min_x, hb_min_y, hb_max_x, hb_max_y = hitbox
-        anchor_x = (hb_max_x - hb_min_x) // 2
-        anchor_y = hb_max_y
+        left, top, right, bottom = calculate_hitbox(self._source_alpha)
+
+        anchor_x = (right - left) // 2
+        anchor_y = bottom
 
         metadata_bytes = struct.pack(
             f"<{SPRITE_METADATA}",
-            hb_min_x,
-            hb_min_y,
-            hb_max_x,
-            hb_max_y,
+            left,
+            top,
+            right,
+            bottom,
             anchor_x,
             anchor_y,
             self._encoding.value,
@@ -207,7 +207,7 @@ class SpriteCompiler:
         if not glow_mask_path.exists():
             raise FileNotFoundError(f"Missing glow map file: {glow_mask_path}")
         if (
-            glow_mask := cv2.imread(glow_mask_path, cv2.IMREAD_GRAYSCALE)
+                glow_mask := cv2.imread(glow_mask_path, cv2.IMREAD_GRAYSCALE)
         ) is None:
             raise RuntimeError(f"Could not read glow mask: {glow_mask_path}.")
 

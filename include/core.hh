@@ -1,5 +1,5 @@
 /**
- * @file definitions.hpp
+ * @file core.hh
  * @brief
  */
 #pragma once
@@ -15,23 +15,24 @@ namespace sc {
 
     namespace sys {
 
-        static SC_CONSTANT auto ALIGNMENT{16u};
-        using entity_id_t = uint32_t;
         using index_t = uint32_t;
+        using atlas_index_t = index_t;
+
+        static SC_CONSTANT auto kAlignment{16u};
 
     } // namespace sys
 
     namespace assets {
 
-        static SC_CONSTANT auto CHARACTER_SPRITE_BANK{"assets/master.atlas"};
-        static SC_CONSTANT auto SHADER_LIB{"assets/shader.metallib"};
+        static SC_CONSTANT auto kCharacterAtlas{"assets/master.atlas"};
+        static SC_CONSTANT auto kShaderLib{"assets/shader.metallib"};
 
     } // namespace assets
 
     namespace display {
 
-        static SC_CONSTANT uint32_t WIDTH{240u};
-        static SC_CONSTANT uint32_t HEIGHT{160u};
+        static SC_CONSTANT uint32_t kWidth{240u};
+        static SC_CONSTANT uint32_t kHeight{160u};
 
     } // namespace display
 

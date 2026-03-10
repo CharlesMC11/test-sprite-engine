@@ -1,5 +1,5 @@
 /**
- * @file sprite.hpp
+ * @file sprite.hh
  * @brief Core definitions and sprite data structures..
  */
 #pragma once
@@ -8,13 +8,13 @@
 #include <cstdint>
 #endif
 
-#include "definitions.hpp"
+#include "core.hh"
 
-namespace sc {
+namespace sc::sprites {
 
-    SC_CONSTANT uint32_t SPRITE_MAX_PALETTE_SIZE{16};
-    SC_CONSTANT uint32_t SPRITE_HEIGHT{32};
-    SC_CONSTANT uint32_t SPRITE_WIDTH{32};
+    SC_CONSTANT uint32_t kMaxPaletteSize{16};
+    SC_CONSTANT uint32_t kHeight{32};
+    SC_CONSTANT uint32_t kWidth{32};
 
     /**
      * @enum color_encoding
@@ -27,18 +27,19 @@ namespace sc {
     };
 
     /// \brief 16-bit–packed color, encoding determined by `color_encoding`.
-    using color = uint16_t;
+    using packed_color = uint16_t;
 
     /**
-     * @union pixel_unit
+     * @union packed_pixel
      * @brief 8-bit packed index/metadata pixel.
      */
-    union pixel_unit {
-        uint8_t buffer;
+    union packed_pixel {
+        uint8_t data;
         struct {
             uint8_t index : 4;
             uint8_t alpha : 2;
-            uint8_t glow : 1;
+            uint8_t emission : 1;
+            uint8_t specular : 1;
         };
     };
 
@@ -49,13 +50,13 @@ namespace sc {
      * Uses 16-byte alignment to satisfy AArch64 SIMD and Metal address space
      * for constant sys.
      */
-    struct alignas(sys::ALIGNMENT) sprite final {
-        uint8_t hb_left, hb_top; ///< Hitbox minimum bounds (top-left)
-        uint8_t hb_right, hb_bottom; ///< Hitbox maximum bounds (bottom-right)
+    struct alignas(sys::kAlignment) sprite final {
+        uint8_t left, top, right, bottom; ///< Hitbox
         uint8_t anchor_x, anchor_y; ///< Local origin
         color_encoding encoding; ///< Channel packing used in palette
-        color palette[SPRITE_MAX_PALETTE_SIZE]; ///< 16-color LUT
-        pixel_unit pixels[SPRITE_HEIGHT * SPRITE_HEIGHT]; ///< Row-major pixels
+        uint8_t phys_type;
+        packed_color palette[kMaxPaletteSize]; ///< 16-color LUT
+        packed_pixel pixels[kHeight * kHeight]; ///< Row-major pixels
     };
 
-} // namespace sc
+} // namespace sc::sprites

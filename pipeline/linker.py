@@ -20,7 +20,7 @@ from typing import Final
 from pipeline import SPRITE_SIZE_BYTES
 
 SPRITE_BANK_MAGIC: Final[bytes] = b"SC ATLAS"
-ENUM_NAME: Final[str] = "entity_id"
+ENUM_NAME: Final[str] = "atlas_index"
 
 
 class AtlasLinker:
@@ -98,7 +98,7 @@ class AtlasLinker:
             for blob in self._sprite_blobs:
                 f.write(blob)
 
-        self._generate_header(output_path.with_name(f"{ENUM_NAME}.hpp"))
+        self._generate_header(output_path.with_name(f"{ENUM_NAME}.hh"))
 
     # Protected methods
 
@@ -112,11 +112,11 @@ class AtlasLinker:
         lines = [
             "#pragma once",
             "",
-            "#include <cstdint>",
+            "#include <core.hh",
             "",
-            "namespace sc {",
+            "namespace sc::sprites {",
             "",
-            f"{' ' * 4}enum class {ENUM_NAME} : std::uint64_t {{",
+            f"{' ' * 4}enum class {ENUM_NAME} : sys::atlas_index_t {{",
         ]
 
         for i, name in enumerate(self._sprite_names):

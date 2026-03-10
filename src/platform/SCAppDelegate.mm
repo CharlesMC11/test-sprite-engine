@@ -1,10 +1,10 @@
-#import "SCAppDelegate.h"
+#import "SCAppDelegate.hh"
 
 #import <Cocoa/Cocoa.h>
 #import <MetalKit/MetalKit.h>
 
-#import "SCStage.h"
-#include "definitions.hpp"
+#import "SCStage.hh"
+#include "core.hh"
 
 @implementation SCAppDelegate
 
@@ -12,7 +12,7 @@
 {
     const auto scale = 4.0f;
     auto frame = NSMakeRect(
-            0, 0, sc::display::WIDTH * scale, sc::display::HEIGHT * scale);
+            0, 0, sc::display::kWidth * scale, sc::display::kHeight * scale);
     self.window = [[NSWindow alloc]
             initWithContentRect:frame
                       styleMask:(NSWindowStyleMaskTitled |

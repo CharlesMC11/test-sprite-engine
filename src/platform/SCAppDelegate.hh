@@ -2,7 +2,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "SCStage.h"
+#import "SCStage.hh"
 
 @interface SCAppDelegate : NSObject <NSApplicationDelegate>
 @property(strong, nonatomic) NSWindow* window;
