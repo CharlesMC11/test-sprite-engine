@@ -72,7 +72,7 @@
 
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
     _bridge->begin_frame(drawable);
-    _bridge->clear(drawable);
+    _bridge->clear();
     _bridge->draw(_layout);
     _bridge->end_frame(drawable);
 }

@@ -37,16 +37,12 @@ namespace sc {
          */
         void begin_frame(const MTL::Drawable* buffer);
 
-        void clear(const MTL::Drawable* buffer);
+        void clear() const;
 
         /**
-         * @brief Encode a draw command for a single sprite.
-         * @param sprite The source data to render.
-         * @param pos_x
-         * @param pos_y
+         * @brief Encode a draw command for entities on screen.
+         * @param layout
          */
-        void draw(const sprite& sprite, float pos_x, float pos_y) const;
-
         void draw(const entity_layout& layout) const;
 
         /**

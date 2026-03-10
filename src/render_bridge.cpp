@@ -8,10 +8,8 @@
 #include <QuartzCore/QuartzCore.hpp>
 
 #include <iostream>
-#include <numeric>
 
 #include "constants.hpp"
-#include "entity_id.hpp"
 
 namespace sc {
 
@@ -60,52 +58,25 @@ namespace sc {
     {
         command_buffer_ = queue_->commandBuffer();
         encoder_ = command_buffer_->computeCommandEncoder();
-        encoder_->setComputePipelineState(sprite_pso_.get());
 
         const auto* out_texture{
                 reinterpret_cast<const CA::MetalDrawable*>(buffer)->texture()};
         encoder_->setTexture(out_texture, 0);
     }
 
-    // FIXME
-    void render_bridge::clear(const MTL::Drawable* buffer)
+    void render_bridge::clear() const
     {
-        auto* out_texture =
-                reinterpret_cast<const CA::MetalDrawable*>(buffer)->texture();
-
-        // 1. Switch to the Clear PSO
         encoder_->setComputePipelineState(clear_pso_.get());
-        encoder_->setTexture(out_texture, 0);
 
-        // 2. Dispatch across the whole 240x160 screen
         const auto grid_size = MTL::Size(display::WIDTH, display::HEIGHT, 1);
-        const auto thread_group_size =
-                MTL::Size(16, 16, 1); // Standard block size
+        const auto thread_group_size = MTL::Size(16, 16, 1);
 
-        encoder_->dispatchThreads(grid_size, thread_group_size);
-
-        // 3. Switch back to the Registry PSO for the next calls
-        encoder_->setComputePipelineState(sprite_pso_.get());
-    }
-
-    void render_bridge::draw(
-            const sprite& sprite, const float pos_x, const float pos_y) const
-    {
-        encoder_->setBytes(&sprite, sizeof(sprite), 0);
-
-        const struct {
-            float x;
-            float y;
-        } pos{pos_x, pos_y};
-        encoder_->setBytes(&pos, sizeof(pos), 1);
-
-        const auto grid_size{MTL::Size(SPRITE_WIDTH, SPRITE_HEIGHT, 1)};
-        const auto thread_group_size{MTL::Size(8, 8, 1)};
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }
 
     void render_bridge::draw(const entity_layout& layout) const
     {
+        encoder_->setComputePipelineState(sprite_pso_.get());
 
         encoder_->setBuffer(sprite_buffer_.get(), 0, 0);
         encoder_->setBytes(layout.x.data(), sizeof(float) * layout.size(), 1);
