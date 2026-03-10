@@ -17,6 +17,7 @@
     std::unique_ptr<sc::render_bridge> _bridge;
     const sc::sprite_bank* _bank;
     sc::entity_layout _layout;
+    BOOL _keysPressed[128];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame device:(id<MTLDevice>)device
@@ -67,6 +68,17 @@
 
 - (void)drawInMTKView:(MTKView*)view
 {
+    float speed = 300.0f;
+    _layout.dx[0] = _layout.dy[0] = 0;
+    if (_keysPressed[13]) // W
+        _layout.dy[0] -= speed;
+    if (_keysPressed[1]) // S
+        _layout.dy[0] += speed;
+    if (_keysPressed[0]) // A
+        _layout.dx[0] -= speed;
+    if (_keysPressed[2]) // D
+        _layout.dx[0] += speed;
+
     float deltaTime = 1.0f / view.preferredFramesPerSecond;
     _layout.update(deltaTime, sc::display::WIDTH, sc::display::HEIGHT, *_bank);
 
@@ -93,36 +105,12 @@
 
 - (void)keyDown:(NSEvent*)event
 {
-    const float speed{400.0f}; // Pixels per second
-
-    switch (event.keyCode) {
-    case 13: // W
-        _layout.dy[0] = -speed;
-        break;
-    case 0: // A
-        _layout.dx[0] = -speed;
-        break;
-    case 1: // S
-        _layout.dy[0] = speed;
-        break;
-    case 2: // D
-        _layout.dx[0] = speed;
-        break;
-    }
+    _keysPressed[event.keyCode] = YES;
 }
 
 - (void)keyUp:(NSEvent*)event
 {
-    switch (event.keyCode) {
-    case 13: // W
-    case 1: // S
-        _layout.dy[0] = 0;
-        break; // Stop Vertical
-    case 0: // A
-    case 2: // D
-        _layout.dx[0] = 0;
-        break; // Stop Horizontal
-    }
+    _keysPressed[event.keyCode] = NO;
 }
 
 @end
