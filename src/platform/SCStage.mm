@@ -64,8 +64,8 @@
 - (void)drawInMTKView:(MTKView*)view
 {
     float deltaTime = 1.0f / view.preferredFramesPerSecond;
-    _layout.update(
-            deltaTime, sc::display::SCREEN_WIDTH, sc::display::SCREEN_HEIGHT);
+    _layout.update(deltaTime, sc::display::SCREEN_WIDTH,
+            sc::display::SCREEN_HEIGHT, *_bank);
 
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
     _bridge->begin_frame(drawable);

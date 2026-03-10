@@ -10,6 +10,7 @@
 #include "constants.hpp"
 #include "entity_id.hpp"
 #include "sprite.hpp"
+#include "sprite_bank.hpp"
 
 namespace sc {
 
@@ -45,7 +46,8 @@ namespace sc {
          * @param screen_width
          * @param screen_height
          */
-        void update(float dt, float screen_width, float screen_height) noexcept;
+        void update(float dt, float screen_width, float screen_height,
+                const sprite_bank& bank) noexcept;
 
         /**
          * @brief
@@ -83,15 +85,35 @@ namespace sc {
     }
 
     inline void entity_layout::update(const float dt, const float screen_width,
-            const float screen_height) noexcept
+            const float screen_height, const sprite_bank& bank) noexcept
     {
-        const auto max_x{screen_width - static_cast<float>(SPRITE_WIDTH)};
-        const auto max_y{screen_height - static_cast<float>(SPRITE_HEIGHT)};
-
         /// TODO: Use NEON / assembly
         for (std::size_t i{0}; i < x.size(); ++i) {
-            x[i] = std::clamp(x[i] + dx[i] * dt, 0.0f, max_x);
-            y[i] = std::clamp(y[i] + dy[i] * dt, 0.0f, max_y);
+            const auto& sprite{bank[entity_ids[i]]};
+
+            float next_x{x[i] + dx[i] * dt};
+            float next_y{y[i] + dy[i] * dt};
+
+            if (next_x + static_cast<float>(sprite.hb_min_x) < 0.0f) {
+                next_x = -static_cast<float>(sprite.hb_min_x);
+                dx[i] = 0.0f;
+            }
+            else if (next_x + sprite.hb_max_x > screen_width) {
+                next_x = screen_width - static_cast<float>(sprite.hb_max_x);
+                dx[i] = 0.0f;
+            }
+
+            if (next_y + static_cast<float>(sprite.hb_min_y) < 0) {
+                next_y = -static_cast<float>(sprite.hb_min_y);
+                dy[i] = 0.0f;
+            }
+            else if (next_y + sprite.hb_max_y > screen_height) {
+                next_y = screen_height - static_cast<float>(sprite.hb_max_y);
+                dy[i] = 0.0f;
+            }
+
+            x[i] = next_x;
+            y[i] = next_y;
         }
     }
 
