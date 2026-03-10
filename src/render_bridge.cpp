@@ -67,8 +67,7 @@ namespace sc {
         encoder_->setTexture(out_texture, 0);
 
         // 2. Dispatch across the whole 240x160 screen
-        const auto grid_size =
-                MTL::Size(display::SCREEN_WIDTH, display::SCREEN_HEIGHT, 1);
+        const auto grid_size = MTL::Size(display::WIDTH, display::HEIGHT, 1);
         const auto thread_group_size =
                 MTL::Size(16, 16, 1); // Standard block size
 
@@ -106,6 +105,7 @@ namespace sc {
         const MTL::Size grid_size{
                 SPRITE_WIDTH * layout.size(), SPRITE_HEIGHT, 1};
         const MTL::Size thread_group_size{SPRITE_WIDTH, SPRITE_HEIGHT, 1};
+        const MTL::Size grid_size{display::WIDTH, display::HEIGHT, 1};
 
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }

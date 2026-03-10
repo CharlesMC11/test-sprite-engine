@@ -27,9 +27,7 @@
 
         self.delegate = self;
 
-        self.drawableSize = CGSizeMake(
-                sc::display::SCREEN_WIDTH, sc::display::SCREEN_HEIGHT);
-
+        self.drawableSize = CGSizeMake(sc::display::WIDTH, sc::display::HEIGHT);
         self.layer.magnificationFilter = kCAFilterNearest;
 
         _loader = std::make_unique<sc::mapped_asset<sc::sprite_bank>>(
@@ -52,10 +50,15 @@
 
         const auto id{sc::entity_id::LANCIS};
         const sc::sprite& sprite{(*_bank)[id]};
-        _layout.spawn((sc::display::SCREEN_WIDTH - sc::SPRITE_WIDTH - sprite.anchor_x) * 0.5f,
-                (sc::display::SCREEN_HEIGHT - sc::SPRITE_HEIGHT - sprite.anchor_y) * 0.5f, id);
+        _layout.spawn(
+                (sc::display::WIDTH - sc::SPRITE_WIDTH - sprite.anchor_x) *
+                        0.5f,
+                (sc::display::HEIGHT - sc::SPRITE_HEIGHT - sprite.anchor_y) *
+                        0.5f,
+                id);
 
-        _layout.spawn(0, 0, sc::entity_id::HEART);
+        _layout.spawn(sc::display::HEIGHT * 0.75f, sc::display::HEIGHT * 0.75f,
+                sc::entity_id::HEART);
     }
 
     return self;
@@ -64,8 +67,7 @@
 - (void)drawInMTKView:(MTKView*)view
 {
     float deltaTime = 1.0f / view.preferredFramesPerSecond;
-    _layout.update(deltaTime, sc::display::SCREEN_WIDTH,
-            sc::display::SCREEN_HEIGHT, *_bank);
+    _layout.update(deltaTime, sc::display::WIDTH, sc::display::HEIGHT, *_bank);
 
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
     _bridge->begin_frame(drawable);

@@ -16,6 +16,7 @@ namespace sc {
     namespace sys {
 
         static SC_CONSTANT auto ALIGNMENT{16u};
+        using ENTITY_ID_T = uint32_t;
 
     } // namespace sys
 
@@ -28,8 +29,8 @@ namespace sc {
 
     namespace display {
 
-        static SC_CONSTANT uint32_t SCREEN_WIDTH{240u};
-        static SC_CONSTANT uint32_t SCREEN_HEIGHT{160u};
+        static SC_CONSTANT uint32_t WIDTH{240u};
+        static SC_CONSTANT uint32_t HEIGHT{160u};
 
     } // namespace display
 
