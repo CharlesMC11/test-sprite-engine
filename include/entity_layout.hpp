@@ -124,14 +124,16 @@ namespace sc {
     inline bool has_collision(const sprite& a, const float ax, const float ay,
             const sprite& b, const float bx, const float by) noexcept
     {
+        const bool overlap_x1{ax + static_cast<float>(a.hb_left) <
+                bx + static_cast<float>(b.hb_right)};
+        const bool overlap_x2{ax + static_cast<float>(a.hb_right) >
+                bx + static_cast<float>(b.hb_left)};
+
         const float a_bottom{ay + static_cast<float>(a.hb_bottom)};
         const float b_bottom{by + static_cast<float>(b.hb_bottom)};
+        const bool overlap_y{std::abs(a_bottom - b_bottom) < 5.0f};
 
-        return ax + static_cast<float>(a.hb_left) <
-                bx + static_cast<float>(b.hb_right) &&
-                ax + static_cast<float>(a.hb_right) >
-                bx + static_cast<float>(b.hb_left) &&
-                std::abs(a_bottom - b_bottom) < 5.0f;
+        return overlap_x1 && overlap_x2 && overlap_y;
     }
 
     inline void entity_layout::resolve_collision(const sprite_bank& bank,
