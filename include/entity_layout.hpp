@@ -45,20 +45,24 @@ namespace sc {
 
         /**
          * @brief
-         * @param dt
-         * @param screen_width
-         * @param screen_height
-         */
-        void update(float dt, float screen_width, float screen_height,
-                const sprite_bank& bank) noexcept;
-
-        /**
-         * @brief
          * @param start_x
          * @param start_y
          * @param id
          */
         void spawn(float start_x, float start_y, entity_id id) noexcept;
+
+        void resolve_collision(const sprite_bank& bank, const sprite& a,
+                sys::index_t a_idx, float& next_x, float& next_y) noexcept;
+
+        /**
+         * @brief
+         * @param bank
+         * @param dt
+         * @param screen_width
+         * @param screen_height
+         */
+        void update(const sprite_bank& bank, float dt, float screen_width,
+                float screen_height) noexcept;
 
     private:
         bool needs_sort_{false};
@@ -69,6 +73,11 @@ namespace sc {
     {
         this->reserve(reserve_count < sys::ALIGNMENT ? sys::ALIGNMENT
                                                      : reserve_count);
+    }
+
+    [[nodiscard]] constexpr std::size_t entity_layout::size() const noexcept
+    {
+        return x.size();
     }
 
     inline void entity_layout::reserve(const std::size_t n) noexcept
@@ -86,54 +95,6 @@ namespace sc {
         }
     }
 
-    [[nodiscard]] constexpr std::size_t entity_layout::size() const noexcept
-    {
-        return x.size();
-    }
-
-    inline void entity_layout::update(const float dt, const float screen_width,
-            const float screen_height, const sprite_bank& bank) noexcept
-    {
-        for (std::size_t i{0}; i < x.size(); ++i) {
-            const auto& sprite{bank[entity_ids[i]]};
-
-            float next_x{x[i] + dx[i] * dt};
-            float next_y{y[i] + dy[i] * dt};
-
-            if (next_x + static_cast<float>(sprite.hb_min_x) < 0.0f) {
-                next_x = -static_cast<float>(sprite.hb_min_x);
-                dx[i] = 0.0f;
-            }
-            else if (next_x + sprite.hb_max_x > screen_width) {
-                next_x = screen_width - static_cast<float>(sprite.hb_max_x);
-                dx[i] = 0.0f;
-            }
-
-            if (next_y + static_cast<float>(sprite.hb_min_y) < 0) {
-                next_y = -static_cast<float>(sprite.hb_min_y);
-                dy[i] = 0.0f;
-            }
-            else if (next_y + sprite.hb_max_y > screen_height) {
-                next_y = screen_height - static_cast<float>(sprite.hb_max_y);
-                dy[i] = 0.0f;
-            }
-
-            x[i] = next_x;
-            y[i] = next_y;
-
-            if (std::abs(dy[i]) > 0.001f)
-                needs_sort_ = true;
-        }
-
-        if (needs_sort_) {
-            std::ranges::sort(draw_order.begin(), draw_order.end(),
-                    [&](const uint32_t a, const uint32_t b) {
-                        return y[a] < y[b];
-                    });
-            needs_sort_ = false;
-        }
-    }
-
     inline void entity_layout::spawn(const float start_x, const float start_y,
             const entity_id id) noexcept
     {
@@ -148,6 +109,102 @@ namespace sc {
         draw_order.push_back(static_cast<std::uint32_t>(x.size() - 1));
 
         needs_sort_ = true;
+    }
+
+    /**
+     * @brief Check if 2 entities overlap.
+     * @param a The 1st entity.
+     * @param ax The 1st entity's x-coordinate.
+     * @param ay The 2st entity's y-coordinate.
+     * @param b The 2nd entity.
+     * @param bx The 2nd entity's x-coordinate.
+     * @param by The 2nd entity's y-coordinate.
+     * @return
+     */
+    inline bool has_collision(const sprite& a, const float ax, const float ay,
+            const sprite& b, const float bx, const float by) noexcept
+    {
+        const float a_bottom{ay + static_cast<float>(a.hb_bottom)};
+        const float b_bottom{by + static_cast<float>(b.hb_bottom)};
+
+        return ax + static_cast<float>(a.hb_left) <
+                bx + static_cast<float>(b.hb_right) &&
+                ax + static_cast<float>(a.hb_right) >
+                bx + static_cast<float>(b.hb_left) &&
+                std::abs(a_bottom - b_bottom) < 5.0f;
+    }
+
+    inline void entity_layout::resolve_collision(const sprite_bank& bank,
+            const sprite& a, const sys::index_t a_idx, float& next_x,
+            float& next_y) noexcept
+    {
+        for (sys::index_t i{0}; i < entity_ids.size(); ++i) {
+            if (a_idx == i)
+                continue;
+
+            if (const sprite& b{bank[entity_ids[i]]};
+                    has_collision(a, next_x, next_y, b, x[i], y[i])) {
+                next_x = x[a_idx];
+                next_y = y[a_idx];
+                dx[a_idx] = 0.0f;
+                dy[a_idx] = 0.0f;
+                return;
+            }
+        }
+    }
+
+    inline void entity_layout::update(const sprite_bank& bank, const float dt,
+            const float screen_width, const float screen_height) noexcept
+    {
+        for (std::size_t i{0}; i < entity_ids.size(); ++i) {
+            const entity_id id{entity_ids[i]};
+            const auto& sprite{bank[id]};
+
+            float& rx{x[i]};
+            float& ry{y[i]};
+            float& rdx{dx[i]};
+            float& rdy{dy[i]};
+
+            if (rdx == 0 && rdy == 0)
+                continue;
+
+            float next_x{rx + rdx * dt};
+            float next_y{ry + rdy * dt};
+
+            if (next_x + static_cast<float>(sprite.hb_left) < 0.0f) {
+                next_x = -static_cast<float>(sprite.hb_left);
+                rdx = 0.0f;
+            }
+            else if (next_x + sprite.hb_right > screen_width) {
+                next_x = screen_width - static_cast<float>(sprite.hb_right);
+                rdx = 0.0f;
+            }
+
+            if (next_y + static_cast<float>(sprite.hb_top) < 0) {
+                next_y = -static_cast<float>(sprite.hb_top);
+                rdy = 0.0f;
+            }
+            else if (next_y + sprite.hb_bottom > screen_height) {
+                next_y = screen_height - static_cast<float>(sprite.hb_bottom);
+                rdy = 0.0f;
+            }
+
+            resolve_collision(bank, sprite, i, next_x, next_y);
+
+            rx = next_x;
+            ry = next_y;
+
+            if (std::abs(dy[i]) > std::numeric_limits<float>::epsilon())
+                needs_sort_ = true;
+        }
+
+        if (needs_sort_) {
+            std::ranges::sort(draw_order.begin(), draw_order.end(),
+                    [&](const uint32_t a, const uint32_t b) {
+                        return y[a] < y[b];
+                    });
+            needs_sort_ = false;
+        }
     }
 
 } // namespace sc
