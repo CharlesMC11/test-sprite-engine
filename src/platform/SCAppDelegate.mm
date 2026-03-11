@@ -10,9 +10,9 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification*)notification
 {
-    const auto scale = 4.0f;
-    auto frame = NSMakeRect(
-            0, 0, sc::display::kWidth * scale, sc::display::kHeight * scale);
+    constexpr float scale{4.0f};
+    const auto frame{NSMakeRect(
+            0, 0, sc::display::kWidth * scale, sc::display::kHeight * scale)};
     self.window = [[NSWindow alloc]
             initWithContentRect:frame
                       styleMask:(NSWindowStyleMaskTitled |
@@ -25,7 +25,7 @@
     [self.window setTitle:@"Test Sprite Engine"];
     [self.window center];
 
-    id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+    id<MTLDevice> device{MTLCreateSystemDefaultDevice()};
     self.view = [[SCStage alloc] initWithFrame:frame device:device];
     self.window.contentView = self.view;
 
