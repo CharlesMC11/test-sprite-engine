@@ -26,19 +26,19 @@ inline float4 unpack_color(
     float r{1.0f}, g{1.0f}, b{1.0f};
     switch (sprite.encoding) {
     case sc::sprites::color_encoding::DEFAULT:
-        r = ((packed_color >> 11) & 0x1F) / 31.0f;
-        g = ((packed_color >> 5) & 0x3F) / 63.0f;
-        b = (packed_color & 0x1F) / 31.0f;
+        r = static_cast<float>((packed_color >> 11) & 0x1F) / 31.0f;
+        g = static_cast<float>((packed_color >> 5) & 0x3F) / 63.0f;
+        b = static_cast<float>(packed_color & 0x1F) / 31.0f;
         break;
     case sc::sprites::color_encoding::WARM:
-        r = ((packed_color >> 10) & 0x3F) / 63.0f;
-        g = ((packed_color >> 5) & 0x1F) / 31.0f;
-        b = (packed_color & 0x1F) / 31.0f;
+        r = static_cast<float>((packed_color >> 10) & 0x3F) / 63.0f;
+        g = static_cast<float>((packed_color >> 5) & 0x1F) / 31.0f;
+        b = static_cast<float>(packed_color & 0x1F) / 31.0f;
         break;
     case sc::sprites::color_encoding::COOL:
-        r = ((packed_color >> 11) & 0x1F) / 31.0f;
-        g = ((packed_color >> 5) & 0x1F) / 31.0f;
-        b = (packed_color & 0x3F) / 63.0f;
+        r = static_cast<float>((packed_color >> 11) & 0x1F) / 31.0f;
+        g = static_cast<float>((packed_color >> 5) & 0x1F) / 31.0f;
+        b = static_cast<float>(packed_color & 0x3F) / 63.0f;
         break;
     default:
         break;
