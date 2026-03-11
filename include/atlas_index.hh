@@ -4,7 +4,7 @@
 
 namespace sc::sprites {
 
-    enum class atlas_index : sys::atlas_index_t {
+    enum class atlas_index : core::atlas_index_t {
         LANCIS,
         MYARRA,
         MIYOUNG,

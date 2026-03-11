@@ -13,7 +13,8 @@ using namespace metal;
         return;
     }
 
-    float4 bg_color = float4(0.06, 0.22, 0.06, 1.0);
+    constexpr auto bg_color{float4(sc::display::kDefaultR,
+            sc::display::kDefaultG, sc::display::kDefaultB, 1.0f)};
 
     out_texture.write(bg_color, gid);
 }
@@ -51,8 +52,8 @@ inline float4 unpack_color(
         constant float* x_coords [[buffer(1)]],
         constant float* y_coords [[buffer(2)]],
         constant float* z_coords [[buffer(3)]],
-        constant sc::sys::atlas_index_t* sprite_ids [[buffer(4)]],
-        constant sc::sys::index_t* draw_order [[buffer(5)]],
+        constant sc::core::atlas_index_t* sprite_ids [[buffer(4)]],
+        constant sc::core::index_t* draw_order [[buffer(5)]],
         constant uint& entity_count [[buffer(6)]],
         texture2d<float, access::read_write> out_texture [[texture(0)]],
         uint2 gid [[thread_position_in_grid]])

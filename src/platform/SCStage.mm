@@ -13,7 +13,7 @@
 #include "sprite.hh"
 
 @implementation SCStage {
-    std::unique_ptr<sc::sys::file_mapping<sc::sprites::atlas>> _mapper;
+    std::unique_ptr<sc::core::file_mapping<sc::sprites::atlas>> _mapper;
     std::unique_ptr<sc::render_bridge> _bridge;
     const sc::sprites::atlas* _atlas;
     sc::scene_population _registry;
@@ -32,7 +32,7 @@
                 CGSizeMake(sc::display::kWidth, sc::display::kHeight);
         self.layer.magnificationFilter = kCAFilterNearest;
 
-        _mapper = std::make_unique<sc::sys::file_mapping<sc::sprites::atlas>>(
+        _mapper = std::make_unique<sc::core::file_mapping<sc::sprites::atlas>>(
                 sc::assets::kCharacterAtlas);
         if (!(_mapper && *_mapper)) {
             NSLog(@"FATAL: Could not map sprite bank file.");

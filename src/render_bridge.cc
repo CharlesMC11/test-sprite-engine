@@ -46,7 +46,7 @@ namespace sc {
 
     void render_bridge::set_sprite_atlas(const sprites::atlas& atlas)
     {
-        const std::size_t size{sizeof(sprites::sprite) * atlas.size()};
+        const std::size_t size{sizeof(sprites::sprite) * atlas.count};
 
         sprite_buffer_ = NS::TransferPtr(
                 device_->newBuffer(size, MTL::ResourceStorageModeShared));
@@ -86,9 +86,9 @@ namespace sc {
         encoder_->setBytes(
                 registry.z.data(), sizeof(float) * registry.size(), 3);
         encoder_->setBytes(registry.indices.data(),
-                sizeof(sys::atlas_index_t) * registry.size(), 4);
+                sizeof(core::atlas_index_t) * registry.size(), 4);
         encoder_->setBytes(registry.draw_order.data(),
-                sizeof(sys::index_t) * registry.size(), 5);
+                sizeof(core::index_t) * registry.size(), 5);
 
         const auto count{static_cast<std::uint32_t>(registry.size())};
         encoder_->setBytes(&count, sizeof(count), 6);

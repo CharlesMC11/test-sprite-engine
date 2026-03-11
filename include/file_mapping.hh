@@ -12,7 +12,7 @@
 #include <cstddef>
 #include <type_traits>
 
-namespace sc::sys {
+namespace sc::core {
 
     /**
      * @concept mappable
@@ -113,4 +113,4 @@ namespace sc::sys {
         return buffer_;
     }
 
-} // namespace sc::sys
+} // namespace sc::core

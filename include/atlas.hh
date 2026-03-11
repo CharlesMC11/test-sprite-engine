@@ -1,5 +1,5 @@
 /**
- * @file atlas.hpp
+ * @file atlas.hh
  * @brief
  */
 #pragma once
@@ -15,15 +15,18 @@
 namespace sc::sprites {
 
     /**
-     * @class atlas
+     * @struct atlas
      * @brief A contiguous collection of sprites.
      *
-     * This class is designed to live within an `sc::memory_map`. It uses a
-     * flexible array member (`data_`) to provide indexed access to sprites
+     * This class is designed to live within an `sc::sys::file_mapping`. It uses
+     * a flexible array member (`sprites`) to provide indexed access to sprites
      * loaded directly from an `.atlas` file.
      */
-    class alignas(sys::kAlignment) atlas final {
-    public:
+    struct alignas(core::kAlignment) atlas final {
+        uint64_t magic;
+        uint64_t count;
+        sprite data[];
+
         // Delete constructors because the atlas is mapped, not
         // instantiated.
         atlas() = delete;
@@ -33,52 +36,33 @@ namespace sc::sprites {
         atlas& operator=(const atlas&) = delete;
         atlas& operator=(atlas&&) = delete;
 
-        [[nodiscard]] constexpr std::uint64_t size() const noexcept;
-
         [[nodiscard]] constexpr const sprite& operator[](
-                std::size_t i) const noexcept;
+                core::index_t i) const noexcept;
 
         [[nodiscard]] constexpr const sprite& operator[](
                 atlas_index i) const noexcept;
 
         [[nodiscard]] constexpr bool is_valid(
-                std::size_t mapped_size) const noexcept;
-
-    private:
-        static constexpr std::size_t EXPECTED_MAGIC_SIZE{8};
-
-        // Should this be std::array?
-        static constexpr char EXPECTED_MAGIC[EXPECTED_MAGIC_SIZE]{
-                'S', 'C', ' ', 'A', 'T', 'L', 'A', 'S'};
-
-        char magic_[EXPECTED_MAGIC_SIZE];
-        uint64_t count_;
-        sprite data_[];
+                std::size_t expected_size) const noexcept;
     };
 
-    [[nodiscard]] constexpr std::uint64_t atlas::size() const noexcept
-    {
-        return count_;
-    }
-
     [[nodiscard]] constexpr const sprite& atlas::operator[](
-            const std::size_t i) const noexcept
+            const core::index_t i) const noexcept
     {
-        return data_[i];
+        return data[i];
     }
 
     [[nodiscard]] constexpr const sprite& atlas::operator[](
             const atlas_index i) const noexcept
     {
-        return (*this)[static_cast<std::size_t>(i)];
+        return (*this)[static_cast<core::index_t>(i)];
     }
 
     [[nodiscard]] constexpr bool atlas::is_valid(
-            const std::size_t mapped_size) const noexcept
+            const std::size_t expected_size) const noexcept
     {
-        // Maybe look into std::ranges?
-        return std::memcmp(magic_, EXPECTED_MAGIC, EXPECTED_MAGIC_SIZE) == 0 &&
-                sizeof(atlas) + count_ * sizeof(sprite) == mapped_size;
+        return magic == kAtlasMagicBytes &&
+                sizeof(atlas) + count * sizeof(sprite) == expected_size;
     }
 
 } // namespace sc::sprites

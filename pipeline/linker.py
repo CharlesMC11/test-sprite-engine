@@ -116,7 +116,7 @@ class AtlasLinker:
             "",
             "namespace sc::sprites {",
             "",
-            f"{' ' * 4}enum class {ENUM_NAME} : sys::atlas_index_t {{",
+            f"{' ' * 4}enum class {ENUM_NAME} : core::atlas_index_t {{",
         ]
 
         for i, name in enumerate(self._sprite_names):

@@ -25,10 +25,10 @@ namespace sc {
         /// TODO: Make custom allocator
         std::vector<float> x, y, z, dx, dy;
         std::vector<sprites::atlas_index> indices;
-        std::vector<sys::index_t> draw_order;
+        std::vector<core::index_t> draw_order;
 
         explicit scene_population(
-                std::size_t reserve_count = sys::kAlignment) noexcept;
+                std::size_t reserve_count = core::kAlignment) noexcept;
 
         scene_population(const scene_population&) = delete;
         scene_population(scene_population&&) = delete;
@@ -54,8 +54,8 @@ namespace sc {
                 sprites::atlas_index i) noexcept;
 
         void resolve_collision(const sprites::atlas& bank,
-                const sprites::sprite& a, sys::index_t ai, float& ax, float& ay,
-                float& az) noexcept;
+                const sprites::sprite& a, core::index_t ai, float& ax,
+                float& ay, float& az) noexcept;
 
         /**
          * @brief Update the current layout.
@@ -74,8 +74,8 @@ namespace sc {
     inline scene_population::scene_population(
             const std::size_t reserve_count) noexcept
     {
-        this->reserve(reserve_count < sys::kAlignment ? sys::kAlignment
-                                                      : reserve_count);
+        this->reserve(reserve_count < core::kAlignment ? core::kAlignment
+                                                       : reserve_count);
     }
 
     [[nodiscard]] constexpr std::size_t scene_population::size() const noexcept
@@ -86,7 +86,7 @@ namespace sc {
     inline void scene_population::reserve(const std::size_t n) noexcept
     {
         const std::size_t aligned{
-                n + sys::kAlignment - 1 & ~(sys::kAlignment - 1)};
+                n + core::kAlignment - 1 & ~(core::kAlignment - 1)};
 
         if (aligned > x.capacity()) {
             x.reserve(aligned);
@@ -146,10 +146,10 @@ namespace sc {
     }
 
     inline void scene_population::resolve_collision(const sprites::atlas& bank,
-            const sprites::sprite& a, const sys::index_t ai, float& ax,
+            const sprites::sprite& a, const core::index_t ai, float& ax,
             float& ay, float& az) noexcept
     {
-        for (sys::index_t i{0}; i < indices.size(); ++i) {
+        for (core::index_t i{0}; i < indices.size(); ++i) {
             if (ai == i)
                 continue;
 
