@@ -88,6 +88,12 @@ namespace sc::core {
     }
 
     template<mappable T>
+    [[nodiscard]] constexpr file_mapping<T>::operator bool() const noexcept
+    {
+        return buffer_ != nullptr;
+    }
+
+    template<mappable T>
     [[nodiscard]] constexpr const T*
     file_mapping<T>::operator->() const noexcept
     {
@@ -98,12 +104,6 @@ namespace sc::core {
     [[nodiscard]] constexpr const T& file_mapping<T>::operator*() const noexcept
     {
         return *buffer_;
-    }
-
-    template<mappable T>
-    [[nodiscard]] constexpr file_mapping<T>::operator bool() const noexcept
-    {
-        return buffer_ != nullptr;
     }
 
     template<mappable T>

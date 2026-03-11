@@ -15,12 +15,15 @@ namespace sc {
 
     namespace core {
 
-        using packed_color_t = uint16_t;
+        using index_t = uint32_t;
+
+        using packed_color_t = uint16_t; ///< Distribution is `color_encoding`
         using packed_pixel_t = uint8_t;
 
-        using index_t = uint32_t;
         using atlas_index_t = index_t;
         using atlas_magic_t = uint64_t;
+
+        using input_mask_t = uint32_t;
 
         static SC_CONSTANT auto kAlignment{16u};
 
@@ -88,12 +91,10 @@ namespace sc {
 
     namespace input {
 
-        using mask_t = uint32_t;
-
-        static SC_CONSTANT mask_t kUp{0x01};
-        static SC_CONSTANT mask_t kDown{0x02};
-        static SC_CONSTANT mask_t kLeft{0x04};
-        static SC_CONSTANT mask_t kRight{0x08};
+        static SC_CONSTANT core::input_mask_t kUp{0x01};
+        static SC_CONSTANT core::input_mask_t kDown{0x02};
+        static SC_CONSTANT core::input_mask_t kLeft{0x04};
+        static SC_CONSTANT core::input_mask_t kRight{0x08};
 
     } // namespace input
 

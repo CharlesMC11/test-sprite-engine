@@ -18,7 +18,7 @@
     std::unique_ptr<sc::render_bridge> _bridge;
     const sc::sprites::atlas* _atlas;
     sc::scene_population _registry;
-    sc::input::mask_t _keysPressed;
+    sc::core::input_mask_t _keysPressed;
     float _accumulator;
 }
 
