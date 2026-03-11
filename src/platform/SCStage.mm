@@ -2,6 +2,7 @@
 
 #import <MetalKit/MetalKit.h>
 
+#include <cstdint>
 #include <memory>
 
 #include "atlas.hh"
@@ -17,14 +18,15 @@
     std::unique_ptr<sc::render_bridge> _bridge;
     const sc::sprites::atlas* _atlas;
     sc::scene_population _registry;
-    BOOL _keysPressed[128];
+    sc::input::mask_t _keysPressed;
+    float _accumulator;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame device:(id<MTLDevice>)device
 {
     self = [super initWithFrame:frame device:device];
     if (self) {
-        self.preferredFramesPerSecond = 120;
+        self.preferredFramesPerSecond = sc::display::kTargetFPS;
 
         self.delegate = self;
 
@@ -51,7 +53,7 @@
 
         self.framebufferOnly = false;
 
-        const auto id{sc::sprites::atlas_index::LANCIS};
+        constexpr auto id{sc::sprites::atlas_index::LANCIS};
         const sc::sprites::sprite& sprite{(*_atlas)[id]};
         _registry.spawn(
                 (sc::display::kWidth - sc::sprites::kWidth - sprite.anchor_x) *
@@ -69,34 +71,6 @@
     return self;
 }
 
-- (void)drawInMTKView:(MTKView*)view
-{
-    float speed = 300.0f;
-    _registry.dx[0] = _registry.dy[0] = 0;
-    if (_keysPressed[13]) // W
-        _registry.dy[0] -= speed;
-    if (_keysPressed[1]) // S
-        _registry.dy[0] += speed;
-    if (_keysPressed[0]) // A
-        _registry.dx[0] -= speed;
-    if (_keysPressed[2]) // D
-        _registry.dx[0] += speed;
-
-    float deltaTime = 1.0f / view.preferredFramesPerSecond;
-    _registry.update(
-            *_atlas, deltaTime, sc::display::kWidth, sc::display::kHeight);
-
-    const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
-    _bridge->begin_frame(drawable);
-    _bridge->clear();
-    _bridge->draw(_registry);
-    _bridge->end_frame(drawable);
-}
-
-- (void)mtkView:(nonnull MTKView*)view drawableSizeWillChange:(CGSize)size
-{
-}
-
 - (BOOL)acceptsFirstResponder
 {
     return YES;
@@ -109,12 +83,75 @@
 
 - (void)keyDown:(NSEvent*)event
 {
-    _keysPressed[event.keyCode] = YES;
+    switch (event.keyCode) {
+    case 13:
+        _keysPressed |= sc::input::kUp;
+        break;
+    case 1:
+        _keysPressed |= sc::input::kDown;
+        break;
+    case 0:
+        _keysPressed |= sc::input::kLeft;
+        break;
+    case 2:
+        _keysPressed |= sc::input::kRight;
+        break;
+    }
 }
 
 - (void)keyUp:(NSEvent*)event
 {
-    _keysPressed[event.keyCode] = NO;
+    switch (event.keyCode) {
+    case 13:
+        _keysPressed &= ~sc::input::kUp;
+        break;
+    case 1:
+        _keysPressed &= ~sc::input::kDown;
+        break;
+    case 0:
+        _keysPressed &= ~sc::input::kLeft;
+        break;
+    case 2:
+        _keysPressed &= ~sc::input::kRight;
+        break;
+    }
+}
+
+- (void)drawInMTKView:(nonnull MTKView*)view
+{
+    float frameTime{1.0f / (float) view.preferredFramesPerSecond};
+    if (frameTime > 0.25f)
+        frameTime = 0.25f;
+
+    _accumulator += frameTime;
+
+    float speed{200.0f};
+    while (_accumulator >= sc::physics::kFixedTimestep) {
+        _registry.dx[0] = _registry.dy[0] = 0;
+        if (_keysPressed & sc::input::kUp)
+            _registry.dy[0] -= speed;
+        if (_keysPressed & sc::input::kDown)
+            _registry.dy[0] += speed;
+        if (_keysPressed & sc::input::kLeft)
+            _registry.dx[0] -= speed;
+        if (_keysPressed & sc::input::kRight)
+            _registry.dx[0] += speed;
+
+        _registry.update(*_atlas, sc::physics::kFixedTimestep,
+                sc::display::kWidth, sc::display::kHeight);
+
+        _accumulator -= sc::physics::kFixedTimestep;
+    }
+
+    const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
+    _bridge->begin_frame(drawable);
+    _bridge->clear();
+    _bridge->draw(_registry);
+    _bridge->end_frame(drawable);
+}
+
+- (void)mtkView:(nonnull MTKView*)view drawableSizeWillChange:(CGSize)size
+{
 }
 
 @end
