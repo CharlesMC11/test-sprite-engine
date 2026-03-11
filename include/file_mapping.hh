@@ -35,10 +35,12 @@ namespace sc::core {
     public:
         [[nodiscard]] explicit file_mapping(const char path[]) noexcept;
         file_mapping(const file_mapping&) = delete;
+        file_mapping(file_mapping&&) = delete;
 
         ~file_mapping() noexcept;
 
         file_mapping& operator=(const file_mapping&) = delete;
+        file_mapping& operator=(file_mapping&&) = delete;
 
         [[nodiscard]] explicit constexpr operator bool() const noexcept;
         [[nodiscard]] constexpr const T* operator->() const noexcept;
