@@ -169,7 +169,8 @@ namespace sc {
             const float dt, const float display_width,
             const float display_height) noexcept
     {
-        for (std::size_t i{0}; i < indices.size(); ++i) {
+        for (std::uint_fast32_t i{0};
+                i < static_cast<uint_fast32_t>(indices.size()); ++i) {
             const sprites::atlas_index id{indices[i]};
             const auto& sprite{bank[id]};
 
