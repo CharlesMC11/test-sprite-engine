@@ -1,14 +1,13 @@
 /**
- * @file render_bridge.hpp
+ * @file render_bridge.hh
  * @brief
  */
 #pragma once
 
 #include <Metal/Metal.hpp>
 
-#include "entity_layout.hpp"
-#include "sprite.hpp"
-#include "sprite_bank.hpp"
+#include "atlas.hh"
+#include "scene_population.hh"
 
 namespace sc {
 
@@ -29,7 +28,7 @@ namespace sc {
         render_bridge& operator=(const render_bridge&) = delete;
         render_bridge& operator=(render_bridge&&) = delete;
 
-        void set_sprite_bank(const sprite_bank& bank);
+        void set_sprite_atlas(const sprites::atlas& atlas);
 
         /**
          * @brief
@@ -41,9 +40,9 @@ namespace sc {
 
         /**
          * @brief Encode a draw command for entities on screen.
-         * @param layout
+         * @param registry
          */
-        void draw(const entity_layout& layout) const;
+        void draw(const scene_population& registry) const;
 
         /**
          * @brief

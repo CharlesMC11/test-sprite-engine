@@ -1,5 +1,5 @@
 /**
- * @file mapped_asset.hpp
+ * @file file_mapping.hh
  * @brief RAII wrapper for POSIX memory-mapped files.
  */
 #pragma once
@@ -12,7 +12,7 @@
 #include <cstddef>
 #include <type_traits>
 
-namespace sc {
+namespace sc::core {
 
     /**
      * @concept mappable
@@ -26,18 +26,18 @@ namespace sc {
             !std::is_polymorphic_v<T>;
 
     /**
-     * @class mapped_asset
+     * @class file_mapping
      * @brief Manages `mmap`/`munmap` lifecycle for a specific file path.
      * @tparam T The type to cast the mapped memory to.
      */
     template<mappable T>
-    class mapped_asset final {
+    class file_mapping final {
     public:
-        [[nodiscard]] explicit mapped_asset(const char path[]) noexcept;
-        ~mapped_asset() noexcept;
+        [[nodiscard]] explicit file_mapping(const char path[]) noexcept;
+        ~file_mapping() noexcept;
 
-        mapped_asset(const mapped_asset&) = delete;
-        mapped_asset& operator=(const mapped_asset&) = delete;
+        file_mapping(const file_mapping&) = delete;
+        file_mapping& operator=(const file_mapping&) = delete;
 
         [[nodiscard]] constexpr const T* operator->() const noexcept;
         [[nodiscard]] constexpr const T& operator*() const noexcept;
@@ -52,7 +52,7 @@ namespace sc {
     };
 
     template<mappable T>
-    mapped_asset<T>::mapped_asset(const char path[]) noexcept
+    file_mapping<T>::file_mapping(const char path[]) noexcept
     {
         const int fd{open(path, O_RDONLY)};
         if (fd < 0) [[unlikely]]
@@ -76,7 +76,7 @@ namespace sc {
     }
 
     template<mappable T>
-    mapped_asset<T>::~mapped_asset() noexcept
+    file_mapping<T>::~file_mapping() noexcept
     {
         if (buffer_) [[likely]]
             munmap(const_cast<T*>(buffer_), size_);
@@ -84,33 +84,33 @@ namespace sc {
 
     template<mappable T>
     [[nodiscard]] constexpr const T*
-    mapped_asset<T>::operator->() const noexcept
+    file_mapping<T>::operator->() const noexcept
     {
         return buffer_;
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr const T& mapped_asset<T>::operator*() const noexcept
+    [[nodiscard]] constexpr const T& file_mapping<T>::operator*() const noexcept
     {
         return *buffer_;
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr mapped_asset<T>::operator bool() const noexcept
+    [[nodiscard]] constexpr file_mapping<T>::operator bool() const noexcept
     {
         return buffer_ != nullptr;
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr std::size_t mapped_asset<T>::size() const noexcept
+    [[nodiscard]] constexpr std::size_t file_mapping<T>::size() const noexcept
     {
         return size_;
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr const T* mapped_asset<T>::data() const noexcept
+    [[nodiscard]] constexpr const T* file_mapping<T>::data() const noexcept
     {
         return buffer_;
     }
 
-} // namespace sc
+} // namespace sc::core

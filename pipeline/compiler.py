@@ -7,7 +7,7 @@ Bakes a 32×32 source (BGR/RGBA) image and optional glow masks into a specialize
 The binary layout contains:
 - Metadata (8 bytes): Hitbox and anchor data.
 - Palette (32 bytes): 16 colors as 16-bit packed integers.
-- Pixels (1,024 bytes): 8-bit packed values [R][G][AA][IIII].
+- Pixels (1,024 bytes): 8-bit packed values [S][E][AA][IIII].
 - Padding (8 bytes): For 16-byte alignment.
 """
 
@@ -25,11 +25,13 @@ from pipeline import (
     SPRITE_METADATA,
     SPRITE_WIDTH,
     ColorEncoding,
+    PhysicsType,
 )
 
 type BGRImage = npt.NDArray[np.uint8]
 type AlphaMask = npt.NDArray[np.uint8]
-type GlowMask = npt.NDArray[np.uint8]
+type EmissionMask = npt.NDArray[np.uint8]
+type SpecularMask = npt.NDArray[np.uint8]
 type Palette = npt.NDArray[np.uint8]
 
 type PackedColors = npt.NDArray[np.uint16]
@@ -88,25 +90,32 @@ class SpriteCompiler:
     # Type annotations
 
     _encoding: ColorEncoding
+    _physics: PhysicsType
     _source_image: BGRImage | None
     _source_alpha: AlphaMask | None
     _pixel_flat_list: BGRImage | None
-    _glow_bits: GlowMask | None
+    _emission_bits: EmissionMask | None
+    _specular_bits: SpecularMask | None
     _palette: Palette | None
 
     # Magic methods
-    def __init__(self, encoding: ColorEncoding):
+    def __init__(self, encoding: ColorEncoding, physics: PhysicsType):
         self._encoding = encoding
+        self._physics = physics
         self._source_image = None
         self._source_alpha = None
         self._pixel_flat_list = None
-        self._glow_bits = None
+        self._emission_bits = None
+        self._specular_bits = None
         self._palette = None
 
     # Public methods
 
     def ingest_asset(
-        self, image_path: str, glow_mask_path: Path | None
+        self,
+        image_path: str,
+        emission_mask_path: Path | None,
+        specular_mask_path: Path | None,
     ) -> None:
         """
         Validate the source asset.
@@ -115,7 +124,8 @@ class SpriteCompiler:
         grid for evaluation, and pre-threshold the glow mask.
 
         :param image_path: The filesystem path to a 32×32 BGR/RGBA image.
-        :param glow_mask_path: Optional path to a 32×32 grayscale glow mask.
+        :param emission_mask_path: Optional path to a 32×32 grayscale emission mask.
+        :param specular_mask_path: Optional path to a 32×32 grayscale specular mask.
 
         :raises RuntimeError: If OpenCV fails to read the assets.
         :raises ValueError: If the image dimensions are not 32×32.
@@ -141,10 +151,21 @@ class SpriteCompiler:
 
         self._pixel_flat_list = self._source_image.reshape(-1, 3)
 
-        if glow_mask_path:
-            self._ingest_glow_mask(glow_mask_path)
-        if self._glow_bits is None:
-            self._glow_bits = np.zeros(
+        if emission_mask_path:
+            self._emission_bits = self._ingest_grayscale_mask(
+                emission_mask_path
+            )
+        if self._emission_bits is None:
+            self._emission_bits = np.zeros(
+                SPRITE_HEIGHT * SPRITE_WIDTH, dtype=np.uint8
+            )
+
+        if specular_mask_path:
+            self._specular_bits = self._ingest_grayscale_mask(
+                specular_mask_path
+            )
+        if self._specular_bits is None:
+            self._specular_bits = np.zeros(
                 SPRITE_HEIGHT * SPRITE_WIDTH, dtype=np.uint8
             )
 
@@ -157,20 +178,21 @@ class SpriteCompiler:
         :param output_path: The path to save the sprite to.
         """
 
-        hitbox = calculate_hitbox(self._source_alpha)
-        hb_min_x, hb_min_y, hb_max_x, hb_max_y = hitbox
-        anchor_x = (hb_max_x - hb_min_x) // 2
-        anchor_y = hb_max_y
+        left, top, right, bottom = calculate_hitbox(self._source_alpha)
+
+        anchor_x = (right - left) // 2
+        anchor_y = bottom
 
         metadata_bytes = struct.pack(
             f"<{SPRITE_METADATA}",
-            hb_min_x,
-            hb_min_y,
-            hb_max_x,
-            hb_max_y,
+            left,
+            top,
+            right,
+            bottom,
             anchor_x,
             anchor_y,
             self._encoding.value,
+            self._physics.value,
         )
 
         palette_bytes = bytearray()
@@ -193,31 +215,6 @@ class SpriteCompiler:
             )
 
     # Protected methods
-
-    def _ingest_glow_mask(self, glow_mask_path: Path) -> None:
-        """
-        Ingest the glow mask.
-
-        :param glow_mask_path: The path to the glow mask.
-        :raises FileNotFoundError: If the glow mask is missing.
-        :raises RuntimeError: If OpenCV fails to read the mask.
-        :raises ValueError: If the mask dimensions are not 32×32.
-        """
-
-        if not glow_mask_path.exists():
-            raise FileNotFoundError(f"Missing glow map file: {glow_mask_path}")
-        if (
-            glow_mask := cv2.imread(glow_mask_path, cv2.IMREAD_GRAYSCALE)
-        ) is None:
-            raise RuntimeError(f"Could not read glow mask: {glow_mask_path}.")
-
-        h, w = glow_mask.shape[:2]
-        if h != SPRITE_HEIGHT or w != SPRITE_WIDTH:
-            raise ValueError(
-                f"Mask dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
-            )
-
-        self._glow_bits = (glow_mask.flatten() > 0x80).astype(np.uint8)
 
     def _extract_palette(self) -> Palette:
         """
@@ -250,8 +247,8 @@ class SpriteCompiler:
         Bake the pixel surface into a final 8-bit format.
 
         The Bit Mapping:
-        - [7] Reserved: Always 0.
-        - [6] Glow: Boolean signal (0 or 1).
+        - [7] Specular: Boolean signal (0 or 1).
+        - [6] Emission: Boolean signal (0 or 1).
         - [4–5] Alpha: 2-bit transparency (0–3).
         - [0–3] Palette Index: Pointer to one of the 16 colors.
 
@@ -260,9 +257,40 @@ class SpriteCompiler:
 
         indices = self._index_colors() & 0x0F
         alphas = (self._source_alpha.flatten() >> 6) & 0x03
-        baked_pixels = self._glow_bits << 6 | alphas << 4 | indices
+        baked_pixels = (
+            self._specular_bits << 7
+            | self._emission_bits << 6
+            | alphas << 4
+            | indices
+        )
 
         return baked_pixels.astype(np.uint8)
+
+    # Protected static methods
+
+    @staticmethod
+    def _ingest_grayscale_mask(mask_path: Path) -> EmissionMask | SpecularMask:
+        """
+        Ingest the grayscale mask.
+
+        :param mask_path: The path to the mask.
+        :raises FileNotFoundError: If the mask is missing.
+        :raises RuntimeError: If OpenCV fails to read the mask.
+        :raises ValueError: If the mask dimensions are not 32×32.
+        """
+
+        if not mask_path.exists():
+            raise FileNotFoundError(f"Missing mask file: {mask_path}")
+        if (glow_mask := cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)) is None:
+            raise RuntimeError(f"Could not read mask file: {mask_path}.")
+
+        h, w = glow_mask.shape[:2]
+        if h != SPRITE_HEIGHT or w != SPRITE_WIDTH:
+            raise ValueError(
+                f"Mask dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
+            )
+
+        return (glow_mask.flatten() > 0x80).astype(np.uint8)
 
 
 def main() -> None:
@@ -274,7 +302,7 @@ def main() -> None:
         "output_path", type=Path, help="Target path for the 1072-byte sprite."
     )
     parser.add_argument(
-        "-e",
+        "-c",
         "--encoding",
         default=ColorEncoding.DEFAULT,
         type=lambda e: ColorEncoding[e.upper()],
@@ -282,11 +310,26 @@ def main() -> None:
         help="Color encoding (Default, Warm, or Cool)",
     )
     parser.add_argument(
-        "-g",
-        "--glow_mask",
+        "-p",
+        "--physics_type",
+        type=lambda p: PhysicsType[p.upper()],
+        choices=[p.name for p in PhysicsType],
+        help="Physics type (None, Actor, Static, Sensor, or Projectile",
+        required=True,
+    )
+    parser.add_argument(
+        "-e",
+        "--emission_mask",
         default=None,
         type=Path,
-        help="Optional grayscale mask for glow mapping.",
+        help="Optional grayscale mask for emission mapping.",
+    )
+    parser.add_argument(
+        "-s",
+        "--specular_mask",
+        default=None,
+        type=Path,
+        help="Optional grayscale mask for specular mapping.",
     )
 
     args = parser.parse_args()

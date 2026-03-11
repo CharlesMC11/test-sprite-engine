@@ -24,7 +24,7 @@ find_library(QUARTZ_LIB QuartzCore REQUIRED)
 add_executable(test-sprite-engine
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCAppDelegate.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCStage.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/render_bridge.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/render_bridge.cc"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/main.mm"
 )
 

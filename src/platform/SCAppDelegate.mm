@@ -1,18 +1,18 @@
-#import "SCAppDelegate.h"
+#import "SCAppDelegate.hh"
 
 #import <Cocoa/Cocoa.h>
 #import <MetalKit/MetalKit.h>
 
-#import "SCStage.h"
-#include "definitions.hpp"
+#import "SCStage.hh"
+#include "core.hh"
 
 @implementation SCAppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification*)notification
 {
-    const auto scale = 4.0f;
-    auto frame = NSMakeRect(
-            0, 0, sc::display::WIDTH * scale, sc::display::HEIGHT * scale);
+    constexpr float scale{4.0f};
+    const auto frame{NSMakeRect(
+            0, 0, sc::display::kWidth * scale, sc::display::kHeight * scale)};
     self.window = [[NSWindow alloc]
             initWithContentRect:frame
                       styleMask:(NSWindowStyleMaskTitled |
@@ -25,7 +25,7 @@
     [self.window setTitle:@"Test Sprite Engine"];
     [self.window center];
 
-    id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+    id<MTLDevice> device{MTLCreateSystemDefaultDevice()};
     self.view = [[SCStage alloc] initWithFrame:frame device:device];
     self.window.contentView = self.view;
 

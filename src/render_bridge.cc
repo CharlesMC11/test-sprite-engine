@@ -2,14 +2,14 @@
 #define MTL_PRIVATE_IMPLEMENTATION
 #define NS_PRIVATE_IMPLEMENTATION
 
-#include "render_bridge.hpp"
+#include "render_bridge.hh"
 
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
 
 #include <iostream>
 
-#include "definitions.hpp"
+#include "core.hh"
 
 namespace sc {
 
@@ -20,7 +20,7 @@ namespace sc {
         NS::Error* error{nullptr};
 
         const auto* library_path{
-                NS::String::string(assets::SHADER_LIB, NS::UTF8StringEncoding)};
+                NS::String::string(assets::kShaderLib, NS::UTF8StringEncoding)};
         auto* library{device->newLibrary(library_path, &error)};
 
         const auto* fn_name{
@@ -44,14 +44,14 @@ namespace sc {
         library->release();
     }
 
-    void render_bridge::set_sprite_bank(const sprite_bank& bank)
+    void render_bridge::set_sprite_atlas(const sprites::atlas& atlas)
     {
-        const std::size_t size{sizeof(sprite) * bank.size()};
+        const std::size_t size{sizeof(sprites::sprite) * atlas.count};
 
         sprite_buffer_ = NS::TransferPtr(
                 device_->newBuffer(size, MTL::ResourceStorageModeShared));
 
-        std::memcpy(sprite_buffer_->contents(), &bank[0], size);
+        std::memcpy(sprite_buffer_->contents(), &atlas[0], size);
     }
 
     void render_bridge::begin_frame(const MTL::Drawable* buffer)
@@ -68,29 +68,32 @@ namespace sc {
     {
         encoder_->setComputePipelineState(clear_pso_.get());
 
-        const auto grid_size = MTL::Size(display::WIDTH, display::HEIGHT, 1);
+        const auto grid_size = MTL::Size(display::kWidth, display::kHeight, 1);
         const auto thread_group_size = MTL::Size(16, 16, 1);
 
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }
 
-    void render_bridge::draw(const entity_layout& layout) const
+    void render_bridge::draw(const scene_population& registry) const
     {
         encoder_->setComputePipelineState(sprite_pso_.get());
 
         encoder_->setBuffer(sprite_buffer_.get(), 0, 0);
-        encoder_->setBytes(layout.x.data(), sizeof(float) * layout.size(), 1);
-        encoder_->setBytes(layout.y.data(), sizeof(float) * layout.size(), 2);
-        encoder_->setBytes(layout.z.data(), sizeof(float) * layout.size(), 3);
-        encoder_->setBytes(layout.entity_ids.data(),
-                sizeof(sys::entity_id_t) * layout.size(), 4);
-        encoder_->setBytes(layout.draw_order.data(),
-                sizeof(sys::index_t) * layout.size(), 5);
+        encoder_->setBytes(
+                registry.x.data(), sizeof(float) * registry.size(), 1);
+        encoder_->setBytes(
+                registry.y.data(), sizeof(float) * registry.size(), 2);
+        encoder_->setBytes(
+                registry.z.data(), sizeof(float) * registry.size(), 3);
+        encoder_->setBytes(registry.indices.data(),
+                sizeof(core::atlas_index_t) * registry.size(), 4);
+        encoder_->setBytes(registry.draw_order.data(),
+                sizeof(core::index_t) * registry.size(), 5);
 
-        const auto count{static_cast<std::uint32_t>(layout.size())};
+        const auto count{static_cast<std::uint32_t>(registry.size())};
         encoder_->setBytes(&count, sizeof(count), 6);
 
-        const MTL::Size grid_size{display::WIDTH, display::HEIGHT, 1};
+        const MTL::Size grid_size{display::kWidth, display::kHeight, 1};
         const MTL::Size thread_group_size{16, 16, 1};
 
         encoder_->dispatchThreads(grid_size, thread_group_size);

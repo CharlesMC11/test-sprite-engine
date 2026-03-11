@@ -1,6 +1,6 @@
 #import <Cocoa/Cocoa.h>
 
-#import "SCAppDelegate.h"
+#import "SCAppDelegate.hh"
 
 int main(const int argc, const char* argv[])
 {
