@@ -12,6 +12,8 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "core.hh"
+
 namespace sc::core {
 
     /**
@@ -22,8 +24,8 @@ namespace sc::core {
      * and GPU interpret the raw bytes identically.
      */
     template<typename T>
-    concept mappable = alignof(T) == 16 && std::is_standard_layout_v<T> &&
-            !std::is_polymorphic_v<T>;
+    concept mappable = alignof(T) == kAlignment &&
+            std::is_standard_layout_v<T> && !std::is_polymorphic_v<T>;
 
     /**
      * @class file_mapping
