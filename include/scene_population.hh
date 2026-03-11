@@ -26,9 +26,12 @@ namespace sc {
                 std::size_t reserve_count = core::kAlignment) noexcept;
 
         scene_population(const scene_population&) = delete;
-        scene_population(scene_population&&) = delete;
+        scene_population(scene_population&&) = default;
+
+        ~scene_population() = default;
+
         scene_population& operator=(const scene_population&) = delete;
-        scene_population& operator=(scene_population&&) = delete;
+        scene_population& operator=(scene_population&&) = default;
 
         [[nodiscard]] constexpr std::size_t size() const noexcept;
 
