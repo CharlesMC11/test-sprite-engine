@@ -22,16 +22,15 @@
     float _accumulator;
 }
 
-- (instancetype)initWithFrame:(CGRect)frame device:(id<MTLDevice>)device
+- (instancetype)initWithFrame:(CGRect)frameRect device:(id<MTLDevice>)device
 {
-    self = [super initWithFrame:frame device:device];
+    self = [super initWithFrame:frameRect device:device];
     if (self) {
-        self.preferredFramesPerSecond = sc::display::kTargetFPS;
-
         self.delegate = self;
-
         self.drawableSize =
                 CGSizeMake(sc::display::kWidth, sc::display::kHeight);
+        self.preferredFramesPerSecond = sc::display::kTargetFPS;
+
         self.layer.magnificationFilter = kCAFilterNearest;
 
         _mapper = std::make_unique<sc::core::file_mapping<sc::sprites::atlas>>(
@@ -40,12 +39,11 @@
             NSLog(@"FATAL: Could not map sprite bank file.");
             abort();
         }
-
-        _atlas = &(**_mapper);
-        if (!_atlas->is_valid(_mapper->size())) {
+        if (!sc::sprites::atlas::validate(_mapper->data(), _mapper->size())) {
             NSLog(@"FATAL: sprite bank header validation failed.");
             abort();
         }
+        _atlas = _mapper->data();
 
         _bridge = std::make_unique<sc::render_bridge>(
                 (__bridge MTL::Device*) device);
@@ -76,12 +74,12 @@
     return YES;
 }
 
-- (void)mouseDown:(NSEvent*)event
+- (void)mouseDown:(nonnull NSEvent*)event
 {
     [self.window makeFirstResponder:self];
 }
 
-- (void)keyDown:(NSEvent*)event
+- (void)keyDown:(nonnull NSEvent*)event
 {
     switch (event.keyCode) {
     case 13:
@@ -99,7 +97,7 @@
     }
 }
 
-- (void)keyUp:(NSEvent*)event
+- (void)keyUp:(nonnull NSEvent*)event
 {
     switch (event.keyCode) {
     case 13:
@@ -115,6 +113,10 @@
         _keysPressed &= ~sc::input::kRight;
         break;
     }
+}
+
+- (void)mtkView:(nonnull MTKView*)view drawableSizeWillChange:(CGSize)size
+{
 }
 
 - (void)drawInMTKView:(nonnull MTKView*)view
@@ -148,10 +150,6 @@
     _bridge->clear();
     _bridge->draw(_registry);
     _bridge->end_frame(drawable);
-}
-
-- (void)mtkView:(nonnull MTKView*)view drawableSizeWillChange:(CGSize)size
-{
 }
 
 @end

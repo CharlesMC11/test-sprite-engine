@@ -34,21 +34,22 @@ namespace sc::core {
     class file_mapping final {
     public:
         [[nodiscard]] explicit file_mapping(const char path[]) noexcept;
+        file_mapping(const file_mapping&) = delete;
+
         ~file_mapping() noexcept;
 
-        file_mapping(const file_mapping&) = delete;
         file_mapping& operator=(const file_mapping&) = delete;
 
+        [[nodiscard]] explicit constexpr operator bool() const noexcept;
         [[nodiscard]] constexpr const T* operator->() const noexcept;
         [[nodiscard]] constexpr const T& operator*() const noexcept;
-        [[nodiscard]] explicit constexpr operator bool() const noexcept;
 
-        [[nodiscard]] constexpr std::size_t size() const noexcept;
         [[nodiscard]] constexpr const T* data() const noexcept;
+        [[nodiscard]] constexpr std::size_t size() const noexcept;
 
     private:
-        std::size_t size_{0};
         const T* buffer_ = nullptr;
+        std::size_t size_{0};
     };
 
     template<mappable T>
@@ -102,15 +103,15 @@ namespace sc::core {
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr std::size_t file_mapping<T>::size() const noexcept
-    {
-        return size_;
-    }
-
-    template<mappable T>
     [[nodiscard]] constexpr const T* file_mapping<T>::data() const noexcept
     {
         return buffer_;
+    }
+
+    template<mappable T>
+    [[nodiscard]] constexpr std::size_t file_mapping<T>::size() const noexcept
+    {
+        return size_;
     }
 
 } // namespace sc::core

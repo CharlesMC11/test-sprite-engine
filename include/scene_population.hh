@@ -22,11 +22,6 @@ namespace sc {
      */
     struct scene_population final {
 
-        /// TODO: Make custom allocator
-        std::vector<float> x, y, z, dx, dy;
-        std::vector<sprites::atlas_index> indices;
-        std::vector<core::index_t> draw_order;
-
         explicit scene_population(
                 std::size_t reserve_count = core::kAlignment) noexcept;
 
@@ -66,6 +61,11 @@ namespace sc {
          */
         void update(const sprites::atlas& bank, float dt, float display_width,
                 float display_height) noexcept;
+
+        /// TODO: Make custom allocator
+        std::vector<float> x, y, z, dx, dy;
+        std::vector<sprites::atlas_index> indices;
+        std::vector<core::index_t> draw_order;
 
     private:
         bool needs_sort_{false};

@@ -21,10 +21,11 @@ namespace sc {
     class render_bridge final {
     public:
         explicit render_bridge(MTL::Device* device);
-        ~render_bridge() = default;
-
         render_bridge(const render_bridge&) = delete;
         render_bridge(render_bridge&&) = delete;
+
+        ~render_bridge() = default;
+
         render_bridge& operator=(const render_bridge&) = delete;
         render_bridge& operator=(render_bridge&&) = delete;
 
@@ -36,6 +37,11 @@ namespace sc {
          */
         void begin_frame(const MTL::Drawable* buffer);
 
+        /**
+         * @brief
+         */
+        void end_frame(const MTL::Drawable* buffer);
+
         void clear() const;
 
         /**
@@ -43,11 +49,6 @@ namespace sc {
          * @param registry
          */
         void draw(const scene_population& registry) const;
-
-        /**
-         * @brief
-         */
-        void end_frame(const MTL::Drawable* buffer);
 
     private:
         NS::SharedPtr<MTL::Device> device_;

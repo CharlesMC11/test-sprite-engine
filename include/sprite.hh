@@ -1,6 +1,6 @@
 /**
  * @file sprite.hh
- * @brief Core definitions and sprite data structures..
+ * @brief Core definitions and sprite data structures.
  */
 #pragma once
 

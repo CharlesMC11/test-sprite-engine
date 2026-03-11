@@ -23,16 +23,14 @@ namespace sc::sprites {
      * loaded directly from an `.atlas` file.
      */
     struct alignas(core::kAlignment) atlas final {
-        uint64_t magic;
-        uint64_t count;
-        sprite data[];
 
-        // Delete constructors because the atlas is mapped, not
-        // instantiated.
+        // Delete constructors because the atlas is mapped, not instantiated.
         atlas() = delete;
-        ~atlas() = delete;
         atlas(const atlas&) = delete;
         atlas(atlas&&) = delete;
+
+        ~atlas() = delete;
+
         atlas& operator=(const atlas&) = delete;
         atlas& operator=(atlas&&) = delete;
 
@@ -42,8 +40,12 @@ namespace sc::sprites {
         [[nodiscard]] constexpr const sprite& operator[](
                 atlas_index i) const noexcept;
 
-        [[nodiscard]] constexpr bool is_valid(
-                std::size_t expected_size) const noexcept;
+        [[nodiscard]] static constexpr bool validate(
+                const void* ptr, std::size_t mapped_size) noexcept;
+
+        uint64_t magic;
+        uint64_t count;
+        sprite data[];
     };
 
     [[nodiscard]] constexpr const sprite& atlas::operator[](
@@ -58,11 +60,19 @@ namespace sc::sprites {
         return (*this)[static_cast<core::index_t>(i)];
     }
 
-    [[nodiscard]] constexpr bool atlas::is_valid(
-            const std::size_t expected_size) const noexcept
+    [[nodiscard]] constexpr bool atlas::validate(
+            const void* ptr, const std::size_t mapped_size) noexcept
     {
-        return magic == kAtlasMagicBytes &&
-                sizeof(atlas) + count * sizeof(sprite) == expected_size;
+        if (!ptr || mapped_size < sizeof(atlas))
+            return false;
+
+        const auto* header{static_cast<const atlas*>(ptr)};
+        if (header->magic != kAtlasMagicBytes)
+            return false;
+
+        const std::size_t expected_size{
+                sizeof(atlas) + header->count * sizeof(sprite)};
+        return mapped_size >= expected_size;
     }
 
 } // namespace sc::sprites

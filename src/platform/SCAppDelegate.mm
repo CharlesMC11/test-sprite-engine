@@ -8,7 +8,7 @@
 
 @implementation SCAppDelegate
 
-- (void)applicationDidFinishLaunching:(NSNotification*)notification
+- (void)applicationDidFinishLaunching:(nonnull NSNotification*)notification
 {
     constexpr float scale{4.0f};
     const auto frame{NSMakeRect(
@@ -27,13 +27,15 @@
 
     id<MTLDevice> device{MTLCreateSystemDefaultDevice()};
     self.view = [[SCStage alloc] initWithFrame:frame device:device];
-    self.window.contentView = self.view;
 
+    self.window.contentView = self.view;
     [self.window makeKeyAndOrderFront:nil];
 }
 
-- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication*)sender
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:
+        (nonnull NSApplication*)sender
 {
     return YES;
 }
+
 @end
