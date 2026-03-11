@@ -15,10 +15,12 @@ namespace sc {
 
     namespace core {
 
-        using index_t = uint32_t;
-        using atlas_index_t = index_t;
         using packed_color_t = uint16_t;
         using packed_pixel_t = uint8_t;
+
+        using index_t = uint32_t;
+        using atlas_index_t = index_t;
+        using atlas_magic_t = uint64_t;
 
         static SC_CONSTANT auto kAlignment{16u};
 
@@ -30,12 +32,13 @@ namespace sc {
         static SC_CONSTANT uint32_t kWidth{32u};
         static SC_CONSTANT uint32_t kMaxPaletteSize{16u};
 
-        static SC_CONSTANT uint8_t kMaskPaletteIndex{0x0F};
-        static SC_CONSTANT uint8_t kMaskAlpha{0x30};
-        static SC_CONSTANT uint8_t kMaskEmission{0x40};
-        static SC_CONSTANT uint8_t kMaskSpecular{0x80};
+        static SC_CONSTANT core::packed_pixel_t kMaskPaletteIndex{0x0F};
+        static SC_CONSTANT core::packed_pixel_t kMaskAlpha{0x30};
+        static SC_CONSTANT core::packed_pixel_t kMaskEmission{0x40};
+        static SC_CONSTANT core::packed_pixel_t kMaskSpecular{0x80};
 
-        static SC_CONSTANT uint64_t kAtlasMagicBytes{0x53414C5441204353};
+        static SC_CONSTANT core::atlas_magic_t kAtlasMagicBytes{
+                0x53414C5441204353};
 
         /**
          * @enum color_encoding

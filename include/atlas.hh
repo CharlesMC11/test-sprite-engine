@@ -18,8 +18,8 @@ namespace sc::sprites {
      * @struct atlas
      * @brief A contiguous collection of sprites.
      *
-     * This class is designed to live within an `sc::sys::file_mapping`. It uses
-     * a flexible array member (`sprites`) to provide indexed access to sprites
+     * This class is designed to live within an `sc::core::file_mapping`. It
+     * uses a flexible array member `data` to provide indexed access to sprites
      * loaded directly from an `.atlas` file.
      */
     struct alignas(core::kAlignment) atlas final {
@@ -43,7 +43,7 @@ namespace sc::sprites {
         [[nodiscard]] static constexpr bool validate(
                 const void* ptr, std::size_t mapped_size) noexcept;
 
-        uint64_t magic;
+        core::atlas_magic_t magic;
         uint64_t count;
         sprite data[];
     };
