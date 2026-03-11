@@ -113,7 +113,7 @@ class SpriteCompiler:
 
     def ingest_asset(
         self,
-        image_path: str,
+        image_path: Path,
         emission_mask_path: Path | None,
         specular_mask_path: Path | None,
     ) -> None:
@@ -130,6 +130,8 @@ class SpriteCompiler:
         :raises RuntimeError: If OpenCV fails to read the assets.
         :raises ValueError: If the image dimensions are not 32×32.
         """
+        if not image_path.exists():
+            raise FileNotFoundError(f"Missing image file: {image_path}")
 
         if (image := cv2.imread(image_path, cv2.IMREAD_UNCHANGED)) is None:
             raise RuntimeError("Could not read source image.")
@@ -296,24 +298,24 @@ class SpriteCompiler:
 def main() -> None:
     parser = ArgumentParser("Sprite Compiler", description=__doc__)
     parser.add_argument(
-        "source_image", help="Path to the source BGR/RGBA image."
+        "source_image", type=Path, help="Path to the source BGR/RGBA image."
     )
     parser.add_argument(
         "output_path", type=Path, help="Target path for the 1072-byte sprite."
     )
     parser.add_argument(
         "-c",
-        "--encoding",
+        "--color_encoding",
         default=ColorEncoding.DEFAULT,
         type=lambda e: ColorEncoding[e.upper()],
-        choices=[e.name for e in ColorEncoding],
+        choices=list(ColorEncoding),
         help="Color encoding (Default, Warm, or Cool)",
     )
     parser.add_argument(
         "-p",
         "--physics_type",
         type=lambda p: PhysicsType[p.upper()],
-        choices=[p.name for p in PhysicsType],
+        choices=list(PhysicsType),
         help="Physics type (None, Actor, Static, Sensor, or Projectile",
         required=True,
     )
@@ -334,8 +336,10 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    compiler = SpriteCompiler(args.encoding)
-    compiler.ingest_asset(args.source_image, args.glow_mask)
+    compiler = SpriteCompiler(args.color_encoding, args.physics_type)
+    compiler.ingest_asset(
+        args.source_image, args.emission_mask, args.specular_mask
+    )
     compiler.compile(args.output_path)
 
 
