@@ -91,7 +91,7 @@ inline float4 unpack_color(
         }
         else
             out_color = sprite_color;
-    }
 
-    out_texture.write(out_color, gid);
+        out_texture.write(out_color, gid);
+    }
 }
