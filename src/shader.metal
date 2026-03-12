@@ -11,7 +11,6 @@ using namespace metal;
 {
     if (gid.x >= out_texture.get_width() || gid.y >= out_texture.get_height())
         return;
-    }
 
     constexpr auto bg_color{float4(sc::display::kDefaultR,
             sc::display::kDefaultG, sc::display::kDefaultB, 1.0f)};
