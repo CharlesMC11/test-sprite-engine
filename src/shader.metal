@@ -64,7 +64,7 @@ inline float4 unpack_color(
     float4 out_color{out_texture.read(gid)};
 
     for (uint i{0}; i < entity_count; ++i) {
-        const uint entity_idx{draw_order[i]};
+        const sc::core::index_t entity_idx{draw_order[i]};
 
         const auto entity_coord{float2(x_coords[entity_idx],
                 y_coords[entity_idx] - z_coords[entity_idx])};
@@ -83,8 +83,8 @@ inline float4 unpack_color(
         if (pixel.alpha == 0x00)
             continue;
 
-        const float a{pixel.alpha / 3.0f};
-        const auto sprite_color{unpack_color(sprite, pixel)};
+        const float a{static_cast<float>(pixel.alpha) / 3.0f};
+        const float4 sprite_color{unpack_color(sprite, pixel)};
         if (a < 1.0f) {
             out_color = (sprite_color * a) + (out_color * (1.0f - a));
             out_color.a = 1.0f;
