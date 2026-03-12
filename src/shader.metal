@@ -9,7 +9,7 @@ using namespace metal;
         [[texture(0)]],
         uint2 gid [[thread_position_in_grid]])
 {
-    if (gid.x >= out_texture.get_width() || gid.y >= out_texture.get_height()) {
+    if (gid.x >= out_texture.get_width() || gid.y >= out_texture.get_height())
         return;
     }
 
