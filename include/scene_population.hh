@@ -66,7 +66,7 @@ namespace sc {
                 float display_height) noexcept;
 
         /// TODO: Make custom allocator
-        std::vector<float> x, y, z, dx, dy;
+        std::vector<float> x, y, z, dx, dy, dz;
         std::vector<sprites::atlas_index> indices;
         std::vector<core::index_t> draw_order;
 
@@ -97,6 +97,7 @@ namespace sc {
             z.reserve(aligned);
             dx.reserve(aligned);
             dy.reserve(aligned);
+            dz.reserve(aligned);
             indices.reserve(aligned);
             draw_order.reserve(aligned);
         }
@@ -114,6 +115,7 @@ namespace sc {
         z.push_back(start_z);
         dx.push_back(0.0f);
         dy.push_back(0.0f);
+        dz.push_back(0.0f);
         indices.push_back(i);
         draw_order.push_back(static_cast<std::uint32_t>(x.size() - 1));
 
