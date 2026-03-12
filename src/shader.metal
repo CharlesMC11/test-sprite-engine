@@ -77,8 +77,8 @@ inline float4 unpack_color(
             continue;
 
         constant sc::sprites::sprite& sprite{sprites[sprite_ids[entity_idx]]};
-        const auto pixel{sprite.pixels[local_coord.y * sc::sprites::kWidth +
-                local_coord.x]};
+        const sc::sprites::packed_pixel pixel{
+                sprite.pixels[local_coord.y][local_coord.x]};
 
         if (pixel.alpha == 0x00)
             continue;

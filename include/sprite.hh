@@ -25,7 +25,7 @@ namespace sc::sprites {
         color_encoding encoding; ///< Channel packing used in palette
         physics_type physics;
         core::packed_color_t palette[kMaxPaletteSize]; ///< 16-color LUT
-        packed_pixel pixels[kHeight * kHeight]; ///< Row-major pixels
+        packed_pixel pixels[kHeight][kWidth]; ///< Row-major pixels
     };
 
 } // namespace sc::sprites
