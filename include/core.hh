@@ -100,7 +100,7 @@ namespace sc {
 
     namespace assets {
 
-        static SC_CONSTANT auto kCharacterAtlas{"assets/master.atlas"};
+        static SC_CONSTANT auto kCharacterAtlas{"assets/characters.atlas"};
         static SC_CONSTANT auto kShaderLib{"assets/shader.metallib"};
 
     } // namespace assets

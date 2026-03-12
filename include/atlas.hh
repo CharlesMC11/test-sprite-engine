@@ -44,7 +44,7 @@ namespace sc::sprites {
                 const void* ptr, std::size_t mapped_size) noexcept;
 
         core::atlas_magic_t magic;
-        uint64_t count;
+        std::uint64_t count;
         sprite data[];
     };
 

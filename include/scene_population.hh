@@ -51,7 +51,7 @@ namespace sc {
         void spawn(float start_x, float start_y, float start_z,
                 sprites::atlas_index i) noexcept;
 
-        void resolve_collision(const sprites::atlas& bank,
+        constexpr bool resolve_collision(const sprites::atlas& bank,
                 const sprites::sprite& a, core::index_t ai, float& ax,
                 float& ay, float& az) noexcept;
 
@@ -132,7 +132,7 @@ namespace sc {
      * @param bz The 2nd entity's z-coordinate.
      * @return
      */
-    inline bool has_collision(const sprites::sprite& a, const float ax,
+    constexpr bool has_collision(const sprites::sprite& a, const float ax,
             const float ay, const float az, const sprites::sprite& b,
             const float bx, const float by, const float bz) noexcept
     {
@@ -221,7 +221,7 @@ namespace sc {
 
         if (needs_sort_) {
             std::ranges::sort(draw_order.begin(), draw_order.end(),
-                    [&](const uint32_t a, const uint32_t b) {
+                    [&](const core::index_t a, const core::index_t b) -> bool {
                         return y[a] < y[b];
                     });
             needs_sort_ = false;
