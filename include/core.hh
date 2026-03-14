@@ -125,6 +125,8 @@ namespace sc {
         static SC_CONSTANT float kFixedTimestep{1.0f / 120.0f};
         static SC_CONSTANT float kMaxVelocity{500.0f};
 
+        static SC_CONSTANT float kYCollisionDistance{5.0f};
+
     } // namespace physics
 
     namespace input {
