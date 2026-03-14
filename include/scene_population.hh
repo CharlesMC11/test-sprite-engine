@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include <arm_neon.h>
+
 #include <algorithm>
 #include <cstddef>
 #include <vector>
@@ -53,6 +55,8 @@ namespace sc {
          */
         constexpr void update(float dt) noexcept;
 
+        constexpr void commit() noexcept;
+
         constexpr void sort_draw() noexcept;
 
         /// TODO: Make custom allocator?
@@ -78,7 +82,7 @@ namespace sc {
     constexpr void scene_population::reserve(const std::size_t n) noexcept
     {
         const std::size_t aligned{
-                n + core::kAlignment - 1 & ~(core::kAlignment - 1)};
+                n + core::kAlignment - 1u & ~(core::kAlignment - 1u)};
 
         if (aligned > x.capacity()) {
             x.reserve(aligned);
@@ -100,7 +104,7 @@ namespace sc {
             const sprites::atlas_index i) noexcept
     {
         if (x.capacity() == x.size()) [[unlikely]]
-            reserve(x.size() * 2);
+            reserve(x.size() * 2u);
 
         x.push_back(start_x);
         y.push_back(start_y);
@@ -112,18 +116,49 @@ namespace sc {
         next_y.push_back(start_y);
         next_z.push_back(start_z);
         indices.push_back(i);
-        draw_order.push_back(static_cast<core::index_t>(x.size() - 1));
+        draw_order.push_back(static_cast<core::index_t>(x.size() - 1u));
 
         needs_sort = true;
     }
 
     constexpr void scene_population::update(const float dt) noexcept
     {
-        for (core::index_t i{0}; i < x.size(); ++i) {
+        const auto n{static_cast<core::index_t>(x.size())};
+        const core::index_t vectorized_lim{n - n % 4u};
+
+        if (vectorized_lim > 0u) {
+            const float32x4_t v_dt{vdupq_n_f32(dt)};
+            for (core::index_t i{0u}; i < vectorized_lim; i += 4u) {
+                const float32x4_t v_x{vld1q_f32(&x[i])};
+                const float32x4_t v_y{vld1q_f32(&y[i])};
+                const float32x4_t v_z{vld1q_f32(&z[i])};
+
+                const float32x4_t v_dx{vld1q_f32(&dx[i])};
+                const float32x4_t v_dy{vld1q_f32(&dy[i])};
+                const float32x4_t v_dz{vld1q_f32(&dz[i])};
+
+                const float32x4_t v_next_x{vfmaq_f32(v_x, v_dx, v_dt)};
+                const float32x4_t v_next_y{vfmaq_f32(v_y, v_dy, v_dt)};
+                const float32x4_t v_next_z{vfmaq_f32(v_z, v_dz, v_dt)};
+
+                vst1q_f32(&next_x[i], v_next_x);
+                vst1q_f32(&next_y[i], v_next_y);
+                vst1q_f32(&next_z[i], v_next_z);
+            }
+        }
+
+        for (core::index_t i{vectorized_lim}; i < n; ++i) {
             next_x[i] = x[i] + dx[i] * dt;
             next_y[i] = y[i] + dy[i] * dt;
             next_z[i] = z[i] + dz[i] * dt;
         }
+    }
+
+    constexpr void scene_population::commit() noexcept
+    {
+        x = next_x;
+        y = next_y;
+        z = next_z;
     }
 
     constexpr void scene_population::sort_draw() noexcept

@@ -142,10 +142,12 @@
 
         _registry.update(sc::physics::kFixedTimestep);
         sc::physics::resolve_entity_collisions(*_atlas, _registry);
+        _registry.commit();
 
         _accumulator -= sc::physics::kFixedTimestep;
     }
 
+    _registry.sort_draw();
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
     _bridge->begin_frame(drawable);
     _bridge->clear();
