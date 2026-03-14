@@ -25,6 +25,8 @@ namespace sc {
 
         using input_mask_t = uint32_t;
 
+        using physics_type_t = uint8_t;
+
         static SC_CONSTANT auto kAlignment{16u};
 
     } // namespace core
@@ -57,13 +59,49 @@ namespace sc {
          * @enum physics_type
          * @brief The type of physics that affects an entity.
          */
-        enum class physics_type : uint8_t {
-            NONE = 0,
-            ACTOR,
-            STATIC,
-            SENSOR,
-            PROJECTILE
+        enum class physics_type : core::physics_type_t {
+            NONE = 0x01,
+            ACTOR = 0x02,
+            STATIC = 0x04,
+            SENSOR = 0x08,
+            PROJECTILE = 0x10,
         };
+
+        constexpr core::physics_type_t operator&(physics_type a, physics_type b)
+        {
+            return static_cast<core::physics_type_t>(a) &
+                    static_cast<core::physics_type_t>(b);
+        }
+
+        constexpr core::physics_type_t operator&(
+                const core::physics_type_t a, physics_type b)
+        {
+            return a & static_cast<core::physics_type_t>(b);
+        }
+
+        constexpr core::physics_type_t operator&(
+                physics_type a, const core::physics_type_t b)
+        {
+            return static_cast<core::physics_type_t>(a) & b;
+        }
+
+        constexpr core::physics_type_t operator|(physics_type a, physics_type b)
+        {
+            return static_cast<core::physics_type_t>(a) |
+                    static_cast<core::physics_type_t>(b);
+        }
+
+        constexpr core::physics_type_t operator|(
+                const core::physics_type_t a, physics_type b)
+        {
+            return a | static_cast<core::physics_type_t>(b);
+        }
+
+        constexpr core::physics_type_t operator|(
+                physics_type a, const core::physics_type_t b)
+        {
+            return static_cast<core::physics_type_t>(a) | b;
+        }
 
         /**
          * @union packed_pixel
@@ -84,7 +122,7 @@ namespace sc {
     namespace physics {
 
         static SC_CONSTANT float kGravity{9.8f};
-        static SC_CONSTANT float kFixedTimestep{1.0f / 60.0f};
+        static SC_CONSTANT float kFixedTimestep{1.0f / 120.0f};
         static SC_CONSTANT float kMaxVelocity{500.0f};
 
     } // namespace physics
@@ -95,6 +133,19 @@ namespace sc {
         static SC_CONSTANT core::input_mask_t kDown{0x02};
         static SC_CONSTANT core::input_mask_t kLeft{0x04};
         static SC_CONSTANT core::input_mask_t kRight{0x08};
+
+        // enum class input_mask : core::input_mask_t {
+        //     LEFT = 0x01,
+        //     UP = 0x02,
+        //     RIGHT = 0x04,
+        //     DOWN = 0x08,
+        // };
+        //
+        // constexpr core::input_mask_t operator&(input_mask a, input_mask b)
+        // {
+        //     return static_cast<core::input_mask_t>(a) &
+        //             static_cast<core::input_mask_t>(b);
+        // }
 
     } // namespace input
 

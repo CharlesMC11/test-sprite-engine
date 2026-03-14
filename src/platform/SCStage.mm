@@ -9,6 +9,7 @@
 #include "atlas_index.hh"
 #include "core.hh"
 #include "file_mapping.hh"
+#include "physics_engine.h"
 #include "render_bridge.hh"
 #include "scene_population.hh"
 #include "sprite.hh"
@@ -139,8 +140,8 @@
         if (_keysPressed & sc::input::kRight)
             _registry.dx[0] += speed;
 
-        _registry.update(*_atlas, sc::physics::kFixedTimestep,
-                sc::display::kWidth, sc::display::kHeight);
+        _registry.update(sc::physics::kFixedTimestep);
+        sc::resolve_entity_collisions(*_atlas, _registry);
 
         _accumulator -= sc::physics::kFixedTimestep;
     }
