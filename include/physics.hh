@@ -1,5 +1,5 @@
 /**
- * @file
+ * @file physics.hh
  * @brief
  */
 #pragma once
@@ -8,9 +8,7 @@
 #include "core.hh"
 #include "scene_population.hh"
 
-namespace sc {
-
-    constexpr float kYCollisionDistance{5.0f};
+namespace sc::physics {
 
     struct bbox {
         float left, top, right, bottom;
@@ -28,7 +26,7 @@ namespace sc {
         float left, right, top, bottom, altitude, height;
     };
 
-    inline void resolve_entity_collisions(
+    constexpr void resolve_entity_collisions(
             const sprites::atlas& atlas, scene_population& registry)
     {
         for (core::index_t index_a{0}; index_a < registry.size(); ++index_a) {
@@ -116,4 +114,4 @@ namespace sc {
         registry.sort_draw();
     }
 
-} // namespace sc
+} // namespace sc::physics

@@ -9,7 +9,7 @@
 #include "atlas_index.hh"
 #include "core.hh"
 #include "file_mapping.hh"
-#include "physics_engine.h"
+#include "physics.hh"
 #include "render_bridge.hh"
 #include "scene_population.hh"
 #include "sprite.hh"
@@ -141,7 +141,7 @@
             _registry.dx[0] += speed;
 
         _registry.update(sc::physics::kFixedTimestep);
-        sc::resolve_entity_collisions(*_atlas, _registry);
+        sc::physics::resolve_entity_collisions(*_atlas, _registry);
 
         _accumulator -= sc::physics::kFixedTimestep;
     }
