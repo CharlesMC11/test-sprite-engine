@@ -35,7 +35,8 @@ namespace sc::core {
     template<mappable T>
     class file_mapping final {
     public:
-        [[nodiscard]] explicit file_mapping(const char path[]) noexcept;
+        [[nodiscard]] explicit constexpr file_mapping(
+                const char path[]) noexcept;
         file_mapping(const file_mapping&) = delete;
         file_mapping(file_mapping&&) = delete;
 
@@ -57,7 +58,7 @@ namespace sc::core {
     };
 
     template<mappable T>
-    file_mapping<T>::file_mapping(const char path[]) noexcept
+    constexpr file_mapping<T>::file_mapping(const char path[]) noexcept
     {
         const int fd{open(path, O_RDONLY)};
         if (fd < 0) [[unlikely]]
