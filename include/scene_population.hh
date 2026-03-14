@@ -115,7 +115,7 @@ namespace sc {
         next_y.push_back(start_y);
         next_z.push_back(start_z);
         indices.push_back(i);
-        draw_order.push_back(static_cast<std::uint32_t>(x.size() - 1));
+        draw_order.push_back(static_cast<core::index_t>(x.size() - 1));
 
         needs_sort = true;
     }
