@@ -50,7 +50,7 @@ namespace sc {
          * @brief Distribution of color channels across 16-bit packed integers.
          */
         enum class color_encoding : uint8_t {
-            DEFAULT = 1, ///< R5G6B5
+            DEFAULT = 1u, ///< R5G6B5
             WARM, ///< R6G5B5
             COOL ///< R5G5B6
         };
