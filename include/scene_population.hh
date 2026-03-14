@@ -6,13 +6,10 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <numeric>
 #include <vector>
 
-#include "atlas.hh"
 #include "atlas_index.hh"
 #include "core.hh"
-#include "sprite.hh"
 
 namespace sc {
 
