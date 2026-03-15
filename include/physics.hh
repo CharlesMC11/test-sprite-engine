@@ -6,6 +6,7 @@
 
 #include "Metal/MTLHeaderBridge.hpp"
 #include "atlas.hh"
+#include "bbox.hh"
 #include "core.hh"
 #include "scene_population.hh"
 

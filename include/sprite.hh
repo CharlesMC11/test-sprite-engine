@@ -8,6 +8,7 @@
 #include <cstdint>
 #endif
 
+#include "bbox.hh"
 #include "core.hh"
 
 namespace sc::sprites {
@@ -20,7 +21,7 @@ namespace sc::sprites {
      * for constant sys.
      */
     struct alignas(core::kAlignment) sprite final {
-        uint8_t left, top, right, bottom; ///< Hitbox
+        geometry::bbox<uint8_t> bbox; ///< Hitbox
         uint8_t anchor_x, anchor_y; ///< Local origin
         color_encoding encoding; ///< Channel packing used in palette
         physics_type physics;
