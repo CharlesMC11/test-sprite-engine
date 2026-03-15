@@ -16,20 +16,20 @@
 namespace sc {
 
     /**
-     * @struct scene_population
+     * @struct scene_registry
      * @brief
      */
-    struct scene_population final {
-        explicit constexpr scene_population(
+    struct scene_registry final {
+        explicit constexpr scene_registry(
                 std::size_t reserve_count = core::kAlignment) noexcept;
 
-        scene_population(const scene_population&) = delete;
-        scene_population(scene_population&&) = default;
+        scene_registry(const scene_registry&) = delete;
+        scene_registry(scene_registry&&) = default;
 
-        ~scene_population() = default;
+        ~scene_registry() = default;
 
-        scene_population& operator=(const scene_population&) = delete;
-        scene_population& operator=(scene_population&&) = default;
+        scene_registry& operator=(const scene_registry&) = delete;
+        scene_registry& operator=(scene_registry&&) = default;
 
         [[nodiscard]] constexpr std::size_t size() const noexcept;
 
@@ -67,19 +67,19 @@ namespace sc {
         bool needs_sort{false};
     };
 
-    constexpr scene_population::scene_population(
+    constexpr scene_registry::scene_registry(
             const std::size_t reserve_count) noexcept
     {
         reserve(reserve_count < core::kAlignment ? core::kAlignment
                                                  : reserve_count);
     }
 
-    [[nodiscard]] constexpr std::size_t scene_population::size() const noexcept
+    [[nodiscard]] constexpr std::size_t scene_registry::size() const noexcept
     {
         return x.size();
     }
 
-    constexpr void scene_population::reserve(const std::size_t n) noexcept
+    constexpr void scene_registry::reserve(const std::size_t n) noexcept
     {
         const std::size_t aligned{
                 n + core::kAlignment - 1u & ~(core::kAlignment - 1u)};
@@ -99,7 +99,7 @@ namespace sc {
         }
     }
 
-    constexpr void scene_population::spawn(const float start_x,
+    constexpr void scene_registry::spawn(const float start_x,
             const float start_y, const float start_z,
             const sprites::atlas_index i) noexcept
     {
@@ -121,7 +121,7 @@ namespace sc {
         needs_sort = true;
     }
 
-    constexpr void scene_population::update(const float dt) noexcept
+    constexpr void scene_registry::update(const float dt) noexcept
     {
         const auto n{static_cast<core::index_t>(x.size())};
         const core::index_t vectorized_lim{n - n % 4u};
@@ -154,14 +154,14 @@ namespace sc {
         }
     }
 
-    constexpr void scene_population::commit() noexcept
+    constexpr void scene_registry::commit() noexcept
     {
         x = next_x;
         y = next_y;
         z = next_z;
     }
 
-    constexpr void scene_population::sort_draw() noexcept
+    constexpr void scene_registry::sort_draw() noexcept
     {
         if (needs_sort) {
             std::ranges::sort(draw_order.begin(), draw_order.end(),

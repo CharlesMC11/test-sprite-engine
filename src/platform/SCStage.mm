@@ -12,14 +12,14 @@
 #include "input.hh"
 #include "physics.hh"
 #include "render_bridge.hh"
-#include "scene_population.hh"
+#include "scene_registry.hh"
 #include "sprite.hh"
 
 @implementation SCStage {
     std::unique_ptr<sc::core::file_mapping<sc::sprites::atlas>> _mapper;
     std::unique_ptr<sc::render_bridge> _bridge;
     const sc::sprites::atlas* _atlas;
-    sc::scene_population _registry;
+    sc::scene_registry _registry;
     sc::core::input_mask_t _keysPressed;
     float _accumulator;
 }

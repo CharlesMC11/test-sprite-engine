@@ -8,7 +8,7 @@
 #include "atlas.hh"
 #include "bbox.hh"
 #include "core.hh"
-#include "scene_population.hh"
+#include "scene_registry.hh"
 
 namespace sc::physics {
 
@@ -59,7 +59,7 @@ namespace sc::physics {
                 static_cast<core::physics_t>(b);
     }
 
-    constexpr void resolve_entity_collision(scene_population& registry,
+    constexpr void resolve_entity_collision(scene_registry& registry,
             const aabb& a, const geometry::bbox<float>& bbox_a,
             const core::index_t index_a, const aabb& b)
     {
@@ -99,7 +99,7 @@ namespace sc::physics {
     }
 
     constexpr void resolve_entity_collisions(
-            const sprites::atlas& atlas, scene_population& registry)
+            const sprites::atlas& atlas, scene_registry& registry)
     {
         for (core::index_t index_a{0u}; index_a < 1; ++index_a) {
             const sprites::sprite& sprite_a{atlas[registry.indices[index_a]]};
