@@ -24,8 +24,9 @@ namespace sc::core {
      * and GPU interpret the raw bytes identically.
      */
     template<typename T>
-    concept mappable = alignof(T) == kAlignment &&
-            std::is_standard_layout_v<T> && !std::is_polymorphic_v<T>;
+    concept mappable =
+            alignof(T) == kAlignment && std::is_standard_layout_v<T> &&
+            std::is_trivially_copyable_v<T> && !std::is_polymorphic_v<T>;
 
     /**
      * @class file_mapping

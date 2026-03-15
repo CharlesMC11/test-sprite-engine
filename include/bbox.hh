@@ -4,7 +4,6 @@ namespace sc::geometry {
 
     template<typename T>
     struct bbox final {
-
         [[nodiscard]] constexpr T width() const;
         [[nodiscard]] constexpr T height() const;
 

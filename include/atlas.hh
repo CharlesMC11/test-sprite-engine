@@ -6,7 +6,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
 
 #include "atlas_index.hh"
 #include "core.hh"
@@ -51,7 +50,7 @@ namespace sc::sprites {
     };
 
     [[nodiscard]] constexpr const sprite& atlas::operator[](
-            const core::index_t i) const noexcept
+            const core::atlas_index_t i) const noexcept
     {
         return data[i];
     }
@@ -59,7 +58,7 @@ namespace sc::sprites {
     [[nodiscard]] constexpr const sprite& atlas::operator[](
             const atlas_index i) const noexcept
     {
-        return (*this)[static_cast<core::index_t>(i)];
+        return (*this)[static_cast<core::atlas_index_t>(i)];
     }
 
     [[nodiscard]] constexpr bool atlas::validate(

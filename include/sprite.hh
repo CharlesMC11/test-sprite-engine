@@ -60,6 +60,9 @@ namespace sc::sprites {
         core::physics_t physics;
         core::packed_color_t palette[kMaxPaletteSize]; ///< 16-color LUT
         packed_pixel pixels[kHeight][kWidth]; ///< Row-major pixels
+        uint64_t padding;
     };
+
+    static_assert(sizeof(sprite) == 1'072, "Sprite must be exactly 1,072 B.");
 
 } // namespace sc::sprites
