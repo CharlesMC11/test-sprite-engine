@@ -12,26 +12,56 @@
 
 namespace sc::physics {
 
-    struct bbox {
-        float left, top, right, bottom;
-    };
+    static constexpr float kGravity{9.8f};
+    static constexpr float kFixedTimestep{1.0f / 120.0f};
+    static constexpr float kMaxVelocity{500.0f};
 
-    struct entity {
-        explicit entity(const float x, const float y, const float z,
-                const bbox& bbox) noexcept
+    static constexpr float kYCollisionDistance{8.0f};
+
+    struct aabb {
+        explicit aabb(const float x, const float y, const float z,
+                const geometry::bbox<float>& bbox) noexcept
             : left{x + bbox.left}, right{x + bbox.right}, top{y + bbox.top},
-              bottom{y + bbox.bottom}, altitude{z + bbox.bottom},
-              height{bbox.bottom - bbox.top}, bbox{bbox}
+              bottom{y + bbox.bottom}, altitude{z + bbox.bottom}, bbox{bbox}
         {
         }
 
-        float left, right, top, bottom, altitude, height;
-        bbox bbox;
+        float left, right, top, bottom, altitude;
+        geometry::bbox<float> bbox;
     };
 
+    /**
+     * @enum type
+     * @brief The type of physics that affects an entity.
+     */
+    enum class type : core::physics_t {
+        NONE = 0x01,
+        ACTOR = 0x02,
+        STATIC = 0x04,
+        SENSOR = 0x08,
+        PROJECTILE = 0x10,
+    };
+
+    constexpr core::physics_t operator&(type a, type b)
+    {
+        return static_cast<core::physics_t>(a) &
+                static_cast<core::physics_t>(b);
+    }
+
+    constexpr core::physics_t operator&(const core::physics_t a, type b)
+    {
+        return a & static_cast<core::physics_t>(b);
+    }
+
+    constexpr core::physics_t operator|(type a, type b)
+    {
+        return static_cast<core::physics_t>(a) |
+                static_cast<core::physics_t>(b);
+    }
+
     constexpr void resolve_entity_collision(scene_population& registry,
-            const entity& a, const bbox& bbox_a, const core::index_t index_a,
-            const entity& b)
+            const aabb& a, const geometry::bbox<float>& bbox_a,
+            const core::index_t index_a, const aabb& b)
     {
         bool collides_left{a.left < b.right};
         bool collides_right{a.right > b.left};
@@ -39,8 +69,9 @@ namespace sc::physics {
         const bool collides_top{a.bottom < b.bottom + kYCollisionDistance};
         const bool collides_bottom{a.bottom > b.bottom - kYCollisionDistance};
 
-        const bool collides_altitude{a.altitude < b.altitude + b.height &&
-                a.altitude + a.height > b.altitude};
+        const bool collides_altitude{
+                a.altitude < b.altitude + b.bbox.height() &&
+                a.altitude + a.bbox.height() > b.altitude};
 
         if (collides_left && collides_right && collides_top &&
                 collides_bottom && collides_altitude) {
@@ -73,15 +104,15 @@ namespace sc::physics {
         for (core::index_t index_a{0u}; index_a < 1; ++index_a) {
             const sprites::sprite& sprite_a{atlas[registry.indices[index_a]]};
 
-            if (!(sprite_a.physics & sprites::physics_type::ACTOR)) {
+            if (!(sprite_a.physics & type::ACTOR)) {
                 continue;
             }
 
-            const bbox bbox_a{static_cast<float>(sprite_a.left),
-                    static_cast<float>(sprite_a.top),
-                    static_cast<float>(sprite_a.right),
-                    static_cast<float>(sprite_a.bottom)};
-            const entity a{registry.next_x[index_a], registry.next_y[index_a],
+            const geometry::bbox bbox_a{static_cast<float>(sprite_a.bbox.left),
+                    static_cast<float>(sprite_a.bbox.top),
+                    static_cast<float>(sprite_a.bbox.right),
+                    static_cast<float>(sprite_a.bbox.bottom)};
+            const aabb a{registry.next_x[index_a], registry.next_y[index_a],
                     registry.next_z[index_a], bbox_a};
 
             if (registry.dy[index_a] > 0.0f) {
@@ -97,17 +128,17 @@ namespace sc::physics {
 
                 const sprites::sprite& sprite_b{
                         atlas[registry.indices[index_b]]};
-                if (sprite_b.physics & sprites::physics_type::NONE) {
+                if (sprite_b.physics & type::NONE) {
                     continue;
                 }
 
-                const bbox bbox_b{static_cast<float>(sprite_b.left),
-                        static_cast<float>(sprite_b.top),
-                        static_cast<float>(sprite_b.right),
-                        static_cast<float>(sprite_b.bottom)};
-                const entity b{registry.next_x[index_b],
-                        registry.next_y[index_b], registry.next_z[index_b],
-                        bbox_b};
+                const geometry::bbox bbox_b{
+                        static_cast<float>(sprite_b.bbox.left),
+                        static_cast<float>(sprite_b.bbox.top),
+                        static_cast<float>(sprite_b.bbox.right),
+                        static_cast<float>(sprite_b.bbox.bottom)};
+                const aabb b{registry.next_x[index_b], registry.next_y[index_b],
+                        registry.next_z[index_b], bbox_b};
 
                 resolve_entity_collision(registry, a, bbox_a, index_a, b);
             }
