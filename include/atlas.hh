@@ -14,6 +14,8 @@
 
 namespace sc::sprites {
 
+    static constexpr core::atlas_magic_t kAtlasMagicBytes{0x53414C5441204353};
+
     /**
      * @struct atlas
      * @brief A contiguous collection of sprites.

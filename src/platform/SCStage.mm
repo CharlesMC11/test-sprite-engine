@@ -9,6 +9,7 @@
 #include "atlas_index.hh"
 #include "core.hh"
 #include "file_mapping.hh"
+#include "input.hh"
 #include "physics.hh"
 #include "render_bridge.hh"
 #include "scene_population.hh"
@@ -62,7 +63,11 @@
                         0.5f,
                 0.0f, id);
 
-        _registry.spawn(sc::display::kHeight * 0.75f,
+        _registry.spawn(sc::display::kWidth * 0.333f,
+                sc::display::kHeight * 0.333f, 0.0f,
+                sc::sprites::atlas_index::MYARRA);
+
+        _registry.spawn(sc::display::kWidth * 0.75f,
                 sc::display::kHeight * 0.75f, 0.0f,
                 sc::sprites::atlas_index::HEART);
     }
@@ -84,16 +89,16 @@
 {
     switch (event.keyCode) {
     case 13:
-        _keysPressed |= sc::input::kUp;
+        _keysPressed |= sc::input::mask::UP;
         break;
     case 1:
-        _keysPressed |= sc::input::kDown;
+        _keysPressed |= sc::input::mask::DOWN;
         break;
     case 0:
-        _keysPressed |= sc::input::kLeft;
+        _keysPressed |= sc::input::mask::LEFT;
         break;
     case 2:
-        _keysPressed |= sc::input::kRight;
+        _keysPressed |= sc::input::mask::RIGHT;
         break;
     }
 }
@@ -102,16 +107,16 @@
 {
     switch (event.keyCode) {
     case 13:
-        _keysPressed &= ~sc::input::kUp;
+        _keysPressed &= ~sc::input::mask::UP;
         break;
     case 1:
-        _keysPressed &= ~sc::input::kDown;
+        _keysPressed &= ~sc::input::mask::DOWN;
         break;
     case 0:
-        _keysPressed &= ~sc::input::kLeft;
+        _keysPressed &= ~sc::input::mask::LEFT;
         break;
     case 2:
-        _keysPressed &= ~sc::input::kRight;
+        _keysPressed &= ~sc::input::mask::RIGHT;
         break;
     }
 }
@@ -131,13 +136,13 @@
     float speed{200.0f};
     while (_accumulator >= sc::physics::kFixedTimestep) {
         _registry.dx[0] = _registry.dy[0] = 0;
-        if (_keysPressed & sc::input::kUp)
+        if (_keysPressed & sc::input::mask::UP)
             _registry.dy[0] -= speed;
-        if (_keysPressed & sc::input::kDown)
+        if (_keysPressed & sc::input::mask::DOWN)
             _registry.dy[0] += speed;
-        if (_keysPressed & sc::input::kLeft)
+        if (_keysPressed & sc::input::mask::LEFT)
             _registry.dx[0] -= speed;
-        if (_keysPressed & sc::input::kRight)
+        if (_keysPressed & sc::input::mask::RIGHT)
             _registry.dx[0] += speed;
 
         _registry.update(sc::physics::kFixedTimestep);
