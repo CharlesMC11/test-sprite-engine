@@ -222,6 +222,9 @@ namespace sc::physics {
 
                 registry.next_x[index_a] += slide_x * dt * remain_t;
                 registry.next_y[index_a] += slide_y * dt * remain_t;
+
+                registry.vx[index_a] = slide_x;
+                registry.vz[index_a] = slide_y;
             }
         }
     }
