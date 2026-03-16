@@ -22,13 +22,14 @@ namespace sc::physics {
         explicit aabb(const float x, const float y, const float z,
                 const float vx, const float vy, const float vz,
                 const geometry::bbox<float>& bbox) noexcept
-            : left{x + bbox.left}, top{y + bbox.top}, right{x + bbox.right},
-              bottom{y + bbox.bottom}, altitude{z}, vx{vx}, vy{vy}, vz{vz},
+            : left{x + bbox.left}, back{y - kYCollisionDistance},
+              right{x + bbox.right}, front{y + kYCollisionDistance},
+              top{z + bbox.height()}, bottom{z}, vx{vx}, vy{vy}, vz{vz},
               bbox{bbox}
         {
         }
 
-        float left, top, right, bottom, altitude, vx, vy, vz;
+        float left, back, right, front, top, bottom, vx, vy, vz;
         geometry::bbox<float> bbox;
     };
 
@@ -92,7 +93,7 @@ namespace sc::physics {
         }
 
         if (std::abs(vy) < core::kEpsilon) {
-            if (a.bottom < b.top || a.top > b.bottom) {
+            if (a.front < b.back || a.back > b.front) {
                 return result;
             }
 
