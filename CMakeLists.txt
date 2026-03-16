@@ -37,7 +37,7 @@ target_link_libraries(test-sprite-engine
 
 add_custom_command(OUTPUT shader.metallib
         COMMAND xcrun -sdk macosx metal -c -I "${CMAKE_CURRENT_SOURCE_DIR}/include"
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal" -o shader.air
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal" -o shader.air
         COMMAND xcrun -sdk macosx metallib shader.air -o "${CMAKE_CURRENT_SOURCE_DIR}/assets/shader.metallib"
         DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal"
 )

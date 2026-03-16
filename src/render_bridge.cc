@@ -64,6 +64,16 @@ namespace sc {
         encoder_->setTexture(out_texture, 0);
     }
 
+    void render_bridge::end_frame(const MTL::Drawable* buffer)
+    {
+        encoder_->endEncoding();
+        command_buffer_->presentDrawable(buffer);
+        command_buffer_->commit();
+
+        encoder_ = nullptr;
+        command_buffer_ = nullptr;
+    }
+
     void render_bridge::clear() const
     {
         encoder_->setComputePipelineState(clear_pso_.get());
@@ -74,7 +84,7 @@ namespace sc {
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }
 
-    void render_bridge::draw(const scene_population& registry) const
+    void render_bridge::draw(const scene_registry& registry) const
     {
         encoder_->setComputePipelineState(sprite_pso_.get());
 
@@ -97,16 +107,6 @@ namespace sc {
         const MTL::Size thread_group_size{16, 16, 1};
 
         encoder_->dispatchThreads(grid_size, thread_group_size);
-    }
-
-    void render_bridge::end_frame(const MTL::Drawable* buffer)
-    {
-        encoder_->endEncoding();
-        command_buffer_->presentDrawable(buffer);
-        command_buffer_->commit();
-
-        encoder_ = nullptr;
-        command_buffer_ = nullptr;
     }
 
 } // namespace sc

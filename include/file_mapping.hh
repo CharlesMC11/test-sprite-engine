@@ -12,6 +12,8 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "core.hh"
+
 namespace sc::core {
 
     /**
@@ -22,8 +24,9 @@ namespace sc::core {
      * and GPU interpret the raw bytes identically.
      */
     template<typename T>
-    concept mappable = alignof(T) == 16 && std::is_standard_layout_v<T> &&
-            !std::is_polymorphic_v<T>;
+    concept mappable =
+            alignof(T) == kAlignment && std::is_standard_layout_v<T> &&
+            std::is_trivially_copyable_v<T> && !std::is_polymorphic_v<T>;
 
     /**
      * @class file_mapping
@@ -33,26 +36,30 @@ namespace sc::core {
     template<mappable T>
     class file_mapping final {
     public:
-        [[nodiscard]] explicit file_mapping(const char path[]) noexcept;
+        [[nodiscard]] explicit constexpr file_mapping(
+                const char path[]) noexcept;
+        file_mapping(const file_mapping&) = delete;
+        file_mapping(file_mapping&&) = delete;
+
         ~file_mapping() noexcept;
 
-        file_mapping(const file_mapping&) = delete;
         file_mapping& operator=(const file_mapping&) = delete;
+        file_mapping& operator=(file_mapping&&) = delete;
 
+        [[nodiscard]] explicit constexpr operator bool() const noexcept;
         [[nodiscard]] constexpr const T* operator->() const noexcept;
         [[nodiscard]] constexpr const T& operator*() const noexcept;
-        [[nodiscard]] explicit constexpr operator bool() const noexcept;
 
-        [[nodiscard]] constexpr std::size_t size() const noexcept;
         [[nodiscard]] constexpr const T* data() const noexcept;
+        [[nodiscard]] constexpr std::size_t size() const noexcept;
 
     private:
-        std::size_t size_{0};
         const T* buffer_ = nullptr;
+        std::size_t size_{0};
     };
 
     template<mappable T>
-    file_mapping<T>::file_mapping(const char path[]) noexcept
+    constexpr file_mapping<T>::file_mapping(const char path[]) noexcept
     {
         const int fd{open(path, O_RDONLY)};
         if (fd < 0) [[unlikely]]
@@ -83,6 +90,12 @@ namespace sc::core {
     }
 
     template<mappable T>
+    [[nodiscard]] constexpr file_mapping<T>::operator bool() const noexcept
+    {
+        return buffer_ != nullptr;
+    }
+
+    template<mappable T>
     [[nodiscard]] constexpr const T*
     file_mapping<T>::operator->() const noexcept
     {
@@ -96,21 +109,15 @@ namespace sc::core {
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr file_mapping<T>::operator bool() const noexcept
+    [[nodiscard]] constexpr const T* file_mapping<T>::data() const noexcept
     {
-        return buffer_ != nullptr;
+        return buffer_;
     }
 
     template<mappable T>
     [[nodiscard]] constexpr std::size_t file_mapping<T>::size() const noexcept
     {
         return size_;
-    }
-
-    template<mappable T>
-    [[nodiscard]] constexpr const T* file_mapping<T>::data() const noexcept
-    {
-        return buffer_;
     }
 
 } // namespace sc::core

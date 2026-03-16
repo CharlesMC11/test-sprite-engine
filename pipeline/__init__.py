@@ -27,8 +27,8 @@ class ColorEncoding(IntEnum):
 
 
 class PhysicsType(IntEnum):
-    NONE = 0
-    ACTOR = enum.auto()
-    STATIC = enum.auto()
-    SENSOR = enum.auto()
-    PROJECTILE = enum.auto()
+    NONE = 0x01
+    ACTOR = 0x02
+    STATIC = 0x04
+    SENSOR = 0x08
+    PROJECTILE = 0x10

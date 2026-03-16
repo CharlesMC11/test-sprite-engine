@@ -9,9 +9,8 @@ using namespace metal;
         [[texture(0)]],
         uint2 gid [[thread_position_in_grid]])
 {
-    if (gid.x >= out_texture.get_width() || gid.y >= out_texture.get_height()) {
+    if (gid.x >= out_texture.get_width() || gid.y >= out_texture.get_height())
         return;
-    }
 
     constexpr auto bg_color{float4(sc::display::kDefaultR,
             sc::display::kDefaultG, sc::display::kDefaultB, 1.0f)};
@@ -24,7 +23,7 @@ inline float4 unpack_color(
 {
     const ushort packed_color{sprite.palette[p.index]};
     float r{1.0f}, g{1.0f}, b{1.0f};
-    switch (sprite.encoding) {
+    switch (sprite.metadata.encoding) {
     case sc::sprites::color_encoding::DEFAULT:
         r = static_cast<float>((packed_color >> 11) & 0x1F) / 31.0f;
         g = static_cast<float>((packed_color >> 5) & 0x3F) / 63.0f;
@@ -64,7 +63,7 @@ inline float4 unpack_color(
     float4 out_color{out_texture.read(gid)};
 
     for (uint i{0}; i < entity_count; ++i) {
-        const uint entity_idx{draw_order[i]};
+        const sc::core::index_t entity_idx{draw_order[i]};
 
         const auto entity_coord{float2(x_coords[entity_idx],
                 y_coords[entity_idx] - z_coords[entity_idx])};
@@ -77,21 +76,21 @@ inline float4 unpack_color(
             continue;
 
         constant sc::sprites::sprite& sprite{sprites[sprite_ids[entity_idx]]};
-        const auto pixel{sprite.pixels[local_coord.y * sc::sprites::kWidth +
-                local_coord.x]};
+        const sc::sprites::packed_pixel pixel{
+                sprite.pixels[local_coord.y][local_coord.x]};
 
         if (pixel.alpha == 0x00)
             continue;
 
-        const float a{pixel.alpha / 3.0f};
-        const auto sprite_color{unpack_color(sprite, pixel)};
+        const float a{static_cast<float>(pixel.alpha) / 3.0f};
+        const float4 sprite_color{unpack_color(sprite, pixel)};
         if (a < 1.0f) {
             out_color = (sprite_color * a) + (out_color * (1.0f - a));
             out_color.a = 1.0f;
         }
         else
             out_color = sprite_color;
-    }
 
-    out_texture.write(out_color, gid);
+        out_texture.write(out_color, gid);
+    }
 }

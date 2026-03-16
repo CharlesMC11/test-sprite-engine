@@ -1,6 +1,6 @@
 /**
  * @file sprite.hh
- * @brief Core definitions and sprite data structures..
+ * @brief Core definitions and sprite data structures.
  */
 #pragma once
 
@@ -8,9 +8,58 @@
 #include <cstdint>
 #endif
 
+#include "bbox.hh"
 #include "core.hh"
 
 namespace sc::sprites {
+
+    static SC_CONSTANT uint32_t kHeight{32u};
+    static SC_CONSTANT uint32_t kWidth{32u};
+    static SC_CONSTANT uint32_t kMaxPaletteSize{16u};
+
+    static SC_CONSTANT core::packed_pixel_t kMaskPaletteIndex{0x0F};
+    static SC_CONSTANT core::packed_pixel_t kMaskAlpha{0x30};
+    static SC_CONSTANT core::packed_pixel_t kMaskEmission{0x40};
+    static SC_CONSTANT core::packed_pixel_t kMaskSpecular{0x80};
+
+    /**
+     * @enum color_encoding
+     * @brief Distribution of color channels across 16-bit packed integers.
+     */
+    enum class color_encoding : uint8_t {
+        DEFAULT = 1u, ///< R5G6B5
+        WARM, ///< R6G5B5
+        COOL ///< R5G5B6
+    };
+
+    /**
+     * @union packed_pixel
+     * @brief 8-bit packed index/metadata pixel.
+     */
+    union packed_pixel {
+        core::packed_pixel_t data;
+        struct {
+            core::packed_pixel_t index : 4u;
+            core::packed_pixel_t alpha : 2u;
+            core::packed_pixel_t emission : 1u;
+            core::packed_pixel_t specular : 1u;
+        };
+    };
+
+    /**
+     * @struct metadata
+     * @brief A sprite’s metadata.
+     *
+     * Contains information regarding a sprite’s bounding box, anchors, color
+     * encoding, and physics type.
+     */
+    struct alignas(core::kAlignment) metadata final {
+        geometry::bbox<uint8_t> bbox;
+        uint8_t anchor_x, anchor_y;
+        color_encoding encoding;
+        core::physics_t physics;
+        uint64_t padding;
+    };
 
     /**
      * @struct sprite
@@ -20,12 +69,12 @@ namespace sc::sprites {
      * for constant sys.
      */
     struct alignas(core::kAlignment) sprite final {
-        uint8_t left, top, right, bottom; ///< Hitbox
-        uint8_t anchor_x, anchor_y; ///< Local origin
-        color_encoding encoding; ///< Channel packing used in palette
-        physics_type physics;
+        metadata metadata;
         core::packed_color_t palette[kMaxPaletteSize]; ///< 16-color LUT
-        packed_pixel pixels[kHeight * kHeight]; ///< Row-major pixels
+        packed_pixel pixels[kHeight][kWidth]; ///< Row-major pixels
     };
+
+    static_assert(sizeof(metadata) == 16, "Metadata must be 16 B.");
+    static_assert(sizeof(sprite) == 1'072, "Sprite must be exactly 1,072 B.");
 
 } // namespace sc::sprites
