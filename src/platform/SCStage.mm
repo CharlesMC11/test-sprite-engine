@@ -54,7 +54,7 @@
         self.framebufferOnly = false;
 
         constexpr auto id{sc::sprites::atlas_index::LANCIS};
-        const sc::sprites::sprite& sprite{(*_atlas)[id]};
+        const sc::sprites::metadata& sprite{(*_atlas)[id].metadata};
         _registry.spawn(
                 (sc::display::kWidth - sc::sprites::kWidth - sprite.anchor_x) *
                         0.5f,

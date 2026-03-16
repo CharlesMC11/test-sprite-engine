@@ -5,10 +5,9 @@ Bakes a 32×32 source (BGR/RGBA) image and optional glow masks into a specialize
 1,072-byte binary format.
 
 The binary layout contains:
-- Metadata (8 bytes): Hitbox and anchor data.
+- Metadata (16 bytes): Hitbox, anchor data, and padding.
 - Palette (32 bytes): 16 colors as 16-bit packed integers.
 - Pixels (1,024 bytes): 8-bit packed values [S][E][AA][IIII].
-- Padding (8 bytes): For 16-byte alignment.
 """
 
 import struct
@@ -38,12 +37,12 @@ type PackedColors = npt.NDArray[np.uint16]
 type BakedPixels = npt.NDArray[np.uint8]
 
 
-def calculate_hitbox(mask: AlphaMask) -> tuple[int, int, int, int]:
+def calculate_bounding_box(mask: AlphaMask) -> tuple[int, int, int, int]:
     """
-    Calculate the hitbox of a sprite based from an alpha mask.
+    Calculate the bounding box of a sprite based from an alpha mask.
 
-    :param mask: An alpha mask to calculate the hitbox from.
-    :returns: The top-left and bottom-right coordinates of the hitbox.
+    :param mask: An alpha mask to calculate the bounding box from.
+    :returns: The top-left and bottom-right coordinates of the bounding box.
     """
 
     visible_coords = np.argwhere(mask > 0)
@@ -57,7 +56,7 @@ def calculate_hitbox(mask: AlphaMask) -> tuple[int, int, int, int]:
 
 
 def pack_colors_to_16bit(
-    image_bgr: BGRImage, encoding: ColorEncoding
+        image_bgr: BGRImage, encoding: ColorEncoding
 ) -> PackedColors:
     """
     Pack the 8-bit BGR channels into 16-bit integers.
@@ -112,10 +111,10 @@ class SpriteCompiler:
     # Public methods
 
     def ingest_asset(
-        self,
-        image_path: Path,
-        emission_mask_path: Path | None,
-        specular_mask_path: Path | None,
+            self,
+            image_path: Path,
+            emission_mask_path: Path | None,
+            specular_mask_path: Path | None,
     ) -> None:
         """
         Validate the source asset.
@@ -180,7 +179,7 @@ class SpriteCompiler:
         :param output_path: The path to save the sprite to.
         """
 
-        left, top, right, bottom = calculate_hitbox(self._source_alpha)
+        left, top, right, bottom = calculate_bounding_box(self._source_alpha)
 
         anchor_x = (right - left) // 2
         anchor_y = bottom
@@ -196,6 +195,7 @@ class SpriteCompiler:
             self._encoding.value,
             self._physics.value,
         )
+        padding_bytes = struct.pack("<Q", 0)
 
         palette_bytes = bytearray()
         palette_size = len(self._palette)
@@ -209,11 +209,9 @@ class SpriteCompiler:
 
         pixel_bytes = self._bake_pixels().tobytes()
 
-        padding_bytes = struct.pack("<Q", 0)
-
         with output_path.open("wb") as f:
             f.write(
-                metadata_bytes + palette_bytes + pixel_bytes + padding_bytes
+                metadata_bytes + padding_bytes + palette_bytes + pixel_bytes
             )
 
     # Protected methods
@@ -260,10 +258,10 @@ class SpriteCompiler:
         indices = self._index_colors() & 0x0F
         alphas = (self._source_alpha.flatten() >> 6) & 0x03
         baked_pixels = (
-            self._specular_bits << 7
-            | self._emission_bits << 6
-            | alphas << 4
-            | indices
+                self._specular_bits << 7
+                | self._emission_bits << 6
+                | alphas << 4
+                | indices
         )
 
         return baked_pixels.astype(np.uint8)

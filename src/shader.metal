@@ -23,7 +23,7 @@ inline float4 unpack_color(
 {
     const ushort packed_color{sprite.palette[p.index]};
     float r{1.0f}, g{1.0f}, b{1.0f};
-    switch (sprite.encoding) {
+    switch (sprite.metadata.encoding) {
     case sc::sprites::color_encoding::DEFAULT:
         r = static_cast<float>((packed_color >> 11) & 0x1F) / 31.0f;
         g = static_cast<float>((packed_color >> 5) & 0x3F) / 63.0f;

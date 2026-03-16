@@ -47,6 +47,21 @@ namespace sc::sprites {
     };
 
     /**
+     * @struct metadata
+     * @brief A sprite’s metadata.
+     *
+     * Contains information regarding a sprite’s bounding box, anchors, color
+     * encoding, and physics type.
+     */
+    struct alignas(core::kAlignment) metadata final {
+        geometry::bbox<uint8_t> bbox;
+        uint8_t anchor_x, anchor_y;
+        color_encoding encoding;
+        core::physics_t physics;
+        uint64_t padding;
+    };
+
+    /**
      * @struct sprite
      * @brief A hardware-aware sprite definition.
      *
@@ -54,15 +69,12 @@ namespace sc::sprites {
      * for constant sys.
      */
     struct alignas(core::kAlignment) sprite final {
-        geometry::bbox<uint8_t> bbox; ///< Hitbox
-        uint8_t anchor_x, anchor_y; ///< Local origin
-        color_encoding encoding; ///< Channel packing used in palette
-        core::physics_t physics;
+        metadata metadata;
         core::packed_color_t palette[kMaxPaletteSize]; ///< 16-color LUT
         packed_pixel pixels[kHeight][kWidth]; ///< Row-major pixels
-        uint64_t padding;
     };
 
+    static_assert(sizeof(metadata) == 16, "Metadata must be 16 B.");
     static_assert(sizeof(sprite) == 1'072, "Sprite must be exactly 1,072 B.");
 
 } // namespace sc::sprites

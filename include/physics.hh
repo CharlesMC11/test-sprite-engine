@@ -128,7 +128,8 @@ namespace sc::physics {
             scene_registry& registry, const float dt)
     {
         for (core::index_t index_a{0u}; index_a < registry.size(); ++index_a) {
-            const sprites::sprite& sprite_a{atlas[registry.indices[index_a]]};
+            const sprites::metadata& sprite_a{
+                    atlas[registry.indices[index_a]].metadata};
 
             if (!(sprite_a.physics & type::ACTOR)) {
                 continue;
@@ -163,8 +164,8 @@ namespace sc::physics {
                     continue;
                 }
 
-                const sprites::sprite& sprite_b{
-                        atlas[registry.indices[index_b]]};
+                const sprites::metadata& sprite_b{
+                        atlas[registry.indices[index_b]].metadata};
                 if (sprite_b.physics & type::NONE) {
                     continue;
                 }
