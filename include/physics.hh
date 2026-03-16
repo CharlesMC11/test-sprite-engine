@@ -103,10 +103,26 @@ namespace sc::physics {
             exit_ty = out_y / vy;
         }
 
-        const float entry_t{std::max(entry_tx, entry_ty)};
-        const float exit_t{std::min(exit_tx, exit_ty)};
-        if (entry_t > exit_t || entry_t > 1.0f || entry_t < 0.0f ||
-                (exit_tx < 0.0f && exit_ty < 0.0f)) {
+        float entry_tz, exit_tz;
+        if (std::abs(vz) < core::kEpsilon) {
+            if (a.bottom > b.top || a.top < b.bottom) {
+                return result;
+            }
+            entry_tz = -core::kInfinity;
+            exit_tz = core::kInfinity;
+        }
+        else {
+            const float in_z{vz > 0.0f ? b.bottom - a.top : b.top - a.bottom};
+            const float out_z{vz > 0.0f ? b.top - a.bottom : b.bottom - a.top};
+
+            entry_tz = in_z / vz;
+            exit_tz = out_z / vz;
+        }
+
+        const float entry_t{std::max(entry_tx, std::max(entry_ty, entry_tz))};
+        if (entry_t > std::min(exit_tx, std::min(exit_ty, exit_tz)) ||
+                entry_t > 1.0f || entry_t < 0.0f ||
+                (exit_tx < 0.0f && exit_ty < 0.0f && entry_tz < 0.0f)) {
             return result;
         }
 
@@ -178,9 +194,10 @@ namespace sc::physics {
                         registry.z[index_b], registry.vx[index_b],
                         registry.vy[index_b], registry.vz[index_b], bbox_b};
 
-                const sweep_result result{sweep_test(a, b,
+                const sweep_result result{sweep_aabb(a, b,
                         (registry.vx[index_a] - registry.vx[index_b]) * dt,
-                        (registry.vy[index_a] - registry.vy[index_b]) * dt)};
+                        (registry.vy[index_a] - registry.vy[index_b]) * dt,
+                        (registry.vz[index_a] - registry.vz[index_b]) * dt)};
 
                 if (result.time < hit.time) {
                     hit = result;
