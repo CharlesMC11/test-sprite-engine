@@ -66,43 +66,41 @@ namespace sc::physics {
         float time{1.0f}, normal_x{0.0f}, normal_y{0.0f};
     };
 
-    constexpr sweep_result sweep_test(
-            const aabb& a, const aabb& b, const float vx, const float vy)
+    constexpr sweep_result sweep_aabb(const aabb& a, const aabb& b,
+            const float vx, const float vy, const float vz)
     {
         sweep_result result;
 
-        const float entry_x{vx > 0.0f ? b.left - a.right : b.right - a.left};
-        const float exit_x{vx > 0.0f ? b.right - a.left : b.left - a.right};
-
-        const float entry_y{vy > 0.0f ? b.top - a.bottom : b.bottom - a.top};
-        const float exit_y{vy > 0.0f ? b.bottom - a.top : b.top - a.bottom};
-
-        float entry_tx, exit_tx, entry_ty, exit_ty;
-
+        float entry_tx, exit_tx;
         if (std::abs(vx) < core::kEpsilon) {
             if (a.right < b.left || a.left > b.right) {
                 return result;
             }
-
             entry_tx = -core::kInfinity;
             exit_tx = core::kInfinity;
         }
         else {
-            entry_tx = entry_x / vx;
-            exit_tx = exit_x / vx;
+            const float in_x{vx > 0.0f ? b.left - a.right : b.right - a.left};
+            const float out_x{vx > 0.0f ? b.right - a.left : b.left - a.right};
+
+            entry_tx = in_x / vx;
+            exit_tx = out_x / vx;
         }
 
+        float entry_ty, exit_ty;
         if (std::abs(vy) < core::kEpsilon) {
             if (a.front < b.back || a.back > b.front) {
                 return result;
             }
-
             entry_ty = -core::kInfinity;
             exit_ty = core::kInfinity;
         }
         else {
-            entry_ty = entry_y / vy;
-            exit_ty = exit_y / vy;
+            const float in_y{vy > 0.0f ? b.back - a.front : b.front - a.back};
+            const float out_y{vy > 0.0f ? b.front - a.back : b.back - a.front};
+
+            entry_ty = in_y / vy;
+            exit_ty = out_y / vy;
         }
 
         const float entry_t{std::max(entry_tx, entry_ty)};
