@@ -204,7 +204,7 @@ namespace sc::physics {
                 }
             }
 
-            const float padded_t{std::max(0.0f, hit.time - core::kEpsilon)};
+            const float padded_t{std::max(0.0f, hit.time - 0.1f)};
 
             registry.next_x[index_a] =
                     registry.x[index_a] + registry.vx[index_a] * dt * padded_t;
