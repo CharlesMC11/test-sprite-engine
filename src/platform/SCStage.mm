@@ -63,8 +63,8 @@
                         0.5f,
                 0.0f, id);
 
-        _registry.spawn(sc::display::kWidth * 0.333f,
-                sc::display::kHeight * 0.333f, 0.0f,
+        _registry.spawn(sc::display::kWidth * 0.25f,
+                sc::display::kHeight * 0.25, 0.0f,
                 sc::sprites::atlas_index::MYARRA);
 
         _registry.spawn(sc::display::kWidth * 0.75f,
