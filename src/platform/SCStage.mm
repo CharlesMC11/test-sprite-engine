@@ -145,8 +145,9 @@
         if (_keysPressed & sc::input::mask::RIGHT)
             _registry.vx[0] += speed;
 
-        _registry.update(sc::physics::kFixedTimestep);
-        sc::physics::resolve_entity_collisions(*_atlas, _registry);
+        // _registry.update(sc::physics::kFixedTimestep);
+        sc::physics::resolve_entity_collisions(
+                *_atlas, _registry, sc::physics::kFixedTimestep);
         _registry.commit();
 
         _accumulator -= sc::physics::kFixedTimestep;
