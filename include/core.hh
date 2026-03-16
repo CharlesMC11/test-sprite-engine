@@ -29,6 +29,15 @@ namespace sc {
 
         static SC_CONSTANT auto kAlignment{16u};
 
+#ifndef __METAL_VERSION__
+
+        using float_limits = std::numeric_limits<float>;
+
+        static constexpr float kEpsilon{float_limits::epsilon()};
+        static constexpr float kInfinity{float_limits::infinity()};
+
+#endif
+
     } // namespace core
 
     namespace assets {
