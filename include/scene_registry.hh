@@ -31,7 +31,7 @@ namespace sc {
         scene_registry& operator=(const scene_registry&) = delete;
         scene_registry& operator=(scene_registry&&) = default;
 
-        [[nodiscard]] constexpr std::size_t size() const noexcept;
+        [[nodiscard]] constexpr std::size_t count() const noexcept;
 
         /**
          * @brief Reserve space in the registry.
@@ -74,9 +74,9 @@ namespace sc {
                                                  : reserve_count);
     }
 
-    [[nodiscard]] constexpr std::size_t scene_registry::size() const noexcept
+    [[nodiscard]] constexpr std::size_t scene_registry::count() const noexcept
     {
-        return x.size();
+        return count_;
     }
 
     constexpr void scene_registry::reserve(const std::size_t n) noexcept
