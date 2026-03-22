@@ -63,7 +63,10 @@ namespace sc::physics {
     }
 
     struct sweep_result {
-        float time{1.0f}, normal_x{0.0f}, normal_y{0.0f};
+        float time{1.0f};
+        float normal_x{0.0f};
+        float normal_y{0.0f};
+        float normal_z{0.0f};
     };
 
     constexpr sweep_result sweep_aabb(const aabb& a, const aabb& b,
@@ -127,13 +130,20 @@ namespace sc::physics {
         }
 
         result.time = entry_t;
-        if (entry_tx > entry_ty) {
+        if (entry_tx >= entry_ty && entry_tx >= entry_tz) {
             result.normal_x = vx > 0.0f ? -1.0f : 1.0f;
             result.normal_y = 0.0f;
+            result.normal_z = 0.0f;
+        }
+        else if (entry_ty >= entry_tx && entry_ty >= entry_tz) {
+            result.normal_x = 0.0f;
+            result.normal_y = vy > 0.0f ? -1.0f : 1.0f;
+            result.normal_z = 0.0f;
         }
         else {
             result.normal_x = 0.0f;
-            result.normal_y = vy > 0.0f ? -1.0f : 1.0f;
+            result.normal_y = 0.0f;
+            result.normal_z = vz > 0.0f ? 1.0f : -1.0f;
         }
 
         return result;
