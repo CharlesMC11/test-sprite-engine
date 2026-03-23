@@ -135,15 +135,15 @@
 
     float speed{200.0f};
     while (_accumulator >= sc::physics::kFixedTimestep) {
-        _registry.vx[0] = _registry.vy[0] = 0;
+        _registry.vx()[0] = _registry.vy()[0] = 0;
         if (_keysPressed & sc::input::mask::UP)
-            _registry.vy[0] -= speed;
+            _registry.vy()[0] -= speed;
         if (_keysPressed & sc::input::mask::DOWN)
-            _registry.vy[0] += speed;
+            _registry.vy()[0] += speed;
         if (_keysPressed & sc::input::mask::LEFT)
-            _registry.vx[0] -= speed;
+            _registry.vx()[0] -= speed;
         if (_keysPressed & sc::input::mask::RIGHT)
-            _registry.vx[0] += speed;
+            _registry.vx()[0] += speed;
 
         // _registry.update(sc::physics::kFixedTimestep);
         sc::physics::resolve_entity_collisions(

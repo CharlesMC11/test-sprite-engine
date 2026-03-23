@@ -89,18 +89,15 @@ namespace sc {
         encoder_->setComputePipelineState(sprite_pso_.get());
 
         encoder_->setBuffer(sprite_buffer_.get(), 0, 0);
-        encoder_->setBytes(
-                registry.x.data(), sizeof(float) * registry.size(), 1);
-        encoder_->setBytes(
-                registry.y.data(), sizeof(float) * registry.size(), 2);
-        encoder_->setBytes(
-                registry.z.data(), sizeof(float) * registry.size(), 3);
+        encoder_->setBytes(registry.x(), sizeof(float) * registry.count(), 1);
+        encoder_->setBytes(registry.y(), sizeof(float) * registry.count(), 2);
+        encoder_->setBytes(registry.z(), sizeof(float) * registry.count(), 3);
         encoder_->setBytes(registry.indices.data(),
-                sizeof(core::atlas_index_t) * registry.size(), 4);
+                sizeof(core::atlas_index_t) * registry.count(), 4);
         encoder_->setBytes(registry.draw_order.data(),
-                sizeof(core::index_t) * registry.size(), 5);
+                sizeof(core::index_t) * registry.count(), 5);
 
-        const auto count{static_cast<std::uint32_t>(registry.size())};
+        const auto count{static_cast<std::uint32_t>(registry.count())};
         encoder_->setBytes(&count, sizeof(count), 6);
 
         const MTL::Size grid_size{display::kWidth, display::kHeight, 1};

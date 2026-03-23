@@ -152,23 +152,29 @@ namespace sc::physics {
     constexpr void resolve_entity_collisions(const sprites::atlas& atlas,
             scene_registry& registry, const float dt)
     {
-        for (core::index_t index_a{0u}; index_a < registry.size(); ++index_a) {
-            const sprites::metadata& sprite_a{
-                    atlas[registry.indices[index_a]].metadata};
+        std::ranges::sort(registry.physics_order.begin(),
+                registry.physics_order.end(),
+                [&](const core::index_t a, const core::index_t b) -> bool {
+                    return registry.x()[a] < registry.x()[b];
+                });
+
+        for (core::index_t i{0u}; i < registry.count(); ++i) {
+            const core::index_t index_a{registry.physics_order[i]};
+            const sprites::metadata& sprite_a{atlas[index_a].metadata};
 
             if (!(sprite_a.physics & type::ACTOR)) {
                 continue;
             }
 
-            if (std::abs(registry.vx[index_a]) < core::kEpsilon &&
-                    std::abs(registry.vy[index_a]) < core::kEpsilon) {
-                registry.next_x[index_a] = registry.x[index_a];
-                registry.next_y[index_a] = registry.y[index_a];
-                registry.next_z[index_a] = registry.z[index_a];
+            if (std::abs(registry.vx()[index_a]) < core::kEpsilon &&
+                    std::abs(registry.vy()[index_a]) < core::kEpsilon) {
+                registry.next_x()[index_a] = registry.x()[index_a];
+                registry.next_y()[index_a] = registry.y()[index_a];
+                registry.next_z()[index_a] = registry.z()[index_a];
                 continue;
             }
 
-            if (std::abs(registry.vy[index_a]) > core::kEpsilon) {
+            if (std::abs(registry.vy()[index_a]) > core::kEpsilon) {
                 registry.needs_sort = true;
             }
 
@@ -176,21 +182,20 @@ namespace sc::physics {
                     static_cast<float>(sprite_a.bbox.top),
                     static_cast<float>(sprite_a.bbox.right),
                     static_cast<float>(sprite_a.bbox.bottom)};
-            const aabb a{registry.x[index_a], registry.y[index_a],
-                    registry.z[index_a], registry.vx[index_a],
-                    registry.vy[index_a], registry.vz[index_a], bbox_a};
+            const aabb a{registry.x()[index_a], registry.y()[index_a],
+                    registry.z()[index_a], registry.vx()[index_a],
+                    registry.vy()[index_a], registry.vz()[index_a], bbox_a};
+
+            const float vx{registry.vx()[index_a] * dt};
+            const float a_min_x{std::min(a.left, a.left + vx)};
+            const float a_max_x{std::max(a.right, a.right + vx)};
 
             sweep_result hit;
 
-            for (core::index_t index_b{0u}; index_b < registry.size();
-                    ++index_b) {
+            for (core::index_t j{i + 1u}; j < registry.count(); ++j) {
+                const core::index_t index_b{registry.physics_order[j]};
+                const sprites::metadata& sprite_b{atlas[index_b].metadata};
 
-                if (index_a == index_b) {
-                    continue;
-                }
-
-                const sprites::metadata& sprite_b{
-                        atlas[registry.indices[index_b]].metadata};
                 if (sprite_b.physics & type::NONE) {
                     continue;
                 }
@@ -200,14 +205,49 @@ namespace sc::physics {
                         static_cast<float>(sprite_b.bbox.top),
                         static_cast<float>(sprite_b.bbox.right),
                         static_cast<float>(sprite_b.bbox.bottom)};
-                const aabb b{registry.x[index_b], registry.y[index_b],
-                        registry.z[index_b], registry.vx[index_b],
-                        registry.vy[index_b], registry.vz[index_b], bbox_b};
+                const aabb b{registry.x()[index_b], registry.y()[index_b],
+                        registry.z()[index_b], registry.vx()[index_b],
+                        registry.vy()[index_b], registry.vz()[index_b], bbox_b};
+
+                if (a_max_x < b.left)
+                    break;
 
                 const sweep_result result{sweep_aabb(a, b,
-                        (registry.vx[index_a] - registry.vx[index_b]) * dt,
-                        (registry.vy[index_a] - registry.vy[index_b]) * dt,
-                        (registry.vz[index_a] - registry.vz[index_b]) * dt)};
+                        (registry.vx()[index_a] - registry.vx()[index_b]) * dt,
+                        (registry.vy()[index_a] - registry.vy()[index_b]) * dt,
+                        (registry.vz()[index_a] - registry.vz()[index_b]) *
+                                dt)};
+
+                if (result.time < hit.time) {
+                    hit = result;
+                }
+            }
+
+            for (int32_t j{static_cast<int32_t>(i) - 1}; j >= 0; --j) {
+                const core::index_t index_b{registry.physics_order[j]};
+                const sprites::metadata& sprite_b{atlas[index_b].metadata};
+
+                if (sprite_b.physics & type::NONE) {
+                    continue;
+                }
+
+                const geometry::bbox bbox_b{
+                        static_cast<float>(sprite_b.bbox.left),
+                        static_cast<float>(sprite_b.bbox.top),
+                        static_cast<float>(sprite_b.bbox.right),
+                        static_cast<float>(sprite_b.bbox.bottom)};
+                const aabb b{registry.x()[index_b], registry.y()[index_b],
+                        registry.z()[index_b], registry.vx()[index_b],
+                        registry.vy()[index_b], registry.vz()[index_b], bbox_b};
+
+                if (a_min_x > b.right)
+                    break;
+
+                const sweep_result result{sweep_aabb(a, b,
+                        (registry.vx()[index_a] - registry.vx()[index_b]) * dt,
+                        (registry.vy()[index_a] - registry.vy()[index_b]) * dt,
+                        (registry.vz()[index_a] - registry.vz()[index_b]) *
+                                dt)};
 
                 if (result.time < hit.time) {
                     hit = result;
@@ -216,25 +256,34 @@ namespace sc::physics {
 
             const float padded_t{std::max(0.0f, hit.time - 0.1f)};
 
-            registry.next_x[index_a] =
-                    registry.x[index_a] + registry.vx[index_a] * dt * padded_t;
-            registry.next_y[index_a] =
-                    registry.y[index_a] + registry.vy[index_a] * dt * padded_t;
+            registry.next_x()[index_a] = registry.x()[index_a] +
+                    registry.vx()[index_a] * dt * padded_t;
+            registry.next_y()[index_a] = registry.y()[index_a] +
+                    registry.vy()[index_a] * dt * padded_t;
+            registry.next_z()[index_a] = registry.z()[index_a] +
+                    registry.vz()[index_a] * dt * padded_t;
 
             if (hit.time < 1.0f) {
                 const float remain_t{1.0f - hit.time};
 
-                const float dot{registry.vx[index_a] * hit.normal_x +
-                        registry.vy[index_a] * hit.normal_y};
+                const float dot{registry.vx()[index_a] * hit.normal_x +
+                        registry.vy()[index_a] * hit.normal_y +
+                        registry.vz()[index_a] * hit.normal_z};
 
-                const float slide_x{registry.vx[index_a] - dot * hit.normal_x};
-                const float slide_y{registry.vy[index_a] - dot * hit.normal_y};
+                const float slide_x{
+                        registry.vx()[index_a] - dot * hit.normal_x};
+                const float slide_y{
+                        registry.vy()[index_a] - dot * hit.normal_y};
+                const float slide_z{
+                        registry.vz()[index_a] - dot * hit.normal_z};
 
-                registry.next_x[index_a] += slide_x * dt * remain_t;
-                registry.next_y[index_a] += slide_y * dt * remain_t;
+                registry.next_x()[index_a] += slide_x * dt * remain_t;
+                registry.next_y()[index_a] += slide_y * dt * remain_t;
+                registry.next_z()[index_a] += slide_z * dt * remain_t;
 
-                registry.vx[index_a] = slide_x;
-                registry.vz[index_a] = slide_y;
+                registry.vx()[index_a] = slide_x;
+                registry.vy()[index_a] = slide_y;
+                registry.vz()[index_a] = slide_z;
             }
         }
     }
