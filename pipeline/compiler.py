@@ -1,7 +1,7 @@
 """
 Sprite Compiler.
 
-Bakes a 32×32 source (BGR/RGBA) image and optional glow masks into a specialized
+Bakes a 32×32 source (BGR/RGBA) image and optional emission & specular masks into a specialized
 1,072-byte binary format.
 
 The binary layout contains:
@@ -56,7 +56,7 @@ def calculate_bounding_box(mask: AlphaMask) -> tuple[int, int, int, int]:
 
 
 def pack_colors_to_16bit(
-        image_bgr: BGRImage, encoding: ColorEncoding
+    image_bgr: BGRImage, encoding: ColorEncoding
 ) -> PackedColors:
     """
     Pack the 8-bit BGR channels into 16-bit integers.
@@ -98,6 +98,7 @@ class SpriteCompiler:
     _palette: Palette | None
 
     # Magic methods
+
     def __init__(self, encoding: ColorEncoding, physics: PhysicsType):
         self._encoding = encoding
         self._physics = physics
@@ -111,10 +112,10 @@ class SpriteCompiler:
     # Public methods
 
     def ingest_asset(
-            self,
-            image_path: Path,
-            emission_mask_path: Path | None,
-            specular_mask_path: Path | None,
+        self,
+        image_path: Path,
+        emission_mask_path: Path | None,
+        specular_mask_path: Path | None,
     ) -> None:
         """
         Validate the source asset.
@@ -258,10 +259,10 @@ class SpriteCompiler:
         indices = self._index_colors() & 0x0F
         alphas = (self._source_alpha.flatten() >> 6) & 0x03
         baked_pixels = (
-                self._specular_bits << 7
-                | self._emission_bits << 6
-                | alphas << 4
-                | indices
+            self._specular_bits << 7
+            | self._emission_bits << 6
+            | alphas << 4
+            | indices
         )
 
         return baked_pixels.astype(np.uint8)
@@ -281,16 +282,16 @@ class SpriteCompiler:
 
         if not mask_path.exists():
             raise FileNotFoundError(f"Missing mask file: {mask_path}")
-        if (glow_mask := cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)) is None:
+        if (make := cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)) is None:
             raise RuntimeError(f"Could not read mask file: {mask_path}.")
 
-        h, w = glow_mask.shape[:2]
+        h, w = make.shape[:2]
         if h != SPRITE_HEIGHT or w != SPRITE_WIDTH:
             raise ValueError(
                 f"Mask dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
             )
 
-        return (glow_mask.flatten() > 0x80).astype(np.uint8)
+        return (make.flatten() > 0x80).astype(np.uint8)
 
 
 def main() -> None:

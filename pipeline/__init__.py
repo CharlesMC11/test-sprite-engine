@@ -1,5 +1,5 @@
 import enum
-from enum import IntEnum
+from enum import IntEnum, IntFlag
 from typing import Final
 
 MAX_PALETTE_SIZE: Final[int] = 16
@@ -26,9 +26,9 @@ class ColorEncoding(IntEnum):
     COOL = enum.auto()  # R5G5B6
 
 
-class PhysicsType(IntEnum):
+class PhysicsType(IntFlag):
     NONE = 0x01
-    ACTOR = 0x02
-    STATIC = 0x04
-    SENSOR = 0x08
-    PROJECTILE = 0x10
+    ACTOR = enum.auto()
+    STATIC = enum.auto()
+    SENSOR = enum.auto()
+    PROJECTILE = enum.auto()
