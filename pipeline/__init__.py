@@ -21,9 +21,9 @@ SPRITE_PALETTE_SIZE_BYTES: Final[int] = MAX_PALETTE_SIZE * 2
 """The total size of all 2-byte colors in bytes."""
 
 SPRITE_SIZE_BYTES: Final[int] = (
-        SPRITE_METADATA_SIZE_BYTES
-        + SPRITE_PALETTE_SIZE_BYTES
-        + SPRITE_PIXELS_SIZE_BYTES
+    SPRITE_METADATA_SIZE_BYTES
+    + SPRITE_PALETTE_SIZE_BYTES
+    + SPRITE_PIXELS_SIZE_BYTES
 )
 """The total size of a sprite file in bytes."""
 
