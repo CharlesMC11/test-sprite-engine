@@ -27,7 +27,7 @@ class ColorEncoding(IntEnum):
 
 
 class PhysicsType(IntFlag):
-    NONE = 0x01
+    NONE = 1 << 0
     ACTOR = enum.auto()
     STATIC = enum.auto()
     SENSOR = enum.auto()
