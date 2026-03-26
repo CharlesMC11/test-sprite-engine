@@ -107,7 +107,6 @@ class SpriteCompiler:
         Split the source image into color and alpha channels, flatten the pixel
         grid for evaluation, and pre-threshold the glow mask.
 
-        :param image_path: The filesystem path to a 32×32 BGR/RGBA image.
         :param emission_mask_path: Optional path to a 32×32 grayscale emission mask.
         :param specular_mask_path: Optional path to a 32×32 grayscale specular mask.
 
