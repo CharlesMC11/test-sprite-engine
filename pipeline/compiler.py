@@ -18,7 +18,6 @@ The binary layout contains:
 
 import struct
 from argparse import ArgumentParser
-from pathlib import Path
 from collections.abc import Sequence
 
 import cv2
@@ -284,7 +283,7 @@ def main() -> None:
     )
     parser.add_argument(
         "-a",
-        "--anchor",
+        "--anchors",
         nargs=2,
         default=(DEFAULT_SPRITE_AX, DEFAULT_SPRITE_AY),
         type=float,
