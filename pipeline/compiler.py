@@ -1,18 +1,25 @@
 """
 Sprite Compiler.
 
-Bakes a 32×32 source (BGR/RGBA) image and optional emission & specular masks into a specialized
-1,072-byte binary format.
+Bakes a 32×32 source (BGR/RGBA) image and optional emission & specular masks
+into a specialized 1,072-byte binary format.
 
 The binary layout contains:
-- Metadata (16 bytes): Hitbox, anchor data, and padding.
-- Palette (32 bytes): 16 colors as 16-bit packed integers.
+- Metadata (16 bytes):
+    - bounding box (4 bytes)
+    - anchor points (8 bytes)
+    - color encoding (1 byte)
+    - palette index (1 byte), set to 0 as a placeholder
+    - physics type (1 byte)
+    - padding (1 byte)
+- Color palette (32 bytes): 16 unique colors in the sprite.
 - Pixels (1,024 bytes): 8-bit packed values [S][E][AA][IIII].
 """
 
 import struct
 from argparse import ArgumentParser
 from pathlib import Path
+from collections.abc import Sequence
 
 import cv2
 import numpy as np
@@ -22,6 +29,8 @@ from pipeline import (
     MAX_PALETTE_SIZE,
     SPRITE_HEIGHT,
     SPRITE_METADATA,
+    DEFAULT_SPRITE_AX,
+    DEFAULT_SPRITE_AY,
     SPRITE_WIDTH,
     ColorEncoding,
     PhysicsType,
@@ -88,6 +97,8 @@ class SpriteCompiler:
 
     # Type annotations
 
+    _anchor_x: float
+    _anchor_y: float
     _encoding: ColorEncoding
     _physics: PhysicsType
     _source_image: BGRImage | None
@@ -99,7 +110,13 @@ class SpriteCompiler:
 
     # Magic methods
 
-    def __init__(self, encoding: ColorEncoding, physics: PhysicsType):
+    def __init__(
+        self,
+        anchors: Sequence[float],
+        encoding: ColorEncoding,
+        physics: PhysicsType,
+    ):
+        self._anchor_x, self._anchor_y = anchors
         self._encoding = encoding
         self._physics = physics
         self._source_image = None
@@ -182,21 +199,19 @@ class SpriteCompiler:
 
         left, top, right, bottom = calculate_bounding_box(self._source_alpha)
 
-        anchor_x = (right - left) // 2
-        anchor_y = bottom
-
         metadata_bytes = struct.pack(
-            f"<{SPRITE_METADATA}",
+            SPRITE_METADATA,
             left,
             top,
             right,
             bottom,
-            anchor_x,
-            anchor_y,
+            self._anchor_x,
+            self._anchor_y,
             self._encoding.value,
+            0,  # palette index placeholder
             self._physics.value,
+            0,  # padding
         )
-        padding_bytes = struct.pack("<Q", 0)
 
         palette_bytes = bytearray()
         palette_size = len(self._palette)
@@ -211,9 +226,7 @@ class SpriteCompiler:
         pixel_bytes = self._bake_pixels().tobytes()
 
         with output_path.open("wb") as f:
-            f.write(
-                metadata_bytes + padding_bytes + palette_bytes + pixel_bytes
-            )
+            f.write(metadata_bytes + palette_bytes + pixel_bytes)
 
     # Protected methods
 
@@ -303,6 +316,14 @@ def main() -> None:
         "output_path", type=Path, help="Target path for the 1072-byte sprite."
     )
     parser.add_argument(
+        "-a",
+        "--anchor",
+        nargs=2,
+        default=(DEFAULT_SPRITE_AX, DEFAULT_SPRITE_AY),
+        type=float,
+        help=f"Sprite anchor point (x, y). Default is center ({DEFAULT_SPRITE_AX:.2f}, {DEFAULT_SPRITE_AY:.2f}).",
+    )
+    parser.add_argument(
         "-c",
         "--color_encoding",
         default=ColorEncoding.DEFAULT,
@@ -315,7 +336,7 @@ def main() -> None:
         "--physics_type",
         type=lambda p: PhysicsType[p.upper()],
         choices=list(PhysicsType),
-        help="Physics type (None, Actor, Static, Sensor, or Projectile",
+        help="Physics type (None, Actor, Static, Sensor, or Projectile)",
         required=True,
     )
     parser.add_argument(
@@ -335,7 +356,9 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    compiler = SpriteCompiler(args.color_encoding, args.physics_type)
+    compiler = SpriteCompiler(
+        args.anchors, args.color_encoding, args.physics_type
+    )
     compiler.ingest_asset(
         args.source_image, args.emission_mask, args.specular_mask
     )

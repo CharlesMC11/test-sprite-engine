@@ -5,18 +5,18 @@ from typing import Final
 MAX_PALETTE_SIZE: Final[int] = 16
 SPRITE_HEIGHT: Final[int] = 32
 SPRITE_WIDTH: Final[int] = 32
+DEFAULT_SPRITE_AX: Final[float] = SPRITE_WIDTH / 2
+DEFAULT_SPRITE_AY: Final[float] = SPRITE_HEIGHT / 2
 SPRITE_SIZE_BYTES: Final[int] = 1_072
-SPRITE_METADATA: Final[str] = "BBBBBBBB"
-"""8-byte sprite metadata. 
+SPRITE_METADATA: Final[str] = "<BBBBffBBBB"
+"""16-byte sprite metadata. 
 
-- left
-- top
-- right
-- bottom
-- anchor_x
-- anchor_y
-- color_encoding
-- phys_type
+- left, top, right, bottom (4)
+- anchor x, anchor y (8)
+- color encoding (1)
+- palette index (1)
+- physics type (1)
+- padding (1)
 """
 
 
