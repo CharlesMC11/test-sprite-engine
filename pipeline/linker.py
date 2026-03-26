@@ -17,10 +17,16 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Final
 
-from pipeline import SPRITE_SIZE_BYTES
+from pipeline import (
+    SPRITE_PALETTE_SIZE_BYTES,
+    ATLAS_METADATA_LAYOUT,
+    ResourceLayoutError,
+    SPRITE_SIZE_BYTES,
+)
 
-SPRITE_BANK_MAGIC: Final[bytes] = b"SC ATLAS"
-ENUM_NAME: Final[str] = "atlas_index"
+ATLAS_MAGIC: Final[bytes] = b"SC AT v3"
+PALETTE_INDEX_ENUM_NAME: Final[str] = "palette_index"
+SPRITE_INDEX_ENUM_NAME: Final[str] = "sprite_index"
 
 
 class AtlasLinker:

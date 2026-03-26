@@ -3,13 +3,32 @@ from enum import IntEnum, IntFlag
 from typing import Final
 
 MAX_PALETTE_SIZE: Final[int] = 16
+"""The max number of unique colors in a sprite."""
+
 SPRITE_HEIGHT: Final[int] = 32
+"""The sprite height in pixels."""
+
 SPRITE_WIDTH: Final[int] = 32
-DEFAULT_SPRITE_AX: Final[float] = SPRITE_WIDTH / 2
-DEFAULT_SPRITE_AY: Final[float] = SPRITE_HEIGHT / 2
-SPRITE_SIZE_BYTES: Final[int] = 1_072
-SPRITE_METADATA: Final[str] = "<BBBBffBBBB"
-"""16-byte sprite metadata. 
+"""The sprite width in pixels."""
+
+SPRITE_METADATA_SIZE_BYTES: Final[int] = 16
+"""The sprite metadata size in bytes."""
+
+SPRITE_PIXELS_SIZE_BYTES: Final[int] = SPRITE_HEIGHT * SPRITE_WIDTH
+"""The total size of all 1-byte color indices in bytes."""
+
+SPRITE_PALETTE_SIZE_BYTES: Final[int] = MAX_PALETTE_SIZE * 2
+"""The total size of all 2-byte colors in bytes."""
+
+SPRITE_SIZE_BYTES: Final[int] = (
+        SPRITE_METADATA_SIZE_BYTES
+        + SPRITE_PALETTE_SIZE_BYTES
+        + SPRITE_PIXELS_SIZE_BYTES
+)
+"""The total size of a sprite file in bytes."""
+
+SPRITE_METADATA_LAYOUT: Final[str] = "<BBBBffBBBB"
+"""The layout of a 16-byte sprite metadata. 
 
 - left, top, right, bottom (4)
 - anchor x, anchor y (8)
@@ -18,6 +37,17 @@ SPRITE_METADATA: Final[str] = "<BBBBffBBBB"
 - physics type (1)
 - padding (1)
 """
+
+ATLAS_METADATA_LAYOUT: Final[str] = "<8sLL"
+"""The layout of a 16-byte atlas metadata.
+
+- magic (8)
+- palette count (4)
+- sprite count (4)
+"""
+
+
+class ResourceLayoutError(Exception): ...
 
 
 class ColorEncoding(IntEnum):

@@ -28,11 +28,11 @@ import numpy.typing as npt
 from pipeline import (
     MAX_PALETTE_SIZE,
     SPRITE_HEIGHT,
-    SPRITE_METADATA,
-    DEFAULT_SPRITE_AX,
-    DEFAULT_SPRITE_AY,
+    SPRITE_METADATA_LAYOUT,
+    SPRITE_SIZE_BYTES,
     SPRITE_WIDTH,
     ColorEncoding,
+    ResourceLayoutError,
     PhysicsType,
 )
 
@@ -69,27 +69,14 @@ def pack_colors_to_16bit(
 ) -> PackedColors:
     """
     Pack the 8-bit BGR channels into 16-bit integers.
+DEFAULT_SPRITE_AX: Final[float] = SPRITE_WIDTH / 2.0
+"""The default horizontal anchor point in sub-pixels."""
 
-    :param image_bgr: The original color channels to pack.
-    :param encoding: The color encoding mode to use.
-    :returns: The packed 16-bit colors.
-    """
+DEFAULT_SPRITE_AY: Final[float] = SPRITE_HEIGHT / 2.0
+"""The default vertical anchor point in sub-pixels."""
 
-    b, g, r = image_bgr.astype(np.uint16).T
 
-    if encoding == ColorEncoding.DEFAULT:
-        packed_colors = (r >> 3) << 11 | (g >> 2) << 5 | b >> 3
-
-    elif encoding == ColorEncoding.WARM:
-        packed_colors = (r >> 2) << 10 | (g >> 3) << 5 | b >> 3
-
-    elif encoding == ColorEncoding.COOL:
-        packed_colors = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
-
-    else:
-        raise ValueError("Invalid color mode.")
-
-    return packed_colors
+class ResourceLayoutWarning(UserWarning): ...
 
 
 class SpriteCompiler:
@@ -200,7 +187,7 @@ class SpriteCompiler:
         left, top, right, bottom = calculate_bounding_box(self._source_alpha)
 
         metadata_bytes = struct.pack(
-            SPRITE_METADATA,
+            SPRITE_METADATA_LAYOUT,
             left,
             top,
             right,
