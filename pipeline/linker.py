@@ -109,13 +109,18 @@ class AtlasLinker:
         :param output_path: The path to save the atlas to.
         """
 
-        count = len(self._sprite_blobs)
-        header = struct.pack("<8sQ", SPRITE_BANK_MAGIC, count)
+        palette_count = len(self._palette_blobs)
+        sprite_count = len(self._sprite_blobs)
+        header = struct.pack(
+            ATLAS_METADATA_LAYOUT, ATLAS_MAGIC, palette_count, sprite_count
+        )
 
         with output_path.open("wb") as f:
             f.write(header)
-            for blob in self._sprite_blobs:
-                f.write(blob)
+            for palette in self._palette_blobs:
+                f.write(palette)
+            for sprite in self._sprite_blobs:
+                f.write(sprite)
 
         self._generate_header(output_path.with_name(f"{ENUM_NAME}.hh"))
 
