@@ -122,16 +122,30 @@ class AtlasLinker:
             for sprite in self._sprite_blobs:
                 f.write(sprite)
 
-        self._generate_header(output_path.with_name(f"{ENUM_NAME}.hh"))
+        self._generate_enum_header(
+            output_path.with_name(f"{PALETTE_INDEX_ENUM_NAME}.hh"),
+            self._palette_names,
+        )
 
-    # Protected methods
+        self._generate_enum_header(
+            output_path.with_name(f"{SPRITE_INDEX_ENUM_NAME}.hh"),
+            self._sprite_names,
+        )
 
-    def _generate_header(self, header_path: Path) -> None:
+    # Protected static methods
+
+    @staticmethod
+    def _generate_enum_header(
+        header_path: Path, enumerators: Sequence[str]
+    ) -> None:
         """
-        Generate a C header mapping sprite names to their atlas indices.
+        Generate a C++ enum that maps a sprite to its atlas index.
 
         :param header_path: The path to save the header to.
+        :param enumerators: The names of the enumerators.
         """
+
+        indent = " " * 4
 
         lines = [
             "#pragma once",
@@ -140,20 +154,20 @@ class AtlasLinker:
             "",
             "namespace sc::sprites {",
             "",
-            f"{' ' * 4}enum class {ENUM_NAME} : core::atlas_index_t {{",
+            f"{indent}enum class {header_path.stem} : core::atlas_index_t {{",
         ]
 
-        for i, name in enumerate(self._sprite_names):
+        for name in enumerators:
             clean_name = name.replace(" ", "_").replace("-", "_").upper()
-            lines.append(f"{' ' * 8}{clean_name},")
+            lines.append(f"{indent * 2}{clean_name},")
 
         lines.extend(
-            [
-                f"{' ' * 4}}};",
+            (
+                f"{indent}}};",
                 "",
                 "} // namespace sc::sprites",
                 "",
-            ]
+            )
         )
 
         header_path.write_text("\n".join(lines))
