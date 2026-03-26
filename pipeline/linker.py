@@ -35,12 +35,16 @@ class AtlasLinker:
 
     # Type annotations
 
-    _sprite_blobs: list[bytes]
+    _palette_blobs: list[bytes]
+    _palette_names: list[str]
+    _sprite_blobs: list[bytearray]
     _sprite_names: list[str]
 
     # Magic methods
 
     def __init__(self):
+        self._palette_blobs = []
+        self._palette_names = []
         self._sprite_blobs = []
         self._sprite_names = []
 
@@ -84,7 +88,15 @@ class AtlasLinker:
                     f"{path.name} must be {SPRITE_SIZE_BYTES} bytes."
                 )
 
-            self._sprite_blobs.append(blob)
+            sprite_blob = bytearray(blob[:-SPRITE_PALETTE_SIZE_BYTES])
+            palette_blob = blob[-SPRITE_PALETTE_SIZE_BYTES:]
+
+            if palette_blob not in self._palette_blobs:
+                self._palette_blobs.append(palette_blob)
+                self._palette_names.append(f"{path.stem}_palette")
+
+            sprite_blob[13] = self._palette_blobs.index(palette_blob)
+            self._sprite_blobs.append(sprite_blob)
             self._sprite_names.append(path.stem)
 
     def link(self, output_path: Path) -> None:
