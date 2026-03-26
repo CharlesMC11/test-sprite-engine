@@ -225,7 +225,14 @@ class SpriteCompiler:
                 ResourceLayoutWarning,
             )
 
-        return unique_colors[sorted_indices[:MAX_PALETTE_SIZE]]
+        top_indices = np.argsort(-counts)[:MAX_PALETTE_SIZE]
+        top_colors = unique_colors[top_indices]
+
+        normalized_indices = np.lexsort(
+            (top_colors[:, 0], top_colors[:, 1], top_colors[:, 2])
+        )
+
+        return top_colors[normalized_indices]
 
     def _index_colors(self):
         """
