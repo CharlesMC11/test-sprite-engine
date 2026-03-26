@@ -80,7 +80,7 @@ class AtlasLinker:
 
             blob = path.read_bytes()
             if len(blob) != SPRITE_SIZE_BYTES:
-                raise ValueError(
+                raise ResourceLayoutError(
                     f"{path.name} must be {SPRITE_SIZE_BYTES} bytes."
                 )
 

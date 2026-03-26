@@ -19,6 +19,9 @@ The binary layout contains:
 import struct
 from argparse import ArgumentParser
 from collections.abc import Sequence
+from pathlib import Path
+from typing import Final
+from warnings import warn
 
 import cv2
 import numpy as np
@@ -121,8 +124,8 @@ class SpriteCompiler:
 
         h, w = image.shape[:2]
         if h != SPRITE_HEIGHT or w != SPRITE_WIDTH:
-            raise ValueError(
-                f"Asset dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
+            raise ResourceLayoutError(
+                f"Expected asset dimensions are {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
             )
 
         if image.shape[2] >= 4:
@@ -179,6 +182,8 @@ class SpriteCompiler:
             0,  # padding
         )
 
+        pixel_bytes = self._bake_pixels().tobytes()
+
         palette_bytes = bytearray()
         palette_size = len(self._palette)
         packed_palette = pack_colors_to_16bit(self._palette, self._encoding)
@@ -189,10 +194,15 @@ class SpriteCompiler:
             else:
                 palette_bytes.extend(struct.pack("<H", 0x00))
 
-        pixel_bytes = self._bake_pixels().tobytes()
+        combined_buffer = metadata_bytes + pixel_bytes + palette_bytes
+        if len(combined_buffer) != SPRITE_SIZE_BYTES:
+            raise ResourceLayoutError(
+                f"Buffer size mismatch for {output_path.name}! "
+                f"Expected {SPRITE_SIZE_BYTES} bytes, got {combined_buffer} bytes. "
+                f"(Metadata: {len(metadata_bytes)}, Pixels: {len(pixel_bytes)}, Palette: {len(palette_bytes)}"
+            )
 
-        with output_path.open("wb") as f:
-            f.write(metadata_bytes + palette_bytes + pixel_bytes)
+        output_path.write_bytes(combined_buffer)
 
     # Protected methods
 
@@ -206,7 +216,14 @@ class SpriteCompiler:
         unique_colors, counts = np.unique(
             self._pixel_flat_list, axis=0, return_counts=True
         )
-        sorted_indices = np.argsort(-counts)
+
+        colors_count = len(unique_colors)
+        if colors_count > MAX_PALETTE_SIZE:
+            warn(
+                f"'{self._source_path.name}' has {colors_count} unique colors. "
+                f"It will be truncated to {MAX_PALETTE_SIZE}.",
+                ResourceLayoutWarning,
+            )
 
         return unique_colors[sorted_indices[:MAX_PALETTE_SIZE]]
 
@@ -266,8 +283,8 @@ class SpriteCompiler:
 
         h, w = make.shape[:2]
         if h != SPRITE_HEIGHT or w != SPRITE_WIDTH:
-            raise ValueError(
-                f"Mask dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
+            raise ResourceLayoutError(
+                f"Expected mask dimensions are {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
             )
 
         return (make.flatten() > 0x80).astype(np.uint8)
