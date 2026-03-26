@@ -6,14 +6,14 @@ into a specialized 1,072-byte binary format.
 
 The binary layout contains:
 - Metadata (16 bytes):
-    - bounding box (4 bytes)
-    - anchor points (8 bytes)
-    - color encoding (1 byte)
-    - palette index (1 byte), set to 0 as a placeholder
-    - physics type (1 byte)
-    - padding (1 byte)
-- Color palette (32 bytes): 16 unique colors in the sprite.
+    - Bounding box (4 bytes)
+    - Anchor points (8 bytes)
+    - Color encoding (1 byte)
+    - Palette index (1 byte), set to 0 as a placeholder
+    - Physics type (1 byte)
+    - Padding (1 byte)
 - Pixels (1,024 bytes): 8-bit packed values [S][E][AA][IIII].
+- Color palette (32 bytes): 16 unique colors in the sprite.
 """
 
 import struct

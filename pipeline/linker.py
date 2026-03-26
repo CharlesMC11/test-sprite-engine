@@ -6,8 +6,9 @@ atlas binary.
 
 The binary layout contains:
 - Header (16 bytes):
-    - Magic (8 bytes): "SC ATLAS" (space added).
-    - Count (8 bytes): uint64 sprite count.
+    - Magic (8 bytes): "SC AT v3" (spaces added).
+    - Palette count (4 bytes): uint32 sprite count.
+    - Sprite count (4 bytes): uint32 sprite count.
 - Data (1,072 bytes × n): Contiguous array of sprite structures.
 """
 
