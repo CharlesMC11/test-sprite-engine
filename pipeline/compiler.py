@@ -290,6 +290,52 @@ class SpriteCompiler:
         return (make.flatten() > 0x80).astype(np.uint8)
 
 
+def calculate_bounding_box(mask: AlphaMask) -> tuple[int, int, int, int]:
+    """
+    Calculate the bounding box of a sprite based from an alpha mask.
+
+    :param mask: An alpha mask to calculate the bounding box from.
+    :returns: The top-left and bottom-right coordinates of the bounding box.
+    """
+
+    visible_coords = np.argwhere(mask > 0)
+    if visible_coords.size > 0:
+        min_y, min_x = visible_coords.min(axis=0)
+        max_y, max_x = visible_coords.max(axis=0)
+    else:
+        min_x = min_y = max_x = max_y = 0
+
+    return min_x, min_y, max_x, max_y
+
+
+def pack_colors_to_16bit(
+    image_bgr: BGRImage, encoding: ColorEncoding
+) -> PackedColors:
+    """
+    Pack the 8-bit BGR channels into 16-bit integers.
+
+    :param image_bgr: The original color channels to pack.
+    :param encoding: The color encoding mode to use.
+    :returns: The packed 16-bit colors.
+    """
+
+    b, g, r = image_bgr.astype(np.uint16).T
+
+    if encoding == ColorEncoding.DEFAULT:
+        packed_colors = (r >> 3) << 11 | (g >> 2) << 5 | b >> 3
+
+    elif encoding == ColorEncoding.WARM:
+        packed_colors = (r >> 2) << 10 | (g >> 3) << 5 | b >> 3
+
+    elif encoding == ColorEncoding.COOL:
+        packed_colors = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
+
+    else:
+        raise ValueError("Invalid color mode.")
+
+    return packed_colors
+
+
 def main() -> None:
     parser = ArgumentParser("Sprite Compiler", description=__doc__)
     parser.add_argument(
