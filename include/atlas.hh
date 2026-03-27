@@ -24,7 +24,7 @@ namespace sc::sprites {
      * uses a flexible array member `data` to provide indexed access to sprites
      * loaded directly from an `.atlas` file.
      */
-    struct alignas(core::kAlignment) atlas final {
+    struct alignas(core::kCacheAlignment) atlas final {
 
         // Delete constructors because the atlas is mapped, not instantiated.
         atlas() = delete;
