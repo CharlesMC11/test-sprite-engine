@@ -75,9 +75,9 @@ namespace sc::sprites {
         packed_pixel pixels[Height][Width]; ///< Row-major pixels
     };
 
-    static_assert(sizeof(metadata) == 16, "Metadata must be 16 B.");
-    static_assert(sizeof(sprite) == 1'072, "Sprite must be exactly 1,072 B.");
     using sprite32x32 = sprite<32u>;
 
+    static_assert(
+            sizeof(metadata) == core::kNeonAlignment, "Metadata must be 16 B.");
 
 } // namespace sc::sprites

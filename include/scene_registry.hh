@@ -42,6 +42,8 @@ namespace sc {
          */
         constexpr void reserve(std::size_t n) noexcept;
 
+        void print() const noexcept;
+
         /**
          * @brief Add a new entity to the layout.
          * @param start_x The starting horizontal position.
