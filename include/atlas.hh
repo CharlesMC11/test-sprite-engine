@@ -45,6 +45,9 @@ namespace sc::sprites {
         [[nodiscard]] constexpr const sprite& operator[](
                 atlas_index i) const noexcept;
 
+        [[nodiscard]] constexpr const sprite32& operator[](
+                sprite_index i) const noexcept;
+
         [[nodiscard]] static constexpr bool validate(
                 const void* ptr, std::size_t mapped_size) noexcept;
 

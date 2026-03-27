@@ -34,8 +34,8 @@ from pipeline import (
     SPRITE_SIZE_BYTES,
     SPRITE_WIDTH,
     ColorEncoding,
-    ResourceLayoutError,
     PhysicsType,
+    ResourceLayoutError,
 )
 
 type BGRImage = npt.NDArray[np.uint8]
