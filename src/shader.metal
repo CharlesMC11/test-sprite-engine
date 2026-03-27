@@ -18,12 +18,11 @@ using namespace metal;
     out_texture.write(bg_color, gid);
 }
 
-inline float4 unpack_color(
-        constant sc::sprites::sprite& sprite, sc::sprites::packed_pixel p)
+inline float4 unpack_color(const sc::core::packed_color_t packed_color,
+        const sc::sprites::color_encoding encoding)
 {
-    const ushort packed_color{sprite.palette[p.index]};
     float r{1.0f}, g{1.0f}, b{1.0f};
-    switch (sprite.metadata.encoding) {
+    switch (encoding) {
     case sc::sprites::color_encoding::DEFAULT:
         r = static_cast<float>((packed_color >> 11) & 0x1F) / 31.0f;
         g = static_cast<float>((packed_color >> 5) & 0x3F) / 63.0f;
@@ -46,15 +45,16 @@ inline float4 unpack_color(
     return float4(r, g, b, 1.0f);
 }
 
-[[kernel]] void k_draw_sprites(constant sc::sprites::sprite* sprites
-        [[buffer(0)]],
-        constant float* x_coords [[buffer(1)]],
-        constant float* y_coords [[buffer(2)]],
-        constant float* z_coords [[buffer(3)]],
-        constant sc::core::atlas_index_t* sprite_ids [[buffer(4)]],
-        constant sc::core::index_t* draw_order [[buffer(5)]],
-        constant uint& entity_count [[buffer(6)]],
-        texture2d<float, access::read_write> out_texture [[texture(0)]],
+[[kernel]] void k_draw_sprites(constant sc::core::packed_color_t* palettes
+        [[buffer(0u)]],
+        constant sc::sprites::sprite32x32* sprites [[buffer(1u)]],
+        constant float* x_coords [[buffer(2u)]],
+        constant float* y_coords [[buffer(3u)]],
+        constant float* z_coords [[buffer(4u)]],
+        constant sc::core::atlas_index_t* sprite_ids [[buffer(5u)]],
+        constant sc::core::index_t* draw_order [[buffer(6u)]],
+        constant uint& entity_count [[buffer(7u)]],
+        texture2d<float, access::read_write> out_texture [[texture(0u)]],
         uint2 gid [[thread_position_in_grid]])
 {
     if (gid.x >= sc::display::kWidth || gid.y >= sc::display::kHeight)
@@ -62,7 +62,7 @@ inline float4 unpack_color(
 
     float4 out_color{out_texture.read(gid)};
 
-    for (uint i{0}; i < entity_count; ++i) {
+    for (uint i{0u}; i < entity_count; ++i) {
         const sc::core::index_t entity_idx{draw_order[i]};
 
         const auto entity_coord{float2(x_coords[entity_idx],
@@ -75,15 +75,23 @@ inline float4 unpack_color(
                 static_cast<uint>(local_coord.y) >= sc::sprites::kHeight)
             continue;
 
-        constant sc::sprites::sprite& sprite{sprites[sprite_ids[entity_idx]]};
+        constant sc::sprites::sprite32x32& sprite{
+                sprites[sprite_ids[entity_idx]]};
         const sc::sprites::packed_pixel pixel{
                 sprite.pixels[local_coord.y][local_coord.x]};
 
         if (pixel.alpha == 0x00)
             continue;
 
+        const auto palette_index{
+                sprite.metadata.palette_index * sc::sprites::kMaxPaletteSize +
+                pixel.index};
+        const sc::core::packed_color_t packed_color{palettes[palette_index]};
+
         const float a{static_cast<float>(pixel.alpha) / 3.0f};
-        const float4 sprite_color{unpack_color(sprite, pixel)};
+        const float4 sprite_color{unpack_color(packed_color,
+                static_cast<sc::sprites::color_encoding>(
+                        sprite.metadata.color_encoding))};
         if (a < 1.0f) {
             out_color = (sprite_color * a) + (out_color * (1.0f - a));
             out_color.a = 1.0f;
