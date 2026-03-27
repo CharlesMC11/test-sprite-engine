@@ -42,13 +42,13 @@ namespace sc::sprites {
         [[nodiscard]] constexpr std::span<const core::packed_color_t*>
         palettes() const noexcept;
 
-        [[nodiscard]] constexpr std::span<const sprite32>
+        [[nodiscard]] constexpr std::span<const sprite32x32>
         sprites() const noexcept;
 
         [[nodiscard]] constexpr core::packed_color_t* operator[](
                 palette_index i) const noexcept;
 
-        [[nodiscard]] constexpr const sprite32& operator[](
+        [[nodiscard]] constexpr const sprite32x32& operator[](
                 sprite_index i) const noexcept;
 
         [[nodiscard]] static constexpr bool validate(
@@ -66,10 +66,32 @@ namespace sc::sprites {
         return reinterpret_cast<const std::byte*>(&metadata + 1);
     }
 
-    [[nodiscard]] constexpr const sprite& atlas::operator[](
-            const atlas_index i) const noexcept
+    // [[nodiscard]] constexpr std::span<const core::packed_color_t*>
+    // atlas::palettes() const noexcept
+    // {
+    //     return {reinterpret_cast<const core::packed_color_t**>(data()),
+    //             sizeof(core::packed_color_t[kMaxPaletteSize]) *
+    //                     metadata.palette_count};
+    // }
+
+    constexpr std::span<const sprite32x32> atlas::sprites() const noexcept
     {
-        return (*this)[static_cast<core::atlas_index_t>(i)];
+        return {reinterpret_cast<const sprite32x32*>(data() +
+                        sizeof(core::packed_color_t[kMaxPaletteSize]) *
+                                metadata.palette_count),
+                sizeof(sprite32x32) * metadata.sprite_count};
+    }
+
+    // [[nodiscard]] constexpr core::packed_color_t* atlas::operator[](
+    //         const palette_index i) const noexcept
+    // {
+    //     return palettes()[static_cast<std::size_t>(i)];
+    // }
+
+    [[nodiscard]] constexpr const sprite32x32& atlas::operator[](
+            const sprite_index i) const noexcept
+    {
+        return sprites()[static_cast<std::size_t>(i)];
     }
 
     [[nodiscard]] constexpr bool atlas::validate(
@@ -86,7 +108,7 @@ namespace sc::sprites {
         const std::size_t expected_size{sizeof(metadata) +
                 metadata.palette_count *
                         sizeof(core::packed_color_t[kMaxPaletteSize]) +
-                metadata.sprite_count * sizeof(sprite32)};
+                metadata.sprite_count * sizeof(sprite32x32)};
         return mapped_size >= expected_size;
     }
 
