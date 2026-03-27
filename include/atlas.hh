@@ -13,7 +13,8 @@
 
 namespace sc::sprites {
 
-    static constexpr core::atlas_magic_t kAtlasMagicBytes{0x53414C5441204353};
+    static constexpr core::atlas_magic_t kAtlasMagicBytes{0x3376205441204353};
+
 
     /**
      * @struct atlas
