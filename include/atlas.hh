@@ -15,7 +15,6 @@ namespace sc::sprites {
 
     static constexpr core::atlas_magic_t kAtlasMagicBytes{0x3376205441204353};
 
-
     /**
      * @struct atlas
      * @brief A contiguous collection of sprites.
@@ -45,9 +44,11 @@ namespace sc::sprites {
         [[nodiscard]] static constexpr bool validate(
                 const void* ptr, std::size_t mapped_size) noexcept;
 
-        core::atlas_magic_t magic;
-        std::uint64_t count;
-        sprite data[];
+        struct alignas(core::kNeonAlignment) metadata final {
+            core::atlas_magic_t magic;
+            std::uint32_t palette_count;
+            std::uint32_t sprite_count;
+        } metadata;
     };
 
     [[nodiscard]] constexpr const sprite& atlas::operator[](
