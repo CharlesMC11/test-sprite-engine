@@ -69,13 +69,15 @@ namespace sc::sprites {
      * Uses 16-byte alignment to satisfy AArch64 SIMD and Metal address space
      * for constant sys.
      */
-    struct alignas(core::kAlignment) sprite final {
+    template<uint32_t Height, uint32_t Width = Height>
+    struct alignas(core::kNeonAlignment) sprite final {
         metadata metadata;
-        core::packed_color_t palette[kMaxPaletteSize]; ///< 16-color LUT
-        packed_pixel pixels[kHeight][kWidth]; ///< Row-major pixels
+        packed_pixel pixels[Height][Width]; ///< Row-major pixels
     };
 
     static_assert(sizeof(metadata) == 16, "Metadata must be 16 B.");
     static_assert(sizeof(sprite) == 1'072, "Sprite must be exactly 1,072 B.");
+    using sprite32x32 = sprite<32u>;
+
 
 } // namespace sc::sprites
