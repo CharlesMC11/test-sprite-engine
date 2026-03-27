@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <span>
 
 #include "atlas_index.hh"
 #include "core.hh"
@@ -35,8 +36,10 @@ namespace sc::sprites {
         atlas& operator=(const atlas&) = delete;
         atlas& operator=(atlas&&) = delete;
 
-        [[nodiscard]] constexpr const sprite& operator[](
-                core::index_t i) const noexcept;
+        [[nodiscard]] constexpr const std::byte* data() const noexcept;
+
+        [[nodiscard]] constexpr std::span<const core::packed_color_t*>
+        palettes() const noexcept;
 
         [[nodiscard]] constexpr const sprite& operator[](
                 atlas_index i) const noexcept;
@@ -51,10 +54,9 @@ namespace sc::sprites {
         } metadata;
     };
 
-    [[nodiscard]] constexpr const sprite& atlas::operator[](
-            const core::atlas_index_t i) const noexcept
+    [[nodiscard]] constexpr const std::byte* atlas::data() const noexcept
     {
-        return data[i];
+        return reinterpret_cast<const std::byte*>(&metadata + 1);
     }
 
     [[nodiscard]] constexpr const sprite& atlas::operator[](
