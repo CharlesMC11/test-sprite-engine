@@ -174,8 +174,7 @@ namespace sc::physics {
     template<typename Iterator>
     sweep_result find_closest_hit(const aabb& box_a, const core::index_t idx_a,
             Iterator begin, Iterator end, const scene_registry& registry,
-            const sprites::atlas& atlas, const float dt,
-            const bool check_left)
+            const sprites::atlas& atlas, const float dt, const bool check_left)
     {
         sweep_result hit;
 

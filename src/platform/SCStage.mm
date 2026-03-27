@@ -15,7 +15,6 @@
 #include "sprite.hh"
 #include "sprite_index.hh"
 
-
 @implementation SCStage {
     std::unique_ptr<sc::core::file_mapping<sc::sprites::atlas>> _mapper;
     std::unique_ptr<sc::render_bridge> _bridge;
@@ -147,7 +146,7 @@
             _registry.vec_x()[0] += speed;
 
         //_registry.update(sc::physics::kFixedTimestep);
-        //sc::physics::resolve_entity_collisions(
+        // sc::physics::resolve_entity_collisions(
         //        *_atlas, _registry, sc::physics::kFixedTimestep);
         //_registry.commit();
 
