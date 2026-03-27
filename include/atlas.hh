@@ -42,8 +42,11 @@ namespace sc::sprites {
         [[nodiscard]] constexpr std::span<const core::packed_color_t*>
         palettes() const noexcept;
 
-        [[nodiscard]] constexpr const sprite& operator[](
-                atlas_index i) const noexcept;
+        [[nodiscard]] constexpr std::span<const sprite32>
+        sprites() const noexcept;
+
+        [[nodiscard]] constexpr core::packed_color_t* operator[](
+                palette_index i) const noexcept;
 
         [[nodiscard]] constexpr const sprite32& operator[](
                 sprite_index i) const noexcept;

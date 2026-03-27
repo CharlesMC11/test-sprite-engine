@@ -9,6 +9,8 @@
 #else
 #define SC_CONSTANT constexpr
 #include <cstdint>
+#include <numeric>
+#include <type_traits>
 #endif
 
 namespace sc {
@@ -27,7 +29,8 @@ namespace sc {
 
         using physics_t = uint8_t;
 
-        static SC_CONSTANT auto kAlignment{16u};
+        static SC_CONSTANT auto kNeonAlignment{16u};
+        static SC_CONSTANT auto kCacheAlignment{128u};
 
 #ifndef __METAL_VERSION__
 
