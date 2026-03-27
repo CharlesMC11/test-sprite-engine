@@ -29,8 +29,8 @@ namespace sc {
 
         using physics_t = uint8_t;
 
-        static SC_CONSTANT auto kNeonAlignment{16u};
-        static SC_CONSTANT auto kCacheAlignment{128u};
+        static SC_CONSTANT uint32_t kNeonAlignment{16u};
+        static SC_CONSTANT uint32_t kCacheAlignment{128u};
 
 #ifndef __METAL_VERSION__
 

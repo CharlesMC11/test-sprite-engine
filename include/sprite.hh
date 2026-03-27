@@ -13,9 +13,9 @@
 
 namespace sc::sprites {
 
-    static SC_CONSTANT auto kMaxPaletteSize{16u};
-    static SC_CONSTANT auto kHeight{32u};
-    static SC_CONSTANT auto kWidth{32u};
+    static SC_CONSTANT uint32_t kMaxPaletteSize{16u};
+    static SC_CONSTANT uint32_t kHeight{32u};
+    static SC_CONSTANT uint32_t kWidth{32u};
 
     static SC_CONSTANT core::packed_pixel_t kMaskPaletteIndex{0x0F};
     static SC_CONSTANT core::packed_pixel_t kMaskAlpha{0x30};
