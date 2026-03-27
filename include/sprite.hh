@@ -13,9 +13,9 @@
 
 namespace sc::sprites {
 
-    static SC_CONSTANT uint32_t kHeight{32u};
-    static SC_CONSTANT uint32_t kWidth{32u};
-    static SC_CONSTANT uint32_t kMaxPaletteSize{16u};
+    static SC_CONSTANT auto kMaxPaletteSize{16u};
+    static SC_CONSTANT auto kHeight{32u};
+    static SC_CONSTANT auto kWidth{32u};
 
     static SC_CONSTANT core::packed_pixel_t kMaskPaletteIndex{0x0F};
     static SC_CONSTANT core::packed_pixel_t kMaskAlpha{0x30};
@@ -53,12 +53,13 @@ namespace sc::sprites {
      * Contains information regarding a sprite’s bounding box, anchors, color
      * encoding, and physics type.
      */
-    struct alignas(core::kAlignment) metadata final {
+    struct alignas(core::kNeonAlignment) metadata final {
         geometry::bbox<uint8_t> bbox;
-        uint8_t anchor_x, anchor_y;
-        color_encoding encoding;
-        core::physics_t physics;
-        uint64_t padding;
+        float anchor_x, anchor_y;
+        uint8_t color_encoding;
+        uint8_t palette_index;
+        uint8_t physics;
+        uint8_t padding;
     };
 
     /**
