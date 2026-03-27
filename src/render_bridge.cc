@@ -46,12 +46,22 @@ namespace sc {
 
     void render_bridge::set_sprite_atlas(const sprites::atlas& atlas)
     {
-        const std::size_t size{sizeof(sprites::sprite) * atlas.count};
+        constexpr std::size_t metadata_size{sizeof(atlas.metadata)};
+        const std::size_t palette_size{
+                sizeof(core::packed_color_t[sprites::kMaxPaletteSize]) *
+                atlas.metadata.palette_count};
+        const std::size_t sprite_size{
+                sizeof(sprites::sprite32x32) * atlas.metadata.sprite_count};
+        const std::size_t total_size{
+                sizeof(atlas) + palette_size + sprite_size};
 
         sprite_buffer_ = NS::TransferPtr(
-                device_->newBuffer(size, MTL::ResourceStorageModeShared));
+                device_->newBuffer(total_size, MTL::ResourceStorageModeShared));
 
-        std::memcpy(sprite_buffer_->contents(), &atlas[0], size);
+        std::memcpy(sprite_buffer_->contents(), &atlas, total_size);
+
+        palette_offset_ = metadata_size;
+        sprites_offset_ = metadata_size + palette_size;
     }
 
     void render_bridge::begin_frame(const MTL::Drawable* buffer)
@@ -88,20 +98,26 @@ namespace sc {
     {
         encoder_->setComputePipelineState(sprite_pso_.get());
 
-        encoder_->setBuffer(sprite_buffer_.get(), 0, 0);
-        encoder_->setBytes(registry.x(), sizeof(float) * registry.count(), 1);
-        encoder_->setBytes(registry.y(), sizeof(float) * registry.count(), 2);
-        encoder_->setBytes(registry.z(), sizeof(float) * registry.count(), 3);
+        encoder_->setBuffer(sprite_buffer_.get(), palette_offset_, 0u);
+        encoder_->setBuffer(sprite_buffer_.get(), sprites_offset_, 1u);
+
+        encoder_->setBytes(
+                registry.pos_x(), sizeof(float) * registry.count(), 2u);
+        encoder_->setBytes(
+                registry.pos_y(), sizeof(float) * registry.count(), 3u);
+        encoder_->setBytes(
+                registry.pos_z(), sizeof(float) * registry.count(), 4u);
+
         encoder_->setBytes(registry.indices.data(),
-                sizeof(core::atlas_index_t) * registry.count(), 4);
+                sizeof(core::atlas_index_t) * registry.count(), 5u);
         encoder_->setBytes(registry.draw_order.data(),
-                sizeof(core::index_t) * registry.count(), 5);
+                sizeof(core::index_t) * registry.count(), 6u);
 
         const auto count{static_cast<std::uint32_t>(registry.count())};
-        encoder_->setBytes(&count, sizeof(count), 6);
+        encoder_->setBytes(&count, sizeof(count), 7u);
 
-        const MTL::Size grid_size{display::kWidth, display::kHeight, 1};
-        const MTL::Size thread_group_size{16, 16, 1};
+        const MTL::Size grid_size{display::kWidth, display::kHeight, 1u};
+        const MTL::Size thread_group_size{16u, 16u, 1u};
 
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }
