@@ -69,12 +69,15 @@ namespace sc::sprites {
         if (!ptr || mapped_size < sizeof(atlas))
             return false;
 
-        const auto* header{static_cast<const atlas*>(ptr)};
-        if (header->magic != kAtlasMagicBytes)
+        const struct metadata metadata{
+                static_cast<const atlas*>(ptr)->metadata};
+        if (metadata.magic != kAtlasMagicBytes)
             return false;
 
-        const std::size_t expected_size{
-                sizeof(atlas) + header->count * sizeof(sprite)};
+        const std::size_t expected_size{sizeof(metadata) +
+                metadata.palette_count *
+                        sizeof(core::packed_color_t[kMaxPaletteSize]) +
+                metadata.sprite_count * sizeof(sprite32)};
         return mapped_size >= expected_size;
     }
 
