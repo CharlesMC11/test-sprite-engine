@@ -17,18 +17,6 @@
 namespace sc::core {
 
     /**
-     * @concept mappable
-     * @brief Requirements for types to be safe to direct memory mapping.
-     *
-     * Type must be 16-byte aligned and follow Standard Layout to ensure the CPU
-     * and GPU interpret the raw bytes identically.
-     */
-    template<typename T>
-    concept mappable =
-            alignof(T) == kAlignment && std::is_standard_layout_v<T> &&
-            std::is_trivially_copyable_v<T> && !std::is_polymorphic_v<T>;
-
-    /**
      * @class file_mapping
      * @brief Manages `mmap`/`munmap` lifecycle for a specific file path.
      * @tparam T The type to cast the mapped memory to.

@@ -34,6 +34,18 @@ namespace sc {
 
 #ifndef __METAL_VERSION__
 
+        /**
+         * @concept mappable
+         * @brief Requirements for types to be safe to direct memory mapping.
+         *
+         * Type must be 16-byte aligned and follow Standard Layout to ensure the
+         * CPU and GPU interpret the raw bytes identically.
+         */
+        template<typename T>
+        concept mappable = alignof(T) % kNeonAlignment == 0 &&
+                std::is_standard_layout_v<T> &&
+                std::is_trivially_copyable_v<T> && !std::is_polymorphic_v<T>;
+
         using float_limits = std::numeric_limits<float>;
 
         static constexpr float kEpsilon{float_limits::epsilon()};
