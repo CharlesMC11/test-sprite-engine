@@ -8,9 +8,10 @@
 #include <cstdint>
 #include <span>
 
-#include "atlas_index.hh"
 #include "core.hh"
+#include "palette_index.hh"
 #include "sprite.hh"
+#include "sprite_index.hh"
 
 namespace sc::sprites {
 
