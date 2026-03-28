@@ -16,6 +16,17 @@
 #include "memory.hh"
 #include "sprite_index.hh"
 
+#define REGISTER_CHANNEL_ACCESSOR(name, enum_val)                              \
+    [[nodiscard]] constexpr auto name##_ptr() noexcept -> float*               \
+    {                                                                          \
+        return get_ptr<channel::enum_val, false>();                            \
+    }                                                                          \
+                                                                               \
+    [[nodiscard]] constexpr auto name##_ptr() const noexcept -> const float*   \
+    {                                                                          \
+        return get_ptr<channel::enum_val, true>();                             \
+    }
+
 namespace sc {
 
     /**
@@ -24,9 +35,7 @@ namespace sc {
      */
     class scene_registry final {
     public:
-        explicit constexpr scene_registry(
-                std::size_t reserve_count = core::kCacheAlignment) noexcept;
-
+        [[nodiscard]] explicit constexpr scene_registry() noexcept;
         scene_registry(const scene_registry&) = delete;
         scene_registry(scene_registry&&) = default;
 
@@ -63,17 +72,17 @@ namespace sc {
 
         constexpr void sort_draw() noexcept;
 
-        [[nodiscard]] constexpr float* pos_x() const noexcept;
-        [[nodiscard]] constexpr float* pos_y() const noexcept;
-        [[nodiscard]] constexpr float* pos_z() const noexcept;
+        REGISTER_CHANNEL_ACCESSOR(pos_x, pos_x)
+        REGISTER_CHANNEL_ACCESSOR(pos_y, pos_y)
+        REGISTER_CHANNEL_ACCESSOR(pos_z, pos_z)
 
-        [[nodiscard]] constexpr float* vec_x() const noexcept;
-        [[nodiscard]] constexpr float* vec_y() const noexcept;
-        [[nodiscard]] constexpr float* vec_z() const noexcept;
+        REGISTER_CHANNEL_ACCESSOR(vec_x, vec_x)
+        REGISTER_CHANNEL_ACCESSOR(vec_y, vec_y)
+        REGISTER_CHANNEL_ACCESSOR(vec_z, vec_z)
 
-        [[nodiscard]] constexpr float* new_x() const noexcept;
-        [[nodiscard]] constexpr float* new_y() const noexcept;
-        [[nodiscard]] constexpr float* new_z() const noexcept;
+        REGISTER_CHANNEL_ACCESSOR(new_x, new_x)
+        REGISTER_CHANNEL_ACCESSOR(new_y, new_y)
+        REGISTER_CHANNEL_ACCESSOR(new_z, new_z)
 
         [[nodiscard]] constexpr std::size_t count() const noexcept;
         [[nodiscard]] constexpr std::size_t capacity() const noexcept;
@@ -85,68 +94,33 @@ namespace sc {
         bool needs_sort{false};
 
     private:
-        enum class attr : std::size_t {
-            x,
-            y,
-            z,
-            vx,
-            vy,
-            vz,
-            next_x,
-            next_y,
-            next_z,
+        enum class channel {
+            pos_x,
+            pos_y,
+            pos_z,
+            vec_x,
+            vec_y,
+            vec_z,
+            new_x,
+            new_y,
+            new_z,
             count
         };
 
-        static constexpr auto kAttributeCount_{
-                static_cast<std::underlying_type_t<attr>>(attr::count)};
+        template<bool IsConst>
+        using ptr_t = std::conditional_t<IsConst, const float*, float*>;
 
-        mem::soa_block<float, kAttributeCount_> buffer_;
+        template<channel Channel, bool IsConst>
+        [[nodiscard]] constexpr auto get_ptr() const noexcept -> ptr_t<IsConst>;
+
+        mem::soa_block<float, static_cast<std::size_t>(channel::count)> buffer_;
     };
 
-    constexpr float* scene_registry::pos_x() const noexcept
-    {
-        return buffer_[static_cast<std::underlying_type_t<attr>>(attr::x)];
-    }
+    // Public methods
 
-    constexpr float* scene_registry::pos_y() const noexcept
+    constexpr scene_registry::scene_registry() noexcept
     {
-        return buffer_[static_cast<std::underlying_type_t<attr>>(attr::y)];
-    }
-
-    constexpr float* scene_registry::pos_z() const noexcept
-    {
-        return buffer_[static_cast<std::underlying_type_t<attr>>(attr::z)];
-    }
-
-    constexpr float* scene_registry::vec_x() const noexcept
-    {
-        return buffer_[static_cast<std::underlying_type_t<attr>>(attr::vx)];
-    }
-
-    constexpr float* scene_registry::vec_y() const noexcept
-    {
-        return buffer_[static_cast<std::underlying_type_t<attr>>(attr::vy)];
-    }
-
-    constexpr float* scene_registry::vec_z() const noexcept
-    {
-        return buffer_[static_cast<std::underlying_type_t<attr>>(attr::vz)];
-    }
-
-    constexpr float* scene_registry::new_x() const noexcept
-    {
-        return buffer_[static_cast<std::underlying_type_t<attr>>(attr::next_x)];
-    }
-
-    constexpr float* scene_registry::new_y() const noexcept
-    {
-        return buffer_[static_cast<std::underlying_type_t<attr>>(attr::next_y)];
-    }
-
-    constexpr float* scene_registry::new_z() const noexcept
-    {
-        return buffer_[static_cast<std::underlying_type_t<attr>>(attr::next_z)];
+        reserve(core::kCacheAlignment);
     }
 
     constexpr std::size_t scene_registry::count() const noexcept
@@ -157,13 +131,6 @@ namespace sc {
     constexpr std::size_t scene_registry::capacity() const noexcept
     {
         return buffer_.capacity;
-    }
-
-    constexpr scene_registry::scene_registry(
-            const std::size_t reserve_count) noexcept
-    {
-        reserve(reserve_count < core::kCacheAlignment ? core::kCacheAlignment
-                                                      : reserve_count);
     }
 
     constexpr void scene_registry::reserve(const std::size_t n) noexcept
@@ -182,20 +149,20 @@ namespace sc {
             reserve(std::max(static_cast<std::size_t>(core::kCacheAlignment),
                     capacity() * 2u));
 
-        pos_x()[count()] = start_x;
-        pos_y()[count()] = start_y;
-        pos_z()[count()] = start_z;
-        vec_x()[count()] = 0.0f;
-        vec_y()[count()] = 0.0f;
-        vec_z()[count()] = 0.0f;
-        new_x()[count()] = start_x;
-        new_y()[count()] = start_y;
-        new_z()[count()] = start_z;
-        indices.push_back(i);
-        physics_order.push_back(static_cast<core::index_t>(count()));
-        draw_order.push_back(static_cast<core::index_t>(count()));
+        const auto idx{static_cast<core::index_t>(buffer_.count++)};
 
-        ++buffer_.count;
+        pos_x_ptr()[idx] = start_x;
+        pos_y_ptr()[idx] = start_y;
+        pos_z_ptr()[idx] = start_z;
+        vec_x_ptr()[idx] = 0.0f;
+        vec_y_ptr()[idx] = 0.0f;
+        vec_z_ptr()[idx] = 0.0f;
+        new_x_ptr()[idx] = start_x;
+        new_y_ptr()[idx] = start_y;
+        new_z_ptr()[idx] = start_z;
+        indices.push_back(i);
+        physics_order.push_back(idx);
+        draw_order.push_back(idx);
 
         needs_sort = true;
     }
@@ -208,28 +175,28 @@ namespace sc {
         if (vectorized_lim > 0u) {
             const float32x4_t v_dt{vdupq_n_f32(dt)};
             for (core::index_t i{0u}; i < vectorized_lim; i += 4u) {
-                const float32x4_t v_x{vld1q_f32(&pos_x()[i])};
-                const float32x4_t v_y{vld1q_f32(&pos_y()[i])};
-                const float32x4_t v_z{vld1q_f32(&pos_z()[i])};
+                const float32x4_t v_pos_x{vld1q_f32(&pos_x_ptr()[i])};
+                const float32x4_t v_pos_y{vld1q_f32(&pos_y_ptr()[i])};
+                const float32x4_t v_pos_z{vld1q_f32(&pos_z_ptr()[i])};
 
-                const float32x4_t v_vx{vld1q_f32(&vec_x()[i])};
-                const float32x4_t v_vy{vld1q_f32(&vec_y()[i])};
-                const float32x4_t v_vz{vld1q_f32(&vec_z()[i])};
+                const float32x4_t v_vec_x{vld1q_f32(&vec_x_ptr()[i])};
+                const float32x4_t v_vec_y{vld1q_f32(&vec_y_ptr()[i])};
+                const float32x4_t v_vec_z{vld1q_f32(&vec_z_ptr()[i])};
 
-                const float32x4_t v_next_x{vfmaq_f32(v_x, v_vx, v_dt)};
-                const float32x4_t v_next_y{vfmaq_f32(v_y, v_vy, v_dt)};
-                const float32x4_t v_next_z{vfmaq_f32(v_z, v_vz, v_dt)};
+                const float32x4_t v_new_x{vfmaq_f32(v_pos_x, v_vec_x, v_dt)};
+                const float32x4_t v_new_y{vfmaq_f32(v_pos_y, v_vec_y, v_dt)};
+                const float32x4_t v_new_z{vfmaq_f32(v_pos_z, v_vec_z, v_dt)};
 
-                vst1q_f32(&new_x()[i], v_next_x);
-                vst1q_f32(&new_y()[i], v_next_y);
-                vst1q_f32(&new_z()[i], v_next_z);
+                vst1q_f32(&new_x_ptr()[i], v_new_x);
+                vst1q_f32(&new_y_ptr()[i], v_new_y);
+                vst1q_f32(&new_z_ptr()[i], v_new_z);
             }
         }
 
         for (core::index_t i{vectorized_lim}; i < n; ++i) {
-            new_x()[i] = pos_x()[i] + vec_x()[i] * dt;
-            new_y()[i] = pos_y()[i] + vec_y()[i] * dt;
-            new_z()[i] = pos_z()[i] + vec_z()[i] * dt;
+            new_x_ptr()[i] = pos_x_ptr()[i] + vec_x_ptr()[i] * dt;
+            new_y_ptr()[i] = pos_y_ptr()[i] + vec_y_ptr()[i] * dt;
+            new_z_ptr()[i] = pos_z_ptr()[i] + vec_z_ptr()[i] * dt;
         }
     }
 
@@ -237,20 +204,33 @@ namespace sc {
     {
         const std::size_t size{sizeof(float) * count()};
 
-        std::memcpy(pos_x(), new_x(), size);
-        std::memcpy(pos_y(), new_y(), size);
-        std::memcpy(pos_z(), new_z(), size);
+        std::memcpy(pos_x_ptr(), new_x_ptr(), size);
+        std::memcpy(pos_y_ptr(), new_y_ptr(), size);
+        std::memcpy(pos_z_ptr(), new_z_ptr(), size);
     }
 
     constexpr void scene_registry::sort_draw() noexcept
     {
         if (needs_sort) {
             std::ranges::sort(draw_order.begin(), draw_order.end(),
-                    [&](const core::index_t a, const core::index_t b) noexcept
-                            -> bool { return pos_y()[a] < pos_y()[b]; });
+                    [&](const core::index_t a,
+                            const core::index_t b) noexcept -> bool {
+                        return pos_y_ptr()[a] < pos_y_ptr()[b];
+                    });
 
             needs_sort = false;
         }
     }
+
+    // Private methods
+
+    template<scene_registry::channel Channel, bool IsConst>
+    [[nodiscard]] constexpr auto scene_registry::get_ptr() const noexcept
+            -> ptr_t<IsConst>
+    {
+        return buffer_[static_cast<std::size_t>(Channel)];
+    }
+
+#undef REGISTER_CHANNEL_ACCESSOR
 
 } // namespace sc

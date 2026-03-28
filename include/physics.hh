@@ -154,7 +154,7 @@ namespace sc::physics {
         std::ranges::sort(registry.physics_order.begin(),
                 registry.physics_order.end(),
                 [&](const core::index_t a, const core::index_t b) -> bool {
-                    return registry.pos_x()[a] < registry.pos_x()[b];
+                    return registry.pos_x_ptr()[a] < registry.pos_x_ptr()[b];
                 });
     }
 
@@ -174,7 +174,7 @@ namespace sc::physics {
     {
         sweep_result hit;
 
-        const float vx{registry.vec_x()[idx_a] * dt};
+        const float vx{registry.vec_x_ptr()[idx_a] * dt};
         const float a_limit{check_left
                         ? std::min(box_a.left, box_a.left + vx)
                         : std::max(box_a.right, box_a.right + vx)};
@@ -193,9 +193,9 @@ namespace sc::physics {
                 break;
 
             const sweep_result result{sweep_aabb(box_a, box_b,
-                    (registry.vec_x()[idx_a] - registry.vec_x()[idx_b]) * dt,
-                    (registry.vec_y()[idx_a] - registry.vec_y()[idx_b]) * dt,
-                    (registry.vec_z()[idx_a] - registry.vec_z()[idx_b]) * dt)};
+                    (registry.vec_x_ptr()[idx_a] - registry.vec_x_ptr()[idx_b]) * dt,
+                    (registry.vec_y_ptr()[idx_a] - registry.vec_y_ptr()[idx_b]) * dt,
+                    (registry.vec_z_ptr()[idx_a] - registry.vec_z_ptr()[idx_b]) * dt)};
 
             if (result.time < hit.time) {
                 hit = result;
@@ -219,15 +219,15 @@ namespace sc::physics {
                 continue;
             }
 
-            if (std::abs(registry.vec_x()[idx_a]) < core::kEpsilon &&
-                    std::abs(registry.vec_y()[idx_a]) < core::kEpsilon) {
-                registry.new_x()[idx_a] = registry.pos_x()[idx_a];
-                registry.new_y()[idx_a] = registry.pos_y()[idx_a];
-                registry.new_z()[idx_a] = registry.pos_z()[idx_a];
+            if (std::abs(registry.vec_x_ptr()[idx_a]) < core::kEpsilon &&
+                    std::abs(registry.vec_y_ptr()[idx_a]) < core::kEpsilon) {
+                registry.new_x_ptr()[idx_a] = registry.pos_x_ptr()[idx_a];
+                registry.new_y_ptr()[idx_a] = registry.pos_y_ptr()[idx_a];
+                registry.new_z_ptr()[idx_a] = registry.pos_z_ptr()[idx_a];
                 continue;
             }
 
-            if (std::abs(registry.vec_y()[idx_a]) > core::kEpsilon) {
+            if (std::abs(registry.vec_y_ptr()[idx_a]) > core::kEpsilon) {
                 registry.needs_sort = true;
             }
 
@@ -238,7 +238,7 @@ namespace sc::physics {
             //         registry.physics_order.end(), registry, atlas, dt,
             //         true)};
 
-            const float vx{registry.vec_x()[idx_a] * dt};
+            const float vx{registry.vec_x_ptr()[idx_a] * dt};
             const float a_min_x{std::min(a.left, a.left + vx)};
             const float a_max_x{std::max(a.right, a.right + vx)};
 
@@ -258,11 +258,11 @@ namespace sc::physics {
                     break;
 
                 const sweep_result result{sweep_aabb(a, b,
-                        (registry.vec_x()[idx_a] - registry.vec_x()[index_b]) *
+                        (registry.vec_x_ptr()[idx_a] - registry.vec_x_ptr()[index_b]) *
                                 dt,
-                        (registry.vec_y()[idx_a] - registry.vec_y()[index_b]) *
+                        (registry.vec_y_ptr()[idx_a] - registry.vec_y_ptr()[index_b]) *
                                 dt,
-                        (registry.vec_z()[idx_a] - registry.vec_z()[index_b]) *
+                        (registry.vec_z_ptr()[idx_a] - registry.vec_z_ptr()[index_b]) *
                                 dt)};
 
                 if (result.time < hit.time) {
@@ -284,11 +284,11 @@ namespace sc::physics {
                     break;
 
                 const sweep_result result{sweep_aabb(a, b,
-                        (registry.vec_x()[idx_a] - registry.vec_x()[idx_b]) *
+                        (registry.vec_x_ptr()[idx_a] - registry.vec_x_ptr()[idx_b]) *
                                 dt,
-                        (registry.vec_y()[idx_a] - registry.vec_y()[idx_b]) *
+                        (registry.vec_y_ptr()[idx_a] - registry.vec_y_ptr()[idx_b]) *
                                 dt,
-                        (registry.vec_z()[idx_a] - registry.vec_z()[idx_b]) *
+                        (registry.vec_z_ptr()[idx_a] - registry.vec_z_ptr()[idx_b]) *
                                 dt)};
 
                 if (result.time < hit.time) {
@@ -298,34 +298,34 @@ namespace sc::physics {
 
             const float padded_t{std::max(0.0f, hit.time - 0.1f)};
 
-            registry.new_x()[idx_a] = registry.pos_x()[idx_a] +
-                    registry.vec_x()[idx_a] * dt * padded_t;
-            registry.new_y()[idx_a] = registry.pos_y()[idx_a] +
-                    registry.vec_y()[idx_a] * dt * padded_t;
-            registry.new_z()[idx_a] = registry.pos_z()[idx_a] +
-                    registry.vec_z()[idx_a] * dt * padded_t;
+            registry.new_x_ptr()[idx_a] = registry.pos_x_ptr()[idx_a] +
+                    registry.vec_x_ptr()[idx_a] * dt * padded_t;
+            registry.new_y_ptr()[idx_a] = registry.pos_y_ptr()[idx_a] +
+                    registry.vec_y_ptr()[idx_a] * dt * padded_t;
+            registry.new_z_ptr()[idx_a] = registry.pos_z_ptr()[idx_a] +
+                    registry.vec_z_ptr()[idx_a] * dt * padded_t;
 
             if (hit.time < 1.0f) {
                 const float remain_t{1.0f - hit.time};
 
-                const float dot{registry.vec_x()[idx_a] * hit.normal_x +
-                        registry.vec_y()[idx_a] * hit.normal_y +
-                        registry.vec_z()[idx_a] * hit.normal_z};
+                const float dot{registry.vec_x_ptr()[idx_a] * hit.normal_x +
+                        registry.vec_y_ptr()[idx_a] * hit.normal_y +
+                        registry.vec_z_ptr()[idx_a] * hit.normal_z};
 
                 const float slide_x{
-                        registry.vec_x()[idx_a] - dot * hit.normal_x};
+                        registry.vec_x_ptr()[idx_a] - dot * hit.normal_x};
                 const float slide_y{
-                        registry.vec_y()[idx_a] - dot * hit.normal_y};
+                        registry.vec_y_ptr()[idx_a] - dot * hit.normal_y};
                 const float slide_z{
-                        registry.vec_z()[idx_a] - dot * hit.normal_z};
+                        registry.vec_z_ptr()[idx_a] - dot * hit.normal_z};
 
-                registry.new_x()[idx_a] += slide_x * dt * remain_t;
-                registry.new_y()[idx_a] += slide_y * dt * remain_t;
-                registry.new_z()[idx_a] += slide_z * dt * remain_t;
+                registry.new_x_ptr()[idx_a] += slide_x * dt * remain_t;
+                registry.new_y_ptr()[idx_a] += slide_y * dt * remain_t;
+                registry.new_z_ptr()[idx_a] += slide_z * dt * remain_t;
 
-                registry.vec_x()[idx_a] = slide_x;
-                registry.vec_y()[idx_a] = slide_y;
-                registry.vec_z()[idx_a] = slide_z;
+                registry.vec_x_ptr()[idx_a] = slide_x;
+                registry.vec_y_ptr()[idx_a] = slide_y;
+                registry.vec_z_ptr()[idx_a] = slide_z;
             }
         }
     }

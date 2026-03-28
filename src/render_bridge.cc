@@ -101,11 +101,11 @@ namespace sc {
         encoder_->setBuffer(sprite_buffer_.get(), sprites_offset_, 1u);
 
         encoder_->setBytes(
-                registry.pos_x(), sizeof(float) * registry.count(), 2u);
+                registry.pos_x_ptr(), sizeof(float) * registry.count(), 2u);
         encoder_->setBytes(
-                registry.pos_y(), sizeof(float) * registry.count(), 3u);
+                registry.pos_y_ptr(), sizeof(float) * registry.count(), 3u);
         encoder_->setBytes(
-                registry.pos_z(), sizeof(float) * registry.count(), 4u);
+                registry.pos_z_ptr(), sizeof(float) * registry.count(), 4u);
 
         encoder_->setBytes(registry.indices.data(),
                 sizeof(core::atlas_index) * registry.count(), 5u);
