@@ -186,9 +186,9 @@ namespace sc::physics {
         for (Iterator it{begin}; it != end; ++it) {
             const core::index_t idx_b{*it};
             const sprites::metadata& sprite_b{
-                    atlas[registry.indices[idx_b]].metadata};
+                    atlas[registry.indices[idx_b]].meta};
 
-            if (sprite_b.physics & type::NONE) {
+            if (sprite_b.physics_type & type::NONE) {
                 continue;
             }
 
@@ -217,9 +217,9 @@ namespace sc::physics {
         for (core::index_t i{0u}; i < registry.count(); ++i) {
             const core::index_t idx_a{registry.physics_order[i]};
             const sprites::metadata& sprite_a{
-                    atlas[registry.indices[idx_a]].metadata};
+                    atlas[registry.indices[idx_a]].meta};
 
-            if (!(sprite_a.physics & type::ACTOR)) {
+            if (!(sprite_a.physics_type & type::ACTOR)) {
                 continue;
             }
 
@@ -254,7 +254,7 @@ namespace sc::physics {
             //     sprites::metadata& sprite_b{
             //             atlas[registry.indices[index_b]].metadata};
             //
-            //     if (sprite_b.physics & type::NONE) {
+            //     if (sprite_b.physics_type & type::NONE) {
             //         continue;
             //     }
             //
@@ -287,7 +287,7 @@ namespace sc::physics {
             //     const sprites::metadata& sprite_b{
             //             atlas[registry.indices[idx_b]].metadata};
             //
-            //     if (sprite_b.physics & type::NONE) {
+            //     if (sprite_b.physics_type & type::NONE) {
             //         continue;
             //     }
             //
