@@ -1,7 +1,17 @@
+/**
+ * @file bbox.hh
+ */
 #pragma once
 
 namespace sc::geometry {
 
+    /**
+     * @struct bbox
+     * @brief A bounding box.
+     * @tparam T Integer or float.
+     *
+     * This struct is compatible with both C++ and Metal.
+     */
     template<typename T>
     struct bbox final {
         [[nodiscard]] constexpr T width() const;

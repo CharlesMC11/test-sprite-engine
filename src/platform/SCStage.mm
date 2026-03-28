@@ -7,8 +7,8 @@
 
 #include "atlas.hh"
 #include "core.hh"
-#include "mapped_view.hh"
 #include "input.hh"
+#include "mapped_view.hh"
 #include "physics.hh"
 #include "render_bridge.hh"
 #include "scene_registry.hh"
@@ -63,9 +63,9 @@
                         0.5f,
                 0.0f, id);
 
-        // _registry.spawn(sc::display::kWidth * 0.25f,
-        //         sc::display::kHeight * 0.25, 0.0f,
-        //         sc::sprites::sprite_index::MYARRA);
+        _registry.spawn(sc::display::kWidth * 0.25f,
+                sc::display::kHeight * 0.25, 0.0f,
+                sc::sprites::sprite_index::MYARRA);
 
         _registry.spawn(sc::display::kWidth * 0.75f,
                 sc::display::kHeight * 0.75f, 0.0f,
@@ -145,10 +145,10 @@
         if (_keysPressed & sc::input::mask::RIGHT)
             _registry.vec_x()[0] += speed;
 
-        //_registry.update(sc::physics::kFixedTimestep);
-        // sc::physics::resolve_entity_collisions(
-        //        *_atlas, _registry, sc::physics::kFixedTimestep);
-        //_registry.commit();
+        _registry.update(sc::physics::kFixedTimestep);
+        sc::physics::resolve_entity_collisions(
+                *_atlas, _registry, sc::physics::kFixedTimestep);
+        _registry.commit();
 
         _accumulator -= sc::physics::kFixedTimestep;
     }

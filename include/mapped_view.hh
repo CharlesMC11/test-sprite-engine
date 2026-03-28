@@ -1,5 +1,5 @@
 /**
- * @file file_mapping.hh
+ * @file mapped_view.hh
  * @brief RAII wrapper for POSIX memory-mapped files.
  */
 #pragma once
@@ -82,8 +82,7 @@ namespace sc::core {
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr const T*
-    mapped_view<T>::operator->() const noexcept
+    [[nodiscard]] constexpr const T* mapped_view<T>::operator->() const noexcept
     {
         return buffer_;
     }

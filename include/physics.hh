@@ -237,79 +237,68 @@ namespace sc::physics {
 
             const aabb a{from_registry(registry, idx_a, sprite_a)};
 
-            sweep_result hit{find_closest_hit(a, idx_a,
-                    registry.physics_order.begin() + i,
-                    registry.physics_order.end(), registry, atlas, dt, true)};
+            // sweep_result hit{find_closest_hit(a, idx_a,
+            //         registry.physics_order.begin() + i,
+            //         registry.physics_order.end(), registry, atlas, dt,
+            //         true)};
 
-            // const float vx{registry.vec_x()[idx_a] * dt};
-            // const float a_min_x{std::min(a.left, a.left + vx)};
-            // const float a_max_x{std::max(a.right, a.right + vx)};
-            //
-            // sweep_result hit;
-            //
-            // for (core::index_t j{i + 1u}; j < registry.count(); ++j)
-            // {
-            //     const core::index_t
-            //     index_b{registry.physics_order[j]}; const
-            //     sprites::metadata& sprite_b{
-            //             atlas[registry.indices[index_b]].metadata};
-            //
-            //     if (sprite_b.physics_type & type::NONE) {
-            //         continue;
-            //     }
-            //
-            //     const aabb b{from_registry(registry, index_b,
-            //     sprite_b)}; if (a_max_x < b.left)
-            //         break;
-            //
-            //     const sweep_result result{sweep_aabb(a, b,
-            //             (registry.vec_x()[idx_a] -
-            //             registry.vec_x()[index_b])
-            //             *
-            //                     dt,
-            //             (registry.vec_y()[idx_a] -
-            //             registry.vec_y()[index_b])
-            //             *
-            //                     dt,
-            //             (registry.vec_z()[idx_a] -
-            //             registry.vec_z()[index_b])
-            //             *
-            //                     dt)};
-            //
-            //     if (result.time < hit.time) {
-            //         hit = result;
-            //     }
-            // }
+            const float vx{registry.vec_x()[idx_a] * dt};
+            const float a_min_x{std::min(a.left, a.left + vx)};
+            const float a_max_x{std::max(a.right, a.right + vx)};
 
-            // for (int32_t j{static_cast<int32_t>(i) - 1}; j >= 0; --j)
-            // {
-            //     const core::index_t idx_b{registry.physics_order[j]};
-            //     const sprites::metadata& sprite_b{
-            //             atlas[registry.indices[idx_b]].metadata};
-            //
-            //     if (sprite_b.physics_type & type::NONE) {
-            //         continue;
-            //     }
-            //
-            //     const aabb b{from_registry(registry, idx_b,
-            //     sprite_b)}; if (a_min_x > b.right)
-            //         break;
-            //
-            //     const sweep_result result{sweep_aabb(a, b,
-            //             (registry.vec_x()[idx_a] -
-            //             registry.vec_x()[idx_b]) *
-            //                     dt,
-            //             (registry.vec_y()[idx_a] -
-            //             registry.vec_y()[idx_b]) *
-            //                     dt,
-            //             (registry.vec_z()[idx_a] -
-            //             registry.vec_z()[idx_b]) *
-            //                     dt)};
-            //
-            //     if (result.time < hit.time) {
-            //         hit = result;
-            //     }
-            // }
+            sweep_result hit;
+
+            for (core::index_t j{i + 1u}; j < registry.count(); ++j) {
+                const core::index_t index_b{registry.physics_order[j]};
+                const sprites::metadata& sprite_b{
+                        atlas[registry.indices[index_b]].meta};
+
+                if (sprite_b.physics_type & type::NONE) {
+                    continue;
+                }
+
+                const aabb b{from_registry(registry, index_b, sprite_b)};
+                if (a_max_x < b.left)
+                    break;
+
+                const sweep_result result{sweep_aabb(a, b,
+                        (registry.vec_x()[idx_a] - registry.vec_x()[index_b]) *
+                                dt,
+                        (registry.vec_y()[idx_a] - registry.vec_y()[index_b]) *
+                                dt,
+                        (registry.vec_z()[idx_a] - registry.vec_z()[index_b]) *
+                                dt)};
+
+                if (result.time < hit.time) {
+                    hit = result;
+                }
+            }
+
+            for (int32_t j{static_cast<int32_t>(i) - 1}; j >= 0; --j) {
+                const core::index_t idx_b{registry.physics_order[j]};
+                const sprites::metadata& sprite_b{
+                        atlas[registry.indices[idx_b]].meta};
+
+                if (sprite_b.physics_type & type::NONE) {
+                    continue;
+                }
+
+                const aabb b{from_registry(registry, idx_b, sprite_b)};
+                if (a_min_x > b.right)
+                    break;
+
+                const sweep_result result{sweep_aabb(a, b,
+                        (registry.vec_x()[idx_a] - registry.vec_x()[idx_b]) *
+                                dt,
+                        (registry.vec_y()[idx_a] - registry.vec_y()[idx_b]) *
+                                dt,
+                        (registry.vec_z()[idx_a] - registry.vec_z()[idx_b]) *
+                                dt)};
+
+                if (result.time < hit.time) {
+                    hit = result;
+                }
+            }
 
             const float padded_t{std::max(0.0f, hit.time - 0.1f)};
 

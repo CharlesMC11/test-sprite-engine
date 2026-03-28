@@ -178,7 +178,7 @@ namespace sc {
             const float start_y, const float start_z,
             const sprites::sprite_index i) noexcept
     {
-        if (buffer_.capacity >= buffer_.count) [[unlikely]]
+        if (buffer_.capacity <= buffer_.count) [[unlikely]]
             reserve(std::max(static_cast<std::size_t>(core::kCacheAlignment),
                     capacity() * 2u));
 

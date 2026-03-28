@@ -54,8 +54,7 @@ namespace sc {
                 sizeof(sprites::palette) * view->meta.palette_count};
         const std::size_t sprite_size{
                 sizeof(sprites::sprite32x32) * view->meta.sprite_count};
-        const std::size_t total_size{
-                sizeof(view) + palette_size + sprite_size};
+        const std::size_t total_size{sizeof(view) + palette_size + sprite_size};
 
         sprite_buffer_ = NS::TransferPtr(device_->newBuffer(view.data(),
                 total_size, MTL::ResourceStorageModeShared, nullptr));
