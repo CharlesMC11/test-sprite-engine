@@ -11,7 +11,7 @@
 #include "mapped_view.hh"
 #include "physics.hh"
 #include "render_bridge.hh"
-#include "scene_registry.hh"
+#include "entity_registry.hh"
 #include "sprite.hh"
 #include "sprite_index.hh"
 
@@ -19,7 +19,7 @@
     std::unique_ptr<sc::core::mapped_view<sc::sprites::atlas>> _view;
     std::unique_ptr<sc::render_bridge> _bridge;
     const sc::sprites::atlas* _atlas;
-    sc::scene_registry _registry;
+    sc::entity_registry _registry;
     sc::core::input_mask _keysPressed;
     float _accumulator;
 }
@@ -56,10 +56,10 @@
         constexpr auto id{sc::sprites::sprite_index::LANCIS};
         const sc::sprites::metadata& sprite{(*_atlas)[id].meta};
         _registry.spawn(
-                (sc::display::kWidth - sc::sprites::kWidth - sprite.anchor_x) *
+                (sc::display::kWidth - sc::sprites::kWidth - sprite.pivot_x) *
                         0.5f,
                 (sc::display::kHeight - sc::sprites::kHeight -
-                        sprite.anchor_y) *
+                        sprite.pivot_y) *
                         0.5f,
                 0.0f, id);
 

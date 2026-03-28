@@ -30,19 +30,19 @@
 namespace sc {
 
     /**
-     * @struct scene_registry
+     * @struct entity_registry
      * @brief
      */
-    class scene_registry final {
+    class entity_registry final {
     public:
-        [[nodiscard]] explicit constexpr scene_registry() noexcept;
-        scene_registry(const scene_registry&) = delete;
-        scene_registry(scene_registry&&) = default;
+        [[nodiscard]] explicit constexpr entity_registry() noexcept;
+        entity_registry(const entity_registry&) = delete;
+        entity_registry(entity_registry&&) = default;
 
-        ~scene_registry() = default;
+        ~entity_registry() = default;
 
-        scene_registry& operator=(const scene_registry&) = delete;
-        scene_registry& operator=(scene_registry&&) = default;
+        entity_registry& operator=(const entity_registry&) = delete;
+        entity_registry& operator=(entity_registry&&) = default;
 
         /**
          * @brief Reserve space in the registry.
@@ -118,22 +118,22 @@ namespace sc {
 
     // Public methods
 
-    constexpr scene_registry::scene_registry() noexcept
+    constexpr entity_registry::entity_registry() noexcept
     {
         reserve(core::kCacheAlignment);
     }
 
-    constexpr std::size_t scene_registry::count() const noexcept
+    constexpr std::size_t entity_registry::count() const noexcept
     {
         return buffer_.count;
     }
 
-    constexpr std::size_t scene_registry::capacity() const noexcept
+    constexpr std::size_t entity_registry::capacity() const noexcept
     {
         return buffer_.capacity;
     }
 
-    constexpr void scene_registry::reserve(const std::size_t n) noexcept
+    constexpr void entity_registry::reserve(const std::size_t n) noexcept
     {
         buffer_.grow(n);
         indices.reserve(buffer_.capacity);
@@ -141,7 +141,7 @@ namespace sc {
         draw_order.reserve(buffer_.capacity);
     }
 
-    constexpr void scene_registry::spawn(const float start_x,
+    constexpr void entity_registry::spawn(const float start_x,
             const float start_y, const float start_z,
             const sprites::sprite_index i) noexcept
     {
@@ -167,7 +167,7 @@ namespace sc {
         needs_sort = true;
     }
 
-    constexpr void scene_registry::update(const float dt) noexcept
+    constexpr void entity_registry::update(const float dt) noexcept
     {
         const auto n{static_cast<core::index_t>(count())};
         const core::index_t vectorized_lim{n - n % 4u};
@@ -200,7 +200,7 @@ namespace sc {
         }
     }
 
-    constexpr void scene_registry::commit() noexcept
+    constexpr void entity_registry::commit() noexcept
     {
         const std::size_t size{sizeof(float) * count()};
 
@@ -209,7 +209,7 @@ namespace sc {
         std::memcpy(pos_z_ptr(), new_z_ptr(), size);
     }
 
-    constexpr void scene_registry::sort_draw() noexcept
+    constexpr void entity_registry::sort_draw() noexcept
     {
         if (needs_sort) {
             std::ranges::sort(draw_order.begin(), draw_order.end(),
@@ -224,13 +224,13 @@ namespace sc {
 
     // Private methods
 
-    template<scene_registry::channel Channel, bool IsConst>
-    [[nodiscard]] constexpr auto scene_registry::get_ptr() const noexcept
+    template<entity_registry::channel Channel, bool IsConst>
+    [[nodiscard]] constexpr auto entity_registry::get_ptr() const noexcept
             -> ptr_t<IsConst>
     {
         return buffer_[static_cast<std::size_t>(Channel)];
     }
 
-#undef REGISTER_CHANNEL_ACCESSOR
-
 } // namespace sc
+
+#undef REGISTER_CHANNEL_ACCESSOR

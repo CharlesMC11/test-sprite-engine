@@ -93,7 +93,7 @@ namespace sc {
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }
 
-    void render_bridge::draw(const scene_registry& registry) const
+    void render_bridge::draw(const entity_registry& registry) const
     {
         encoder_->setComputePipelineState(sprite_pso_.get());
 
