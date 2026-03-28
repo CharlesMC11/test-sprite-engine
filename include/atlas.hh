@@ -1,6 +1,6 @@
 /**
  * @file atlas.hh
- * @brief
+ * @brief Core definitions and atlas data structures.
  */
 #pragma once
 
