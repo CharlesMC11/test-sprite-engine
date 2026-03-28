@@ -25,6 +25,7 @@ add_executable(test-sprite-engine
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCAppDelegate.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCStage.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/render_bridge.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/scene_registry.cc"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/main.mm"
 )
 

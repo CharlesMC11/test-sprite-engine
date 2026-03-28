@@ -1,18 +1,27 @@
 """
 Sprite Compiler.
 
-Bakes a 32×32 source (BGR/RGBA) image and optional emission & specular masks into a specialized
-1,072-byte binary format.
+Bakes a 32×32 source (BGR/RGBA) image and optional emission & specular masks
+into a specialized 1,072-byte binary format.
 
 The binary layout contains:
-- Metadata (16 bytes): Hitbox, anchor data, and padding.
-- Palette (32 bytes): 16 colors as 16-bit packed integers.
+- Metadata (16 bytes):
+    - Bounding box (4 bytes)
+    - Anchor points (8 bytes)
+    - Color encoding (1 byte)
+    - Palette index (1 byte), set to 0 as a placeholder
+    - Physics type (1 byte)
+    - Padding (1 byte)
 - Pixels (1,024 bytes): 8-bit packed values [S][E][AA][IIII].
+- Color palette (32 bytes): 16 unique colors in the sprite.
 """
 
 import struct
 from argparse import ArgumentParser
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Final
+from warnings import warn
 
 import cv2
 import numpy as np
@@ -21,10 +30,12 @@ import numpy.typing as npt
 from pipeline import (
     MAX_PALETTE_SIZE,
     SPRITE_HEIGHT,
-    SPRITE_METADATA,
+    SPRITE_METADATA_LAYOUT,
+    SPRITE_SIZE_BYTES,
     SPRITE_WIDTH,
     ColorEncoding,
     PhysicsType,
+    ResourceLayoutError,
 )
 
 type BGRImage = npt.NDArray[np.uint8]
@@ -36,51 +47,14 @@ type Palette = npt.NDArray[np.uint8]
 type PackedColors = npt.NDArray[np.uint16]
 type BakedPixels = npt.NDArray[np.uint8]
 
+DEFAULT_SPRITE_AX: Final[float] = SPRITE_WIDTH / 2.0
+"""The default horizontal anchor point in sub-pixels."""
 
-def calculate_bounding_box(mask: AlphaMask) -> tuple[int, int, int, int]:
-    """
-    Calculate the bounding box of a sprite based from an alpha mask.
-
-    :param mask: An alpha mask to calculate the bounding box from.
-    :returns: The top-left and bottom-right coordinates of the bounding box.
-    """
-
-    visible_coords = np.argwhere(mask > 0)
-    if visible_coords.size > 0:
-        min_y, min_x = visible_coords.min(axis=0)
-        max_y, max_x = visible_coords.max(axis=0)
-    else:
-        min_x = min_y = max_x = max_y = 0
-
-    return min_x, min_y, max_x, max_y
+DEFAULT_SPRITE_AY: Final[float] = SPRITE_HEIGHT / 2.0
+"""The default vertical anchor point in sub-pixels."""
 
 
-def pack_colors_to_16bit(
-    image_bgr: BGRImage, encoding: ColorEncoding
-) -> PackedColors:
-    """
-    Pack the 8-bit BGR channels into 16-bit integers.
-
-    :param image_bgr: The original color channels to pack.
-    :param encoding: The color encoding mode to use.
-    :returns: The packed 16-bit colors.
-    """
-
-    b, g, r = image_bgr.astype(np.uint16).T
-
-    if encoding == ColorEncoding.DEFAULT:
-        packed_colors = (r >> 3) << 11 | (g >> 2) << 5 | b >> 3
-
-    elif encoding == ColorEncoding.WARM:
-        packed_colors = (r >> 2) << 10 | (g >> 3) << 5 | b >> 3
-
-    elif encoding == ColorEncoding.COOL:
-        packed_colors = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
-
-    else:
-        raise ValueError("Invalid color mode.")
-
-    return packed_colors
+class ResourceLayoutWarning(UserWarning): ...
 
 
 class SpriteCompiler:
@@ -88,6 +62,9 @@ class SpriteCompiler:
 
     # Type annotations
 
+    _source_path: Path
+    _anchor_x: float
+    _anchor_y: float
     _encoding: ColorEncoding
     _physics: PhysicsType
     _source_image: BGRImage | None
@@ -99,7 +76,15 @@ class SpriteCompiler:
 
     # Magic methods
 
-    def __init__(self, encoding: ColorEncoding, physics: PhysicsType):
+    def __init__(
+        self,
+        source_path: Path,
+        anchors: Sequence[float],
+        encoding: ColorEncoding,
+        physics: PhysicsType,
+    ):
+        self._source_path = source_path
+        self._anchor_x, self._anchor_y = anchors
         self._encoding = encoding
         self._physics = physics
         self._source_image = None
@@ -113,7 +98,6 @@ class SpriteCompiler:
 
     def ingest_asset(
         self,
-        image_path: Path,
         emission_mask_path: Path | None,
         specular_mask_path: Path | None,
     ) -> None:
@@ -123,23 +107,24 @@ class SpriteCompiler:
         Split the source image into color and alpha channels, flatten the pixel
         grid for evaluation, and pre-threshold the glow mask.
 
-        :param image_path: The filesystem path to a 32×32 BGR/RGBA image.
         :param emission_mask_path: Optional path to a 32×32 grayscale emission mask.
         :param specular_mask_path: Optional path to a 32×32 grayscale specular mask.
 
         :raises RuntimeError: If OpenCV fails to read the assets.
         :raises ValueError: If the image dimensions are not 32×32.
         """
-        if not image_path.exists():
-            raise FileNotFoundError(f"Missing image file: {image_path}")
+        if not self._source_path.exists():
+            raise FileNotFoundError(f"Missing image file: {self._source_path}")
 
-        if (image := cv2.imread(image_path, cv2.IMREAD_UNCHANGED)) is None:
+        if (
+            image := cv2.imread(self._source_path, cv2.IMREAD_UNCHANGED)
+        ) is None:
             raise RuntimeError("Could not read source image.")
 
         h, w = image.shape[:2]
         if h != SPRITE_HEIGHT or w != SPRITE_WIDTH:
-            raise ValueError(
-                f"Asset dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
+            raise ResourceLayoutError(
+                f"Expected asset dimensions are {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
             )
 
         if image.shape[2] >= 4:
@@ -182,21 +167,21 @@ class SpriteCompiler:
 
         left, top, right, bottom = calculate_bounding_box(self._source_alpha)
 
-        anchor_x = (right - left) // 2
-        anchor_y = bottom
-
         metadata_bytes = struct.pack(
-            f"<{SPRITE_METADATA}",
+            SPRITE_METADATA_LAYOUT,
             left,
             top,
             right,
             bottom,
-            anchor_x,
-            anchor_y,
+            self._anchor_x,
+            self._anchor_y,
             self._encoding.value,
+            0,  # palette index placeholder
             self._physics.value,
+            0,  # padding
         )
-        padding_bytes = struct.pack("<Q", 0)
+
+        pixel_bytes = self._bake_pixels().tobytes()
 
         palette_bytes = bytearray()
         palette_size = len(self._palette)
@@ -208,12 +193,15 @@ class SpriteCompiler:
             else:
                 palette_bytes.extend(struct.pack("<H", 0x00))
 
-        pixel_bytes = self._bake_pixels().tobytes()
-
-        with output_path.open("wb") as f:
-            f.write(
-                metadata_bytes + padding_bytes + palette_bytes + pixel_bytes
+        combined_buffer = metadata_bytes + pixel_bytes + palette_bytes
+        if len(combined_buffer) != SPRITE_SIZE_BYTES:
+            raise ResourceLayoutError(
+                f"Buffer size mismatch for {output_path.name}! "
+                f"Expected {SPRITE_SIZE_BYTES} bytes, got {combined_buffer} bytes. "
+                f"(Metadata: {len(metadata_bytes)}, Pixels: {len(pixel_bytes)}, Palette: {len(palette_bytes)}"
             )
+
+        output_path.write_bytes(combined_buffer)
 
     # Protected methods
 
@@ -227,9 +215,23 @@ class SpriteCompiler:
         unique_colors, counts = np.unique(
             self._pixel_flat_list, axis=0, return_counts=True
         )
-        sorted_indices = np.argsort(-counts)
 
-        return unique_colors[sorted_indices[:MAX_PALETTE_SIZE]]
+        colors_count = len(unique_colors)
+        if colors_count > MAX_PALETTE_SIZE:
+            warn(
+                f"'{self._source_path.name}' has {colors_count} unique colors. "
+                f"It will be truncated to {MAX_PALETTE_SIZE}.",
+                ResourceLayoutWarning,
+            )
+
+        top_indices = np.argsort(-counts)[:MAX_PALETTE_SIZE]
+        top_colors = unique_colors[top_indices]
+
+        normalized_indices = np.lexsort(
+            (top_colors[:, 0], top_colors[:, 1], top_colors[:, 2])
+        )
+
+        return top_colors[normalized_indices]
 
     def _index_colors(self):
         """
@@ -287,11 +289,57 @@ class SpriteCompiler:
 
         h, w = make.shape[:2]
         if h != SPRITE_HEIGHT or w != SPRITE_WIDTH:
-            raise ValueError(
-                f"Mask dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
+            raise ResourceLayoutError(
+                f"Expected mask dimensions are {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
             )
 
         return (make.flatten() > 0x80).astype(np.uint8)
+
+
+def calculate_bounding_box(mask: AlphaMask) -> tuple[int, int, int, int]:
+    """
+    Calculate the bounding box of a sprite based from an alpha mask.
+
+    :param mask: An alpha mask to calculate the bounding box from.
+    :returns: The top-left and bottom-right coordinates of the bounding box.
+    """
+
+    visible_coords = np.argwhere(mask > 0)
+    if visible_coords.size > 0:
+        min_y, min_x = visible_coords.min(axis=0)
+        max_y, max_x = visible_coords.max(axis=0)
+    else:
+        min_x = min_y = max_x = max_y = 0
+
+    return min_x, min_y, max_x, max_y
+
+
+def pack_colors_to_16bit(
+    image_bgr: BGRImage, encoding: ColorEncoding
+) -> PackedColors:
+    """
+    Pack the 8-bit BGR channels into 16-bit integers.
+
+    :param image_bgr: The original color channels to pack.
+    :param encoding: The color encoding mode to use.
+    :returns: The packed 16-bit colors.
+    """
+
+    b, g, r = image_bgr.astype(np.uint16).T
+
+    if encoding == ColorEncoding.DEFAULT:
+        packed_colors = (r >> 3) << 11 | (g >> 2) << 5 | b >> 3
+
+    elif encoding == ColorEncoding.WARM:
+        packed_colors = (r >> 2) << 10 | (g >> 3) << 5 | b >> 3
+
+    elif encoding == ColorEncoding.COOL:
+        packed_colors = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
+
+    else:
+        raise ValueError("Invalid color mode.")
+
+    return packed_colors
 
 
 def main() -> None:
@@ -301,6 +349,14 @@ def main() -> None:
     )
     parser.add_argument(
         "output_path", type=Path, help="Target path for the 1072-byte sprite."
+    )
+    parser.add_argument(
+        "-a",
+        "--anchors",
+        nargs=2,
+        default=(DEFAULT_SPRITE_AX, DEFAULT_SPRITE_AY),
+        type=float,
+        help=f"Sprite anchor point (x, y). Default is center ({DEFAULT_SPRITE_AX:.2f}, {DEFAULT_SPRITE_AY:.2f}).",
     )
     parser.add_argument(
         "-c",
@@ -315,7 +371,7 @@ def main() -> None:
         "--physics_type",
         type=lambda p: PhysicsType[p.upper()],
         choices=list(PhysicsType),
-        help="Physics type (None, Actor, Static, Sensor, or Projectile",
+        help="Physics type (None, Actor, Static, Sensor, or Projectile)",
         required=True,
     )
     parser.add_argument(
@@ -335,10 +391,10 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    compiler = SpriteCompiler(args.color_encoding, args.physics_type)
-    compiler.ingest_asset(
-        args.source_image, args.emission_mask, args.specular_mask
+    compiler = SpriteCompiler(
+        args.source_image, args.anchors, args.color_encoding, args.physics_type
     )
+    compiler.ingest_asset(args.emission_mask, args.specular_mask)
     compiler.compile(args.output_path)
 
 

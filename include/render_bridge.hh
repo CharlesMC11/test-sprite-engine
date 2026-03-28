@@ -7,6 +7,7 @@
 #include <Metal/Metal.hpp>
 
 #include "atlas.hh"
+#include "mapped_view.hh"
 #include "scene_registry.hh"
 
 namespace sc {
@@ -29,7 +30,7 @@ namespace sc {
         render_bridge& operator=(const render_bridge&) = delete;
         render_bridge& operator=(render_bridge&&) = delete;
 
-        void set_sprite_atlas(const sprites::atlas& atlas);
+        void set_sprite_atlas(const core::mapped_view<sprites::atlas>& view);
 
         /**
          * @brief
@@ -56,6 +57,8 @@ namespace sc {
         NS::SharedPtr<MTL::ComputePipelineState> clear_pso_{nullptr};
         NS::SharedPtr<MTL::ComputePipelineState> sprite_pso_{nullptr};
         NS::SharedPtr<MTL::Buffer> sprite_buffer_{nullptr};
+        NS::UInteger palette_offset_{0u};
+        NS::UInteger sprites_offset_{0u};
 
         MTL::CommandBuffer* command_buffer_{nullptr};
         MTL::ComputeCommandEncoder* encoder_{nullptr};

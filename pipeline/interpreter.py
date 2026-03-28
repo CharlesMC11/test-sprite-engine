@@ -7,7 +7,7 @@ import numpy as np
 
 from pipeline import (
     SPRITE_HEIGHT,
-    SPRITE_METADATA,
+    SPRITE_METADATA_LAYOUT,
     SPRITE_WIDTH,
     ColorEncoding,
 )
@@ -56,7 +56,7 @@ def decompile_sprite(filename: str):
     pixels_buf = buffer[40:1064]
 
     min_x, min_y, max_x, max_y, anchor_x, anchor_y, encoding = struct.unpack(
-        f"<{SPRITE_METADATA}", metadata_buf
+        f"<{SPRITE_METADATA_LAYOUT}", metadata_buf
     )
     encoding = ColorEncoding(encoding)
 
