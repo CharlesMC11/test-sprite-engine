@@ -38,11 +38,11 @@ namespace sc::physics {
      * @brief The type of physics that affects an entity.
      */
     enum class type : core::physics_t {
-        NONE = 0x01,
-        ACTOR = 0x02,
-        STATIC = 0x04,
-        SENSOR = 0x08,
-        PROJECTILE = 0x10,
+        NONE = 1 << 0,
+        ACTOR = 1 << 1,
+        STATIC = 1 << 2,
+        SENSOR = 1 << 3,
+        PROJECTILE = 1 << 4,
     };
 
     constexpr core::physics_t operator&(type a, type b)
@@ -162,8 +162,8 @@ namespace sc::physics {
             const core::index_t i, const sprites::metadata& metadata)
     {
         return aabb{registry.pos_x_ptr()[i], registry.pos_y_ptr()[i],
-                registry.pos_z_ptr()[i], registry.vec_x_ptr()[i], registry.vec_y_ptr()[i],
-                registry.vec_z_ptr()[i],
+                registry.pos_z_ptr()[i], registry.vec_x_ptr()[i],
+                registry.vec_y_ptr()[i], registry.vec_z_ptr()[i],
                 static_cast<geometry::bbox<float>>(metadata.bbox)};
     }
 
@@ -193,9 +193,15 @@ namespace sc::physics {
                 break;
 
             const sweep_result result{sweep_aabb(box_a, box_b,
-                    (registry.vec_x_ptr()[idx_a] - registry.vec_x_ptr()[idx_b]) * dt,
-                    (registry.vec_y_ptr()[idx_a] - registry.vec_y_ptr()[idx_b]) * dt,
-                    (registry.vec_z_ptr()[idx_a] - registry.vec_z_ptr()[idx_b]) * dt)};
+                    (registry.vec_x_ptr()[idx_a] -
+                            registry.vec_x_ptr()[idx_b]) *
+                            dt,
+                    (registry.vec_y_ptr()[idx_a] -
+                            registry.vec_y_ptr()[idx_b]) *
+                            dt,
+                    (registry.vec_z_ptr()[idx_a] -
+                            registry.vec_z_ptr()[idx_b]) *
+                            dt)};
 
             if (result.time < hit.time) {
                 hit = result;
@@ -258,11 +264,14 @@ namespace sc::physics {
                     break;
 
                 const sweep_result result{sweep_aabb(a, b,
-                        (registry.vec_x_ptr()[idx_a] - registry.vec_x_ptr()[index_b]) *
+                        (registry.vec_x_ptr()[idx_a] -
+                                registry.vec_x_ptr()[index_b]) *
                                 dt,
-                        (registry.vec_y_ptr()[idx_a] - registry.vec_y_ptr()[index_b]) *
+                        (registry.vec_y_ptr()[idx_a] -
+                                registry.vec_y_ptr()[index_b]) *
                                 dt,
-                        (registry.vec_z_ptr()[idx_a] - registry.vec_z_ptr()[index_b]) *
+                        (registry.vec_z_ptr()[idx_a] -
+                                registry.vec_z_ptr()[index_b]) *
                                 dt)};
 
                 if (result.time < hit.time) {
@@ -284,11 +293,14 @@ namespace sc::physics {
                     break;
 
                 const sweep_result result{sweep_aabb(a, b,
-                        (registry.vec_x_ptr()[idx_a] - registry.vec_x_ptr()[idx_b]) *
+                        (registry.vec_x_ptr()[idx_a] -
+                                registry.vec_x_ptr()[idx_b]) *
                                 dt,
-                        (registry.vec_y_ptr()[idx_a] - registry.vec_y_ptr()[idx_b]) *
+                        (registry.vec_y_ptr()[idx_a] -
+                                registry.vec_y_ptr()[idx_b]) *
                                 dt,
-                        (registry.vec_z_ptr()[idx_a] - registry.vec_z_ptr()[idx_b]) *
+                        (registry.vec_z_ptr()[idx_a] -
+                                registry.vec_z_ptr()[idx_b]) *
                                 dt)};
 
                 if (result.time < hit.time) {

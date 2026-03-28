@@ -1,5 +1,5 @@
 /**
- * @file scene_registry.hh
+ * @file entity_registry.hh
  * @brief
  */
 #pragma once

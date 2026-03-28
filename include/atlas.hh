@@ -64,7 +64,7 @@ namespace sc::sprites {
         if (!ptr || mapped_size < sizeof(atlas))
             return false;
 
-        const auto [magic, palette_count, sprite_count]{
+        const auto [magic, sprite_count, palette_count]{
                 static_cast<const atlas*>(ptr)->meta};
         if (magic != kAtlasMagicBytes)
             return false;

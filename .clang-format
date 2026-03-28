@@ -45,6 +45,7 @@ MacroBlockBegin: ''
 MacroBlockEnd: ''
 NamespaceIndentation: All
 PointerAlignment: Left
+QualifierAlignment: Left
 SortIncludes: true
 SpaceAfterCStyleCast: true
 SpaceAfterTemplateKeyword: false

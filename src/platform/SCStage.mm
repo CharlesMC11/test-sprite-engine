@@ -7,11 +7,11 @@
 
 #include "atlas.hh"
 #include "core.hh"
+#include "entity_registry.hh"
 #include "input.hh"
 #include "mapped_view.hh"
 #include "physics.hh"
 #include "render_bridge.hh"
-#include "entity_registry.hh"
 #include "sprite.hh"
 #include "sprite_index.hh"
 
@@ -58,8 +58,7 @@
         _registry.spawn(
                 (sc::display::kWidth - sc::sprites::kWidth - sprite.pivot_x) *
                         0.5f,
-                (sc::display::kHeight - sc::sprites::kHeight -
-                        sprite.pivot_y) *
+                (sc::display::kHeight - sc::sprites::kHeight - sprite.pivot_y) *
                         0.5f,
                 0.0f, id);
 
