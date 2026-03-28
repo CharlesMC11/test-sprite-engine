@@ -36,7 +36,6 @@ namespace sc::core {
 
         [[nodiscard]] explicit constexpr operator bool() const noexcept;
         [[nodiscard]] constexpr const T* operator->() const noexcept;
-        [[nodiscard]] constexpr const T& operator*() const noexcept;
 
         [[nodiscard]] constexpr const T* data() const noexcept;
         [[nodiscard]] constexpr std::size_t size() const noexcept;
@@ -88,12 +87,6 @@ namespace sc::core {
     file_mapping<T>::operator->() const noexcept
     {
         return buffer_;
-    }
-
-    template<mappable T>
-    [[nodiscard]] constexpr const T& file_mapping<T>::operator*() const noexcept
-    {
-        return *buffer_;
     }
 
     template<mappable T>
