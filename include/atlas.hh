@@ -52,10 +52,10 @@ namespace sc::sprites {
                 -> std::span<const sprite32x32>;
 
         struct alignas(core::kNeonAlignment) metadata final {
-            std::uint64_t magic;
-            std::uint32_t palette_count;
-            std::uint32_t sprite_count;
-        } metadata;
+            const std::uint64_t magic;
+            const std::uint32_t palette_count;
+            const std::uint32_t sprite_count;
+        } meta;
     };
 
     [[nodiscard]] constexpr bool atlas::validate(
@@ -64,14 +64,14 @@ namespace sc::sprites {
         if (!ptr || mapped_size < sizeof(atlas))
             return false;
 
-        const struct metadata metadata{
-                static_cast<const atlas*>(ptr)->metadata};
-        if (metadata.magic != kAtlasMagicBytes)
+        const auto [magic, palette_count, sprite_count]{
+                static_cast<const atlas*>(ptr)->meta};
+        if (magic != kAtlasMagicBytes)
             return false;
 
         const std::size_t expected_size{sizeof(metadata) +
-                metadata.palette_count * sizeof(palette) +
-                metadata.sprite_count * sizeof(sprite32x32)};
+                sizeof(palette) * palette_count +
+                sizeof(sprite32x32) * sprite_count};
         return mapped_size >= expected_size;
     }
 
@@ -90,22 +90,22 @@ namespace sc::sprites {
     [[nodiscard]] constexpr auto atlas::data() const noexcept
             -> const std::byte*
     {
-        return reinterpret_cast<const std::byte*>(&metadata + 1);
+        return reinterpret_cast<const std::byte*>(&meta + 1);
     }
 
     [[nodiscard]] constexpr auto atlas::palettes() const noexcept
             -> std::span<const palette>
     {
         return {reinterpret_cast<const palette*>(data()),
-                sizeof(palette) * metadata.palette_count};
+                sizeof(palette) * meta.palette_count};
     }
 
     [[nodiscard]] constexpr auto atlas::sprites() const noexcept
             -> std::span<const sprite32x32>
     {
         return {reinterpret_cast<const sprite32x32*>(
-                        data() + sizeof(palette) * metadata.palette_count),
-                sizeof(sprite32x32) * metadata.sprite_count};
+                        data() + sizeof(palette) * meta.palette_count),
+                sizeof(sprite32x32) * meta.sprite_count};
     }
 
 } // namespace sc::sprites
