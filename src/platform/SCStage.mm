@@ -7,7 +7,7 @@
 
 #include "atlas.hh"
 #include "core.hh"
-#include "file_mapping.hh"
+#include "mapped_view.hh"
 #include "input.hh"
 #include "physics.hh"
 #include "render_bridge.hh"
@@ -16,7 +16,7 @@
 #include "sprite_index.hh"
 
 @implementation SCStage {
-    std::unique_ptr<sc::core::file_mapping<sc::sprites::atlas>> _mapper;
+    std::unique_ptr<sc::core::mapped_view<sc::sprites::atlas>> _view;
     std::unique_ptr<sc::render_bridge> _bridge;
     const sc::sprites::atlas* _atlas;
     sc::scene_registry _registry;
@@ -35,21 +35,21 @@
 
         self.layer.magnificationFilter = kCAFilterNearest;
 
-        _mapper = std::make_unique<sc::core::file_mapping<sc::sprites::atlas>>(
+        _view = std::make_unique<sc::core::mapped_view<sc::sprites::atlas>>(
                 sc::assets::kCharacterAtlas);
-        if (!(_mapper && *_mapper)) {
+        if (!(_view && *_view)) {
             NSLog(@"FATAL: Could not map sprite bank file.");
             abort();
         }
-        if (!sc::sprites::atlas::validate(_mapper->data(), _mapper->size())) {
+        if (!sc::sprites::atlas::validate(_view->data(), _view->size())) {
             NSLog(@"FATAL: sprite bank header validation failed.");
             abort();
         }
-        _atlas = _mapper->data();
+        _atlas = _view->data();
 
         _bridge = std::make_unique<sc::render_bridge>(
                 (__bridge MTL::Device*) device);
-        _bridge->set_sprite_atlas(*_mapper);
+        _bridge->set_sprite_atlas(*_view);
 
         self.framebufferOnly = false;
 

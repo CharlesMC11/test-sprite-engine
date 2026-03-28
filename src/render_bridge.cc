@@ -11,7 +11,7 @@
 
 #include "atlas.hh"
 #include "core.hh"
-#include "file_mapping.hh"
+#include "mapped_view.hh"
 
 namespace sc {
 
@@ -47,17 +47,17 @@ namespace sc {
     }
 
     void render_bridge::set_sprite_atlas(
-            const core::file_mapping<sprites::atlas>& atlas)
+            const core::mapped_view<sprites::atlas>& view)
     {
-        constexpr std::size_t metadata_size{sizeof(atlas->meta)};
+        constexpr std::size_t metadata_size{sizeof(view->meta)};
         const std::size_t palette_size{
-                sizeof(sprites::palette) * atlas->meta.palette_count};
+                sizeof(sprites::palette) * view->meta.palette_count};
         const std::size_t sprite_size{
-                sizeof(sprites::sprite32x32) * atlas->meta.sprite_count};
+                sizeof(sprites::sprite32x32) * view->meta.sprite_count};
         const std::size_t total_size{
-                sizeof(atlas) + palette_size + sprite_size};
+                sizeof(view) + palette_size + sprite_size};
 
-        sprite_buffer_ = NS::TransferPtr(device_->newBuffer(atlas.data(),
+        sprite_buffer_ = NS::TransferPtr(device_->newBuffer(view.data(),
                 total_size, MTL::ResourceStorageModeShared, nullptr));
 
         palette_offset_ = metadata_size;
