@@ -1,5 +1,5 @@
 /**
- * @file file_mapping.hh
+ * @file mapped_view.hh
  * @brief RAII wrapper for POSIX memory-mapped files.
  */
 #pragma once
