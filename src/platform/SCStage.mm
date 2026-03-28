@@ -7,8 +7,8 @@
 
 #include "atlas.hh"
 #include "core.hh"
-#include "mapped_view.hh"
 #include "input.hh"
+#include "mapped_view.hh"
 #include "physics.hh"
 #include "render_bridge.hh"
 #include "scene_registry.hh"
