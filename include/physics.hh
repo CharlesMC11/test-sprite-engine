@@ -161,14 +161,9 @@ namespace sc::physics {
     constexpr aabb from_registry(const scene_registry& registry,
             const core::index_t i, const sprites::metadata& metadata)
     {
-        const geometry::bbox bbox{static_cast<float>(metadata.bbox.left),
-                static_cast<float>(metadata.bbox.top),
-                static_cast<float>(metadata.bbox.right),
-                static_cast<float>(metadata.bbox.bottom)};
-
-        return aabb{registry.pos_x()[i], registry.pos_y()[i],
-                registry.pos_z()[i], registry.vec_x()[i], registry.vec_y()[i],
-                registry.vec_z()[i], bbox};
+        return aabb{registry.pos_x_ptr()[i], registry.pos_y_ptr()[i],
+                registry.pos_z_ptr()[i], registry.vec_x_ptr()[i], registry.vec_y_ptr()[i],
+                registry.vec_z_ptr()[i],
                 static_cast<geometry::bbox<float>>(metadata.bbox)};
     }
 

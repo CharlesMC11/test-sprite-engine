@@ -3,6 +3,10 @@
  */
 #pragma once
 
+#ifndef __METAL_VERSION__
+#include <cstdint>
+#endif
+
 namespace sc::geometry {
 
     /**
@@ -12,10 +16,12 @@ namespace sc::geometry {
      *
      * This struct is compatible with both C++ and Metal.
      */
-    template<typename T>
-    struct bbox final {
+    template<typename T = uint8_t>
+    struct alignas(T) bbox final {
+
         template<typename U>
         [[nodiscard]] explicit constexpr operator bbox<U>() const;
+
         [[nodiscard]] constexpr T width() const;
         [[nodiscard]] constexpr T height() const;
 
