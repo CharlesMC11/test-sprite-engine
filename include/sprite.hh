@@ -66,5 +66,6 @@ namespace sc::sprites {
 
     static_assert(
             sizeof(metadata) == core::kNeonAlignment, "Metadata must be 16 B.");
+    static_assert(sizeof(sprite32x32) == 1'040, "Sprite32x32 must be 1,040 B.");
 
 } // namespace sc::sprites
