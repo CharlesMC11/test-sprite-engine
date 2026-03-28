@@ -15,17 +15,17 @@
 
 namespace sc::sprites {
 
-    static constexpr core::atlas_magic_t kAtlasMagicBytes{0x3376205441204353};
+    static constexpr std::uint64_t kAtlasMagicBytes{0x3376205441204353};
 
     /**
      * @struct atlas
      * @brief A contiguous collection of sprites.
      *
-     * This class is designed to live within an `sc::core::file_mapping`. It
-     * uses a flexible array member `data` to provide indexed access to sprites
-     * loaded directly from an `.atlas` file.
+     * This class is designed to live within an `sc::core::file_mapping`.
      */
     struct alignas(core::kCacheAlignment) atlas final {
+        [[nodiscard]] static constexpr bool validate(
+                const void* ptr, std::size_t mapped_size) noexcept;
 
         // Delete constructors because the atlas is mapped, not instantiated.
         atlas() = delete;
@@ -37,62 +37,26 @@ namespace sc::sprites {
         atlas& operator=(const atlas&) = delete;
         atlas& operator=(atlas&&) = delete;
 
-        [[nodiscard]] constexpr const std::byte* data() const noexcept;
+        [[nodiscard]] constexpr auto operator[](palette_index i) const noexcept
+                -> const palette&;
 
-        [[nodiscard]] constexpr std::span<const core::packed_color_t*>
-        palettes() const noexcept;
+        [[nodiscard]] constexpr auto operator[](sprite_index i) const noexcept
+                -> const sprite32x32&;
 
-        [[nodiscard]] constexpr std::span<const sprite32x32>
-        sprites() const noexcept;
+        [[nodiscard]] constexpr auto data() const noexcept -> const std::byte*;
 
-        [[nodiscard]] constexpr core::packed_color_t* operator[](
-                palette_index i) const noexcept;
+        [[nodiscard]] constexpr auto palettes() const noexcept
+                -> std::span<const palette>;
 
-        [[nodiscard]] constexpr const sprite32x32& operator[](
-                sprite_index i) const noexcept;
-
-        [[nodiscard]] static constexpr bool validate(
-                const void* ptr, std::size_t mapped_size) noexcept;
+        [[nodiscard]] constexpr auto sprites() const noexcept
+                -> std::span<const sprite32x32>;
 
         struct alignas(core::kNeonAlignment) metadata final {
-            core::atlas_magic_t magic;
+            std::uint64_t magic;
             std::uint32_t palette_count;
             std::uint32_t sprite_count;
         } metadata;
     };
-
-    [[nodiscard]] constexpr const std::byte* atlas::data() const noexcept
-    {
-        return reinterpret_cast<const std::byte*>(&metadata + 1);
-    }
-
-    // [[nodiscard]] constexpr std::span<const core::packed_color_t*>
-    // atlas::palettes() const noexcept
-    // {
-    //     return {reinterpret_cast<const core::packed_color_t**>(data()),
-    //             sizeof(core::packed_color_t[kMaxPaletteSize]) *
-    //                     metadata.palette_count};
-    // }
-
-    constexpr std::span<const sprite32x32> atlas::sprites() const noexcept
-    {
-        return {reinterpret_cast<const sprite32x32*>(data() +
-                        sizeof(core::packed_color_t[kMaxPaletteSize]) *
-                                metadata.palette_count),
-                sizeof(sprite32x32) * metadata.sprite_count};
-    }
-
-    // [[nodiscard]] constexpr core::packed_color_t* atlas::operator[](
-    //         const palette_index i) const noexcept
-    // {
-    //     return palettes()[static_cast<std::size_t>(i)];
-    // }
-
-    [[nodiscard]] constexpr const sprite32x32& atlas::operator[](
-            const sprite_index i) const noexcept
-    {
-        return sprites()[static_cast<std::size_t>(i)];
-    }
 
     [[nodiscard]] constexpr bool atlas::validate(
             const void* ptr, const std::size_t mapped_size) noexcept
@@ -106,10 +70,42 @@ namespace sc::sprites {
             return false;
 
         const std::size_t expected_size{sizeof(metadata) +
-                metadata.palette_count *
-                        sizeof(core::packed_color_t[kMaxPaletteSize]) +
+                metadata.palette_count * sizeof(palette) +
                 metadata.sprite_count * sizeof(sprite32x32)};
         return mapped_size >= expected_size;
+    }
+
+    [[nodiscard]] constexpr auto atlas::operator[](
+            const palette_index i) const noexcept -> const palette&
+    {
+        return palettes()[static_cast<std::size_t>(i)];
+    }
+
+    [[nodiscard]] constexpr auto atlas::operator[](
+            const sprite_index i) const noexcept -> const sprite32x32&
+    {
+        return sprites()[static_cast<std::size_t>(i)];
+    }
+
+    [[nodiscard]] constexpr auto atlas::data() const noexcept
+            -> const std::byte*
+    {
+        return reinterpret_cast<const std::byte*>(&metadata + 1);
+    }
+
+    [[nodiscard]] constexpr auto atlas::palettes() const noexcept
+            -> std::span<const palette>
+    {
+        return {reinterpret_cast<const palette*>(data()),
+                sizeof(palette) * metadata.palette_count};
+    }
+
+    [[nodiscard]] constexpr auto atlas::sprites() const noexcept
+            -> std::span<const sprite32x32>
+    {
+        return {reinterpret_cast<const sprite32x32*>(
+                        data() + sizeof(palette) * metadata.palette_count),
+                sizeof(sprite32x32) * metadata.sprite_count};
     }
 
 } // namespace sc::sprites
