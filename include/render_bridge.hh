@@ -7,8 +7,8 @@
 #include <Metal/Metal.hpp>
 
 #include "atlas.hh"
+#include "entity_registry.hh"
 #include "mapped_view.hh"
-#include "scene_registry.hh"
 
 namespace sc {
 
@@ -49,7 +49,7 @@ namespace sc {
          * @brief Encode a draw command for entities on screen.
          * @param registry
          */
-        void draw(const scene_registry& registry) const;
+        void draw(const entity_registry& registry) const;
 
     private:
         NS::SharedPtr<MTL::Device> device_;

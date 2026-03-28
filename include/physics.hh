@@ -7,7 +7,7 @@
 #include "atlas.hh"
 #include "bbox.hh"
 #include "core.hh"
-#include "scene_registry.hh"
+#include "entity_registry.hh"
 #include "sprite.hh"
 
 namespace sc::physics {
@@ -149,7 +149,7 @@ namespace sc::physics {
         return result;
     }
 
-    constexpr void sort_compute(scene_registry& registry) noexcept
+    constexpr void sort_compute(entity_registry& registry) noexcept
     {
         std::ranges::sort(registry.physics_order.begin(),
                 registry.physics_order.end(),
@@ -158,7 +158,7 @@ namespace sc::physics {
                 });
     }
 
-    constexpr aabb from_registry(const scene_registry& registry,
+    constexpr aabb from_registry(const entity_registry& registry,
             const core::index_t i, const sprites::metadata& metadata)
     {
         return aabb{registry.pos_x_ptr()[i], registry.pos_y_ptr()[i],
@@ -169,7 +169,7 @@ namespace sc::physics {
 
     template<typename Iterator>
     sweep_result find_closest_hit(const aabb& box_a, const core::index_t idx_a,
-            Iterator begin, Iterator end, const scene_registry& registry,
+            Iterator begin, Iterator end, const entity_registry& registry,
             const sprites::atlas& atlas, const float dt, const bool check_left)
     {
         sweep_result hit;
@@ -206,7 +206,7 @@ namespace sc::physics {
     }
 
     constexpr void resolve_entity_collisions(const sprites::atlas& atlas,
-            scene_registry& registry, const float dt)
+            entity_registry& registry, const float dt)
     {
         sort_compute(registry);
 

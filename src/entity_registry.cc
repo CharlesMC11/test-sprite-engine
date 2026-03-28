@@ -1,11 +1,11 @@
-#include "scene_registry.hh"
-
 #include <cstddef>
 #include <cstdio>
 
+#include "entity_registry.hh"
+
 namespace sc {
 
-    void scene_registry::print() const noexcept
+    void entity_registry::print() const noexcept
     {
         for (std::size_t i{0u}; i < count(); ++i) {
             std::printf("Entity %zu (Sprite Index: %u)\n\tpos (%7.2f, %7.2f, "
