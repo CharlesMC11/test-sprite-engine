@@ -22,8 +22,8 @@ namespace sc::physics {
         explicit aabb(const float x, const float y, const float z,
                 const float vx, const float vy, const float vz,
                 const geometry::bbox<float>& bbox) noexcept
-            : left{x + bbox.left}, back{y - kYCollisionDistance},
-              right{x + bbox.right}, front{y + kYCollisionDistance},
+            : left{x + bbox.min_u}, back{y - kYCollisionDistance},
+              right{x + bbox.max_u}, front{y + kYCollisionDistance},
               top{z + bbox.height()}, bottom{z}, vx{vx}, vy{vy}, vz{vz},
               bbox{bbox}
         {

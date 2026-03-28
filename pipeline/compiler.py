@@ -7,7 +7,7 @@ into a specialized 1,072-byte binary format.
 The binary layout contains:
 - Metadata (16 bytes):
     - Bounding box (4 bytes)
-    - Anchor points (8 bytes)
+    - Pivot points (8 bytes)
     - Color encoding (1 byte)
     - Palette index (1 byte), set to 0 as a placeholder
     - Physics type (1 byte)

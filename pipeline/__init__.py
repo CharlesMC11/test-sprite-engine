@@ -30,8 +30,8 @@ SPRITE_SIZE_BYTES: Final[int] = (
 SPRITE_METADATA_LAYOUT: Final[str] = "<BBBBffBBBB"
 """The layout of a 16-byte sprite metadata. 
 
-- left, top, right, bottom (4)
-- anchor x, anchor y (8)
+- u min, v min, u max, v max (4)
+- pivot x, pivot y (8)
 - color encoding (1)
 - palette index (1)
 - physics type (1)

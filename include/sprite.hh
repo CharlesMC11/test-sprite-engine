@@ -40,12 +40,12 @@ namespace sc::sprites {
      * @struct metadata
      * @brief A sprite’s metadata.
      *
-     * Contains information regarding a sprite’s bounding box, anchors, color
+     * Contains information regarding a sprite’s bounding box, pivot, color
      * encoding, and physics type.
      */
     struct alignas(core::kNeonAlignment) metadata final {
-        geometry::bbox<uint8_t> bbox;
-        float anchor_x, anchor_y;
+        geometry::bbox<> bbox;
+        float pivot_x, pivot_y;
         uint8_t color_encoding;
         uint8_t palette_index;
         uint8_t physics_type;

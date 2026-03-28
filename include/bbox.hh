@@ -17,19 +17,19 @@ namespace sc::geometry {
         [[nodiscard]] constexpr T width() const;
         [[nodiscard]] constexpr T height() const;
 
-        T left, top, right, bottom;
+        T min_u, min_v, max_u, max_v;
     };
 
     template<typename T>
     [[nodiscard]] constexpr T bbox<T>::width() const
     {
-        return right - left;
+        return max_u - min_u;
     }
 
     template<typename T>
     [[nodiscard]] constexpr T bbox<T>::height() const
     {
-        return bottom - top;
+        return max_v - min_v;
     }
 
 } // namespace sc::geometry
