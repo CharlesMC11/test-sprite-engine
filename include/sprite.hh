@@ -58,8 +58,8 @@ namespace sc::sprites {
      */
     template<unsigned Height, unsigned Width = Height>
     struct alignas(core::kNeonAlignment) sprite final {
-        metadata metadata;
-        packed_pixel pixels[Height][Width]; ///< Row-major pixels
+        metadata meta;
+        packed_pixel pixels[Height][Width]; // Row-major pixels
     };
 
     using sprite32x32 = sprite<32u>;
