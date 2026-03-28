@@ -32,7 +32,7 @@ namespace sc::sprites {
         atlas(const atlas&) = delete;
         atlas(atlas&&) = delete;
 
-        ~atlas() = delete;
+        ~atlas() = default;
 
         atlas& operator=(const atlas&) = delete;
         atlas& operator=(atlas&&) = delete;
