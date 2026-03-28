@@ -21,7 +21,7 @@ namespace sc::mem {
 
         std::unique_ptr<T[], c_deleter> data{nullptr};
         std::size_t count{0u};
-        std::size_t capacity{core::kCacheAlignment};
+        std::size_t capacity{0u};
     };
 
     template<typename T, std::size_t N>
