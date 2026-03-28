@@ -62,7 +62,10 @@ namespace sc::sprites {
         packed_pixel pixels[Height][Width]; // Row-major pixels
     };
 
+    using sprite8x8 = sprite<8u>;
+    using sprite16x16 = sprite<16u>;
     using sprite32x32 = sprite<32u>;
+    using sprite64x64 = sprite<64u>;
 
     static_assert(
             sizeof(metadata) == core::kNeonAlignment, "Metadata must be 16 B.");
