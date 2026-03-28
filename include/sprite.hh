@@ -30,7 +30,7 @@ namespace sc::sprites {
         COOL // R5G5B6
     };
 
-    using packed_pixel = uint8_t;
+    using packed_pixel = uint8_t; // [S][E][AA][IIII]
     static SC_CONSTANT packed_pixel kMaskPaletteIndex{0x0F};
     static SC_CONSTANT packed_pixel kMaskAlpha{0x30};
     static SC_CONSTANT packed_pixel kMaskEmission{0x40};
@@ -55,9 +55,6 @@ namespace sc::sprites {
     /**
      * @struct sprite
      * @brief A hardware-aware sprite definition.
-     *
-     * Uses 16-byte alignment to satisfy AArch64 SIMD and Metal address space
-     * for constant sys.
      */
     template<unsigned Height, unsigned Width = Height>
     struct alignas(core::kNeonAlignment) sprite final {
