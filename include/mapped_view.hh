@@ -82,8 +82,7 @@ namespace sc::core {
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr const T*
-    mapped_view<T>::operator->() const noexcept
+    [[nodiscard]] constexpr const T* mapped_view<T>::operator->() const noexcept
     {
         return buffer_;
     }
