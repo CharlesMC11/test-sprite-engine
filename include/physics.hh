@@ -169,6 +169,7 @@ namespace sc::physics {
         return aabb{registry.pos_x()[i], registry.pos_y()[i],
                 registry.pos_z()[i], registry.vec_x()[i], registry.vec_y()[i],
                 registry.vec_z()[i], bbox};
+                static_cast<geometry::bbox<float>>(metadata.bbox)};
     }
 
     template<typename Iterator>
