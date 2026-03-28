@@ -21,13 +21,13 @@ namespace sc::sprites {
     using palette = packed_color[kMaxPaletteSize];
 
     /**
-     * @enum packed_color_encoding
-     * @brief Distribution of color channels across 16-bit packed integers.
+     * @enum color_encoding
+     * @brief Distribution of color channels across a 16-bit packed integer.
      */
-    enum class packed_color_encoding {
-        DEFAULT = 1u, ///< R5G6B5
-        WARM, ///< R6G5B5
-        COOL ///< R5G5B6
+    enum class color_encoding {
+        DEFAULT = 1u, // R5G6B5
+        WARM, // R6G5B5
+        COOL // R5G5B6
     };
 
     using packed_pixel = uint8_t;
