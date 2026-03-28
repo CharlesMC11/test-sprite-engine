@@ -351,12 +351,12 @@ def main() -> None:
         "output_path", type=Path, help="Target path for the 1072-byte sprite."
     )
     parser.add_argument(
-        "-a",
-        "--anchors",
+        "-o",
+        "--origin",
         nargs=2,
         default=(DEFAULT_SPRITE_AX, DEFAULT_SPRITE_AY),
         type=float,
-        help=f"Sprite anchor point (x, y). Default is center ({DEFAULT_SPRITE_AX:.2f}, {DEFAULT_SPRITE_AY:.2f}).",
+        help=f"Sprite origin (u, v). Default is center ({DEFAULT_SPRITE_AX:.2f}, {DEFAULT_SPRITE_AY:.2f}).",
     )
     parser.add_argument(
         "-c",

@@ -56,9 +56,9 @@
         constexpr auto id{sc::sprites::sprite_index::LANCIS};
         const sc::sprites::metadata& sprite{(*_atlas)[id].meta};
         _registry.spawn(
-                (sc::display::kWidth - sc::sprites::kWidth - sprite.pivot_x) *
+                (sc::display::kWidth - sc::sprites::kWidth - sprite.origin_u) *
                         0.5f,
-                (sc::display::kHeight - sc::sprites::kHeight - sprite.pivot_y) *
+                (sc::display::kHeight - sc::sprites::kHeight - sprite.origin_v) *
                         0.5f,
                 0.0f, id);
 

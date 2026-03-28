@@ -45,7 +45,7 @@ namespace sc::sprites {
      */
     struct alignas(core::kNeonAlignment) metadata final {
         geometry::bbox<> bbox;
-        float pivot_x, pivot_y;
+        float origin_u, origin_v;
         uint8_t color_encoding;
         uint8_t palette_index;
         uint8_t physics_type;
