@@ -1,15 +1,10 @@
 cmake_minimum_required(VERSION 4.1)
-project(test-sprite-engine C CXX ASM OBJCXX)
+project(test-sprite-engine C CXX OBJCXX)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(MY_FLAGS "-arch arm64 -march=native -falign-functions=16 -fcolor-diagnostics -Wall -Wextra -Wpedantic")
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MY_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MY_FLAGS}")
 
 include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
@@ -28,6 +23,22 @@ add_executable(test-sprite-engine
         "${CMAKE_CURRENT_SOURCE_DIR}/src/render_bridge.cc"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/main.mm"
 )
+
+target_compile_options(test-sprite-engine PRIVATE
+        -arch arm64
+        -march=native
+        -falign-functions=16
+        -fcolor-diagnostics
+        -Wall -Wextra -Wpedantic
+)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_options(test-sprite-engine PRIVATE -O0 -g -fsanitize=address,undefined)
+    target_link_options(test-sprite-engine PRIVATE -fsanitize=address,undefined)
+else ()
+    target_compile_options(test-sprite-engine PRIVATE -O3 -flto)
+    target_link_options(test-sprite-engine PRIVATE -flto -Wl,-dead_strip)
+endif ()
 
 target_link_libraries(test-sprite-engine
         ${APPKIT_LIB}
