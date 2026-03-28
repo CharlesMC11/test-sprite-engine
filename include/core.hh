@@ -17,20 +17,16 @@ namespace sc {
 
     namespace core {
 
-        using index_t = uint32_t;
+        using index_t = unsigned;
 
-        using packed_color_t = uint16_t; ///< Distribution is `color_encoding`
-        using packed_pixel_t = uint8_t;
+        using atlas_index = index_t;
 
-        using atlas_index_t = index_t;
-        using atlas_magic_t = uint64_t;
-
-        using input_mask_t = uint32_t;
+        using input_mask = unsigned;
 
         using physics_t = uint8_t;
 
-        static SC_CONSTANT uint32_t kNeonAlignment{16u};
-        static SC_CONSTANT uint32_t kCacheAlignment{128u};
+        static SC_CONSTANT unsigned kNeonAlignment{16u};
+        static SC_CONSTANT unsigned kCacheAlignment{128u};
 
 #ifndef __METAL_VERSION__
 
@@ -64,14 +60,14 @@ namespace sc {
 
     namespace display {
 
-        static SC_CONSTANT uint32_t kWidth{240u};
-        static SC_CONSTANT uint32_t kHeight{160u};
+        static SC_CONSTANT unsigned kWidth{240u};
+        static SC_CONSTANT unsigned kHeight{160u};
 
         static SC_CONSTANT float kDefaultR{0.06f};
         static SC_CONSTANT float kDefaultG{0.22f};
         static SC_CONSTANT float kDefaultB{0.06f};
 
-        static SC_CONSTANT uint32_t kTargetFPS{60u};
+        static SC_CONSTANT unsigned kTargetFPS{60u};
 
     } // namespace display
 

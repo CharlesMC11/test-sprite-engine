@@ -13,38 +13,28 @@
 
 namespace sc::sprites {
 
-    static SC_CONSTANT uint32_t kMaxPaletteSize{16u};
-    static SC_CONSTANT uint32_t kHeight{32u};
-    static SC_CONSTANT uint32_t kWidth{32u};
+    static SC_CONSTANT unsigned kMaxPaletteSize{16u};
+    static SC_CONSTANT unsigned kHeight{32u};
+    static SC_CONSTANT unsigned kWidth{32u};
 
-    static SC_CONSTANT core::packed_pixel_t kMaskPaletteIndex{0x0F};
-    static SC_CONSTANT core::packed_pixel_t kMaskAlpha{0x30};
-    static SC_CONSTANT core::packed_pixel_t kMaskEmission{0x40};
-    static SC_CONSTANT core::packed_pixel_t kMaskSpecular{0x80};
+    using packed_color = uint16_t;
+    using palette = packed_color[kMaxPaletteSize];
 
     /**
-     * @enum color_encoding
+     * @enum packed_color_encoding
      * @brief Distribution of color channels across 16-bit packed integers.
      */
-    enum class color_encoding : uint8_t {
+    enum class packed_color_encoding {
         DEFAULT = 1u, ///< R5G6B5
         WARM, ///< R6G5B5
         COOL ///< R5G5B6
     };
 
-    /**
-     * @union packed_pixel
-     * @brief 8-bit packed index/metadata pixel.
-     */
-    union packed_pixel {
-        core::packed_pixel_t data;
-        struct {
-            core::packed_pixel_t index : 4u;
-            core::packed_pixel_t alpha : 2u;
-            core::packed_pixel_t emission : 1u;
-            core::packed_pixel_t specular : 1u;
-        };
-    };
+    using packed_pixel = uint8_t;
+    static SC_CONSTANT packed_pixel kMaskPaletteIndex{0x0F};
+    static SC_CONSTANT packed_pixel kMaskAlpha{0x30};
+    static SC_CONSTANT packed_pixel kMaskEmission{0x40};
+    static SC_CONSTANT packed_pixel kMaskSpecular{0x80};
 
     /**
      * @struct metadata
@@ -58,7 +48,7 @@ namespace sc::sprites {
         float anchor_x, anchor_y;
         uint8_t color_encoding;
         uint8_t palette_index;
-        uint8_t physics;
+        uint8_t physics_type;
         uint8_t padding;
     };
 
@@ -69,7 +59,7 @@ namespace sc::sprites {
      * Uses 16-byte alignment to satisfy AArch64 SIMD and Metal address space
      * for constant sys.
      */
-    template<uint32_t Height, uint32_t Width = Height>
+    template<unsigned Height, unsigned Width = Height>
     struct alignas(core::kNeonAlignment) sprite final {
         metadata metadata;
         packed_pixel pixels[Height][Width]; ///< Row-major pixels
