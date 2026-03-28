@@ -53,8 +53,8 @@ namespace sc::sprites {
 
         struct alignas(core::kNeonAlignment) metadata final {
             const std::uint64_t magic;
-            const std::uint32_t palette_count;
             const std::uint32_t sprite_count;
+            const std::uint32_t palette_count;
         } meta;
     };
 
