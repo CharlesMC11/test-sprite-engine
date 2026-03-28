@@ -63,9 +63,9 @@ namespace sc {
         static SC_CONSTANT unsigned kWidth{240u};
         static SC_CONSTANT unsigned kHeight{160u};
 
-        static SC_CONSTANT float kDefaultR{0.06f};
-        static SC_CONSTANT float kDefaultG{0.22f};
-        static SC_CONSTANT float kDefaultB{0.06f};
+        static SC_CONSTANT float kDefaultR{0.50f};
+        static SC_CONSTANT float kDefaultG{0.50f};
+        static SC_CONSTANT float kDefaultB{0.50f};
 
         static SC_CONSTANT unsigned kTargetFPS{60u};
 
