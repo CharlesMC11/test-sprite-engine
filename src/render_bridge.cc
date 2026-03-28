@@ -9,7 +9,9 @@
 
 #include <iostream>
 
+#include "atlas.hh"
 #include "core.hh"
+#include "file_mapping.hh"
 
 namespace sc {
 
@@ -44,21 +46,19 @@ namespace sc {
         library->release();
     }
 
-    void render_bridge::set_sprite_atlas(const sprites::atlas& atlas)
+    void render_bridge::set_sprite_atlas(
+            const core::file_mapping<sprites::atlas>& atlas)
     {
-        constexpr std::size_t metadata_size{sizeof(atlas.metadata)};
+        constexpr std::size_t metadata_size{sizeof(atlas->meta)};
         const std::size_t palette_size{
-                sizeof(core::packed_color_t[sprites::kMaxPaletteSize]) *
-                atlas.metadata.palette_count};
+                sizeof(sprites::palette) * atlas->meta.palette_count};
         const std::size_t sprite_size{
-                sizeof(sprites::sprite32x32) * atlas.metadata.sprite_count};
+                sizeof(sprites::sprite32x32) * atlas->meta.sprite_count};
         const std::size_t total_size{
                 sizeof(atlas) + palette_size + sprite_size};
 
-        sprite_buffer_ = NS::TransferPtr(
-                device_->newBuffer(total_size, MTL::ResourceStorageModeShared));
-
-        std::memcpy(sprite_buffer_->contents(), &atlas, total_size);
+        sprite_buffer_ = NS::TransferPtr(device_->newBuffer(atlas.data(),
+                total_size, MTL::ResourceStorageModeShared, nullptr));
 
         palette_offset_ = metadata_size;
         sprites_offset_ = metadata_size + palette_size;
@@ -109,7 +109,7 @@ namespace sc {
                 registry.pos_z(), sizeof(float) * registry.count(), 4u);
 
         encoder_->setBytes(registry.indices.data(),
-                sizeof(core::atlas_index_t) * registry.count(), 5u);
+                sizeof(core::atlas_index) * registry.count(), 5u);
         encoder_->setBytes(registry.draw_order.data(),
                 sizeof(core::index_t) * registry.count(), 6u);
 

@@ -49,12 +49,12 @@
 
         _bridge = std::make_unique<sc::render_bridge>(
                 (__bridge MTL::Device*) device);
-        _bridge->set_sprite_atlas(*_atlas);
+        _bridge->set_sprite_atlas(*_mapper);
 
         self.framebufferOnly = false;
 
         constexpr auto id{sc::sprites::sprite_index::LANCIS};
-        const sc::sprites::metadata& sprite{(*_atlas)[id].metadata};
+        const sc::sprites::metadata& sprite{(*_atlas)[id].meta};
         _registry.spawn(
                 (sc::display::kWidth - sc::sprites::kWidth - sprite.anchor_x) *
                         0.5f,

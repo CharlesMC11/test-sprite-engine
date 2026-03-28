@@ -7,6 +7,7 @@
 #include <Metal/Metal.hpp>
 
 #include "atlas.hh"
+#include "file_mapping.hh"
 #include "scene_registry.hh"
 
 namespace sc {
@@ -29,7 +30,7 @@ namespace sc {
         render_bridge& operator=(const render_bridge&) = delete;
         render_bridge& operator=(render_bridge&&) = delete;
 
-        void set_sprite_atlas(const sprites::atlas& atlas);
+        void set_sprite_atlas(const core::file_mapping<sprites::atlas>& atlas);
 
         /**
          * @brief
