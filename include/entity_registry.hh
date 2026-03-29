@@ -18,38 +18,37 @@
 #include "sprite32_index.hh"
 
 /**
- * @brief Register a channel accessor method for the registry.
- * @param enum_val The enum value to access.
+ * Register a channel accessor method for the registry.
+ *
+ * @param enum_T
+ *  The enum referred to by the buffer.
+ *
+ * @param T
+ * The type contained in the buffer.
+ *
+ * @param enum_val
+ * The enum value to access.
+ *
+ * @param buffer
+ * The name of the buffer.
  */
-#define REGISTER_XFORM_CHANNEL_ACCESSOR(enum_val)                              \
-    [[nodiscard]] constexpr auto enum_val##_ptr() noexcept                     \
-            -> float* __restrict                                               \
+#define REGISTER_ACCESSOR(enum_T, T, enum_val, buffer)                         \
+    [[nodiscard]] constexpr auto enum_val##_ptr() noexcept -> T* __restrict    \
     {                                                                          \
-        return get_ptr<xform_channel, float, false>(                           \
-                float_buffer_, xform_channel::enum_val);                       \
+        return get_ptr<enum_T, T, false>(buffer, enum_T::enum_val);            \
     }                                                                          \
                                                                                \
     [[nodiscard]] constexpr auto enum_val##_ptr() const noexcept               \
-            -> const float* __restrict                                         \
+            -> const T* __restrict                                             \
     {                                                                          \
-        return get_ptr<xform_channel, float, true>(                            \
-                float_buffer_, xform_channel::enum_val);                       \
+        return get_ptr<enum_T, T, true>(buffer, enum_T::enum_val);             \
     }
 
+#define REGISTER_XFORM_CHANNEL_ACCESSOR(enum_val)                              \
+    REGISTER_ACCESSOR(xform_channel, float, enum_val, float_buffer_)
+
 #define REGISTER_INDEX_CHANNEL_ACCESSOR(enum_val)                              \
-    [[nodiscard]] constexpr auto enum_val##_ptr() noexcept                     \
-            -> core::index_t* __restrict                                       \
-    {                                                                          \
-        return get_ptr<index_channel, core::index_t, false>(                   \
-                index_buffer_, index_channel::enum_val);                       \
-    }                                                                          \
-                                                                               \
-    [[nodiscard]] constexpr auto enum_val##_ptr() const noexcept               \
-            -> const core::index_t* __restrict                                 \
-    {                                                                          \
-        return get_ptr<index_channel, core::index_t, true>(                    \
-                index_buffer_, index_channel::enum_val);                       \
-    }
+    REGISTER_ACCESSOR(index_channel, core::index_t, enum_val, index_buffer_)
 
 namespace sc {
 
