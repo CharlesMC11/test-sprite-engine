@@ -11,7 +11,12 @@ namespace sc::mem {
         void operator()(void* ptr) const { std::free(ptr); }
     };
 
-    template<typename T>
+    /**
+     * @brief A dynamic array meant to contain at least 2 subarrays.
+     * @tparam T The type of the contained elements.
+     * @tparam N The number of subarrays.
+     */
+    template<typename T, std::size_t N = 2u>
     struct channel_pool final {
 
         // Operators
@@ -31,16 +36,15 @@ namespace sc::mem {
         std::size_t capacity{0u};
     };
 
-    template<typename T>
-    constexpr auto channel_pool<T>::operator[](
+    template<typename T, std::size_t N>
+    constexpr auto channel_pool<T, N>::operator[](
             const std::size_t i) const noexcept -> T* __restrict
     {
         return data.get() + capacity * i;
     }
 
-    template<typename T>
-    template<std::size_t N>
-    constexpr void channel_pool<T>::grow(const std::size_t new_capacity)
+    template<typename T, std::size_t N>
+    constexpr void channel_pool<T, N>::grow(const std::size_t new_capacity)
     {
         const std::size_t aligned_new_capacity{
                 new_capacity + core::kCacheAlignment - 1u &
