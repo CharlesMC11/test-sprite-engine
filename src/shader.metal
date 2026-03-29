@@ -48,7 +48,7 @@ inline float4 unpack_color(
 }
 
 [[kernel]] void k_draw_sprites(constant sp::palette* palettes [[buffer(0u)]],
-        constant sp::sprite32x32* sprites [[buffer(1u)]],
+        constant sp::sprite32* sprites [[buffer(1u)]],
         constant float* x_coords [[buffer(2u)]],
         constant float* y_coords [[buffer(3u)]],
         constant float* z_coords [[buffer(4u)]],
@@ -76,7 +76,7 @@ inline float4 unpack_color(
                 static_cast<uint>(local_coord.y) > sp::kHeight)
             continue;
 
-        constant sp::sprite32x32& sprite{sprites[sprite_indices[draw_idx]]};
+        constant sp::sprite32& sprite{sprites[sprite_indices[draw_idx]]};
         const sp::packed_pixel pixel{
                 sprite.pixels[local_coord.y][local_coord.x]};
 

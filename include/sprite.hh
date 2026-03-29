@@ -62,13 +62,13 @@ namespace sc::sprites {
         packed_pixel pixels[Height][Width]; // Row-major pixels
     };
 
-    using sprite8x8 = sprite<8u>;
-    using sprite16x16 = sprite<16u>;
-    using sprite32x32 = sprite<32u>;
-    using sprite64x64 = sprite<64u>;
+    using sprite8 = sprite<8u>;
+    using sprite16 = sprite<16u>;
+    using sprite32 = sprite<32u>;
+    using sprite64 = sprite<64u>;
 
     static_assert(
             sizeof(metadata) == core::kNeonAlignment, "Metadata must be 16 B.");
-    static_assert(sizeof(sprite32x32) == 1'040, "Sprite32x32 must be 1,040 B.");
+    static_assert(sizeof(sprite32) == 1'040, "Sprite32x32 must be 1,040 B.");
 
 } // namespace sc::sprites
