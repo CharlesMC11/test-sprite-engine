@@ -34,7 +34,7 @@ namespace sc {
         clear_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
         if (!clear_pso_) [[unlikely]] {
-            std::cerr << error->localizedDescription() << std::endl;
+            std::cerr << error->localizedDescription() << '\n';
             throw;
         }
 
@@ -44,7 +44,7 @@ namespace sc {
         sprite_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
         if (!sprite_pso_) [[unlikely]] {
-            std::cerr << error->localizedDescription() << std::endl;
+            std::cerr << error->localizedDescription() << '\n';
             throw;
         }
 
@@ -61,7 +61,7 @@ namespace sc {
 
         const auto* out_texture{
                 reinterpret_cast<const CA::MetalDrawable*>(buffer)->texture()};
-        encoder_->setTexture(out_texture, 0);
+        encoder_->setTexture(out_texture, 0u);
     }
 
     void render_bridge::end_frame(const MTL::Drawable* buffer)
@@ -91,19 +91,21 @@ namespace sc {
         encoder_->setBuffer(sprite32_buffer_.get(), palette_span_offset_, 0u);
         encoder_->setBuffer(sprite32_buffer_.get(), sprite32_span_offset_, 1u);
 
-        encoder_->setBytes(
-                registry.pos_x_ptr(), sizeof(float) * registry.count(), 2u);
-        encoder_->setBytes(
-                registry.pos_y_ptr(), sizeof(float) * registry.count(), 3u);
-        encoder_->setBytes(
-                registry.pos_z_ptr(), sizeof(float) * registry.count(), 4u);
+        using reg = entity_registry;
 
-        encoder_->setBytes(registry.indices.data(),
-                sizeof(core::atlas_index) * registry.count(), 5u);
-        encoder_->setBytes(registry.draw_order_ptr(),
-                sizeof(core::index_t) * registry.count(), 6u);
+        encoder_->setBuffer(registry.xform_buffer(),
+                registry.offset(reg::xform_channel::pos_x), 2u);
+        encoder_->setBuffer(registry.xform_buffer(),
+                registry.offset(reg::xform_channel::pos_y), 3u);
+        encoder_->setBuffer(registry.xform_buffer(),
+                registry.offset(reg::xform_channel::pos_z), 4u);
 
-        const auto count{static_cast<std::uint32_t>(registry.count())};
+        encoder_->setBuffer(registry.index_buffer(),
+                registry.offset(reg::index_channel::sprite32_index), 5u);
+        encoder_->setBuffer(registry.index_buffer(),
+                registry.offset(reg::index_channel::draw_order), 6u);
+
+        const auto count{static_cast<unsigned>(registry.count())};
         encoder_->setBytes(&count, sizeof(count), 7u);
 
         const MTL::Size grid_size{display::kWidth, display::kHeight, 1u};
@@ -117,13 +119,15 @@ namespace sc {
     void render_bridge::set_sprite_atlas(
             const core::mapped_view<sprites::atlas>& view)
     {
-        constexpr std::size_t metadata_size{sizeof(view->meta)};
+        const auto meta{view->meta};
+
+        constexpr std::size_t metadata_size{sizeof(meta)};
         const std::size_t palette_span_size{
-                sizeof(sprites::palette) * view->meta.palette_count};
+                sizeof(sprites::palette) * meta.palette_count};
         const std::size_t sprite16_span_size{
-                sizeof(sprites::sprite16) * view->meta.sprite16_count};
+                sizeof(sprites::sprite16) * meta.sprite16_count};
         const std::size_t sprite32_span_size{
-                sizeof(sprites::sprite32) * view->meta.sprite32_count};
+                sizeof(sprites::sprite32) * meta.sprite32_count};
         const std::size_t total_size{sizeof(view) + palette_span_size +
                 sprite16_span_size + sprite32_span_size};
 
