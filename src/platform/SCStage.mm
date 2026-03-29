@@ -58,15 +58,15 @@
         _registry.spawn(
                 (sc::display::kWidth - sc::sprites::kWidth - sprite.origin_u) *
                         0.5f,
-                (sc::display::kHeight - sc::sprites::kHeight - sprite.origin_v) *
+                (sc::display::kHeight - sc::sprites::kHeight -
+                        sprite.origin_v) *
                         0.5f,
                 0.0f, id);
 
         _registry.spawn(0.0f, 0.0f, 0.0f, sc::sprites::sprite32_index::MYARRA);
 
         _registry.spawn(sc::display::kWidth * 0.75f,
-                sc::display::kHeight * 0.75f, 0.0f,
-                sc::sprites::sprite_index::HEART_OW_F);
+                sc::display::kHeight * 0.75f, 26.0f,
                 sc::sprites::sprite32_index::HEART_OW_F);
     }
 
@@ -150,8 +150,6 @@
 
         _accumulator -= sc::physics::kFixedTimestep;
     }
-
-    _registry.print();
 
     _registry.sort_draw();
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
