@@ -22,7 +22,7 @@ namespace sc::sprites {
      * @struct atlas
      * @brief A contiguous collection of sprites.
      *
-     * This class is designed to live within an `sc::core::file_mapping`.
+     * This class is designed to live within an `sc::core::mapped_view`.
      */
     struct alignas(core::kCacheAlignment) atlas final {
         [[nodiscard]] static constexpr bool validate(
