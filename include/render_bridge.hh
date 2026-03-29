@@ -30,6 +30,10 @@ namespace sc {
         render_bridge& operator=(const render_bridge&) = delete;
         render_bridge& operator=(render_bridge&&) = delete;
 
+        /**
+         * @brief
+         * @param view
+         */
         void set_sprite_atlas(const core::mapped_view<sprites::atlas>& view);
 
         /**
@@ -40,9 +44,13 @@ namespace sc {
 
         /**
          * @brief
+         * @param buffer The destination drawable/texture.
          */
         void end_frame(const MTL::Drawable* buffer);
 
+        /**
+         * @brief
+         */
         void clear() const;
 
         /**
