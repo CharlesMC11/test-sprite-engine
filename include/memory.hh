@@ -21,12 +21,20 @@ namespace sc::mem {
 
         // Operators
 
+        /**
+         * @brief Get the subarray
+         * @param i
+         * @return
+         */
         constexpr auto operator[](std::size_t i) const noexcept
                 -> T* __restrict;
 
         // Mutators
 
-        template<std::size_t N>
+        /**
+         * @brief Increate the capacity of each subarray.
+         * @param new_capacity The new capacity size.
+         */
         constexpr void grow(std::size_t new_capacity);
 
         // Attributes
