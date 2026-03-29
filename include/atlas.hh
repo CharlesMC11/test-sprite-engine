@@ -11,11 +11,12 @@
 #include "core.hh"
 #include "palette_index.hh"
 #include "sprite.hh"
-#include "sprite_index.hh"
+#include "sprite16_index.hh"
+#include "sprite32_index.hh"
 
 namespace sc::sprites {
 
-    static constexpr std::uint64_t kAtlasMagicBytes{0x3376205441204353};
+    static constexpr std::uint64_t kAtlasMagicBytes{0x3476205441204353};
 
     /**
      * @struct atlas
@@ -40,21 +41,28 @@ namespace sc::sprites {
         [[nodiscard]] constexpr auto operator[](palette_index i) const noexcept
                 -> const palette&;
 
-        [[nodiscard]] constexpr auto operator[](sprite_index i) const noexcept
-                -> const sprite32x32&;
+        [[nodiscard]] constexpr auto operator[](sprite16_index i) const noexcept
+                -> const sprite16&;
+
+        [[nodiscard]] constexpr auto operator[](sprite32_index i) const noexcept
+                -> const sprite32&;
 
         [[nodiscard]] constexpr auto data() const noexcept -> const std::byte*;
 
-        [[nodiscard]] constexpr auto palettes() const noexcept
+        [[nodiscard]] constexpr auto palette_span() const noexcept
                 -> std::span<const palette>;
 
-        [[nodiscard]] constexpr auto sprites() const noexcept
-                -> std::span<const sprite32x32>;
+        [[nodiscard]] constexpr auto sprite16_span() const noexcept
+                -> std::span<const sprite16>;
+
+        [[nodiscard]] constexpr auto sprite32_span() const noexcept
+                -> std::span<const sprite32>;
 
         struct alignas(core::kNeonAlignment) metadata final {
             const std::uint64_t magic;
-            const std::uint32_t sprite_count;
-            const std::uint32_t palette_count;
+            const std::uint32_t sprite16_count;
+            const std::uint16_t sprite32_count;
+            const std::uint16_t palette_count;
         } meta;
     };
 
@@ -64,27 +72,34 @@ namespace sc::sprites {
         if (!ptr || mapped_size < sizeof(atlas))
             return false;
 
-        const auto [magic, sprite_count, palette_count]{
+        const auto [magic, sprite16_count, sprite32_count, palette_count]{
                 static_cast<const atlas*>(ptr)->meta};
         if (magic != kAtlasMagicBytes)
             return false;
 
         const std::size_t expected_size{sizeof(metadata) +
                 sizeof(palette) * palette_count +
-                sizeof(sprite32x32) * sprite_count};
+                sizeof(sprite16) * sprite16_count +
+                sizeof(sprite32) * sprite32_count};
         return mapped_size >= expected_size;
     }
 
     [[nodiscard]] constexpr auto atlas::operator[](
             const palette_index i) const noexcept -> const palette&
     {
-        return palettes()[static_cast<std::size_t>(i)];
+        return palette_span()[static_cast<std::size_t>(i)];
     }
 
     [[nodiscard]] constexpr auto atlas::operator[](
-            const sprite_index i) const noexcept -> const sprite32x32&
+            const sprite16_index i) const noexcept -> const sprite16&
     {
-        return sprites()[static_cast<std::size_t>(i)];
+        return sprite16_span()[static_cast<std::size_t>(i)];
+    }
+
+    [[nodiscard]] constexpr auto atlas::operator[](
+            const sprite32_index i) const noexcept -> const sprite32&
+    {
+        return sprite32_span()[static_cast<std::size_t>(i)];
     }
 
     [[nodiscard]] constexpr auto atlas::data() const noexcept
@@ -93,19 +108,28 @@ namespace sc::sprites {
         return reinterpret_cast<const std::byte*>(&meta + 1);
     }
 
-    [[nodiscard]] constexpr auto atlas::palettes() const noexcept
+    [[nodiscard]] constexpr auto atlas::palette_span() const noexcept
             -> std::span<const palette>
     {
         return {reinterpret_cast<const palette*>(data()),
                 sizeof(palette) * meta.palette_count};
     }
 
-    [[nodiscard]] constexpr auto atlas::sprites() const noexcept
-            -> std::span<const sprite32x32>
+    [[nodiscard]] constexpr auto atlas::sprite16_span() const noexcept
+            -> std::span<const sprite16>
     {
-        return {reinterpret_cast<const sprite32x32*>(
+        return {reinterpret_cast<const sprite16*>(
                         data() + sizeof(palette) * meta.palette_count),
-                sizeof(sprite32x32) * meta.sprite_count};
+                sizeof(sprite16) * meta.sprite16_count};
+    }
+
+    [[nodiscard]] constexpr auto atlas::sprite32_span() const noexcept
+            -> std::span<const sprite32>
+    {
+        return {reinterpret_cast<const sprite32*>(
+                        data() + sizeof(palette) * meta.palette_count) +
+                        sizeof(sprite16) * meta.sprite16_count,
+                sizeof(sprite32) * meta.sprite32_count};
     }
 
 } // namespace sc::sprites

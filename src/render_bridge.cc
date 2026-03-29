@@ -50,17 +50,25 @@ namespace sc {
             const core::mapped_view<sprites::atlas>& view)
     {
         constexpr std::size_t metadata_size{sizeof(view->meta)};
-        const std::size_t palette_size{
+        const std::size_t palette_span_size{
                 sizeof(sprites::palette) * view->meta.palette_count};
-        const std::size_t sprite_size{
-                sizeof(sprites::sprite32x32) * view->meta.sprite_count};
-        const std::size_t total_size{sizeof(view) + palette_size + sprite_size};
+        const std::size_t sprite16_span_size{
+                sizeof(sprites::sprite16) * view->meta.sprite16_count};
+        const std::size_t sprite32_span_size{
+                sizeof(sprites::sprite32) * view->meta.sprite32_count};
+        const std::size_t total_size{
+                sizeof(view) + palette_span_size + sprite32_span_size};
 
-        sprite_buffer_ = NS::TransferPtr(device_->newBuffer(view.data(),
+        sprite32_buffer_ = NS::TransferPtr(device_->newBuffer(view.data(),
                 total_size, MTL::ResourceStorageModeShared, nullptr));
+        if (!sprite32_buffer_) [[unlikely]] {
+            std::cerr << "Metal buffer is empty!" << std::endl;
+            throw;
+        }
 
-        palette_offset_ = metadata_size;
-        sprites_offset_ = metadata_size + palette_size;
+        palette_span_offset_ = metadata_size;
+        sprite32_span_offset_ =
+                metadata_size + palette_span_size + sprite16_span_size;
     }
 
     void render_bridge::begin_frame(const MTL::Drawable* buffer)
@@ -97,8 +105,8 @@ namespace sc {
     {
         encoder_->setComputePipelineState(sprite_pso_.get());
 
-        encoder_->setBuffer(sprite_buffer_.get(), palette_offset_, 0u);
-        encoder_->setBuffer(sprite_buffer_.get(), sprites_offset_, 1u);
+        encoder_->setBuffer(sprite32_buffer_.get(), palette_span_offset_, 0u);
+        encoder_->setBuffer(sprite32_buffer_.get(), sprite32_span_offset_, 1u);
 
         encoder_->setBytes(
                 registry.pos_x_ptr(), sizeof(float) * registry.count(), 2u);

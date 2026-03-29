@@ -1,15 +1,14 @@
 """
 Atlas Linker.
 
-Assembles multiple 1,072-byte sprite files into a single memory–mappable
-atlas binary.
+Assembles multiple sprite files into a single memory–mappable atlas binary.
 
 The binary layout contains:
 - Header (16 bytes):
     - Magic (8 bytes): "SC AT v3" (spaces added).
     - Palette count (4 bytes): uint32 sprite count.
     - Sprite count (4 bytes): uint32 sprite count.
-- Data (1,072 bytes × n): Contiguous array of sprite structures.
+- Data (n bytes): Contiguous array of sprite structures.
 """
 
 import struct
@@ -19,15 +18,14 @@ from pathlib import Path
 from typing import Final
 
 from pipeline import (
-    SPRITE_PALETTE_SIZE_BYTES,
     ATLAS_METADATA_LAYOUT,
+    SPRITE_DIMENSIONS_SIZE_BYTES,
+    SPRITE_MINIMUM_FILE_SIZE_BYTES,
+    SPRITE_PALETTE_SIZE_BYTES,
     ResourceLayoutError,
-    SPRITE_SIZE_BYTES,
 )
 
-ATLAS_MAGIC: Final[bytes] = b"SC AT v3"
-PALETTE_INDEX_ENUM_NAME: Final[str] = "palette_index"
-SPRITE_INDEX_ENUM_NAME: Final[str] = "sprite_index"
+ATLAS_MAGIC: Final[bytes] = b"SC AT v4"
 
 
 class AtlasLinker:
@@ -35,21 +33,46 @@ class AtlasLinker:
 
     # Type annotations
 
-    _palette_blobs: list[bytes]
+    _palette_blobs: list[bytearray]
     _palette_names: list[str]
-    _sprite_blobs: list[bytearray]
-    _sprite_names: list[str]
+
+    _sprite8_blobs: list[bytearray]
+    _sprite8_names: list[str]
+
+    _sprite16_blobs: list[bytearray]
+    _sprite16_names: list[str]
+
+    _sprite32_blobs: list[bytearray]
+    _sprite32_names: list[str]
+
+    _sprite64_blobs: list[bytearray]
+    _sprite64_names: list[str]
 
     # Magic methods
 
     def __init__(self):
         self._palette_blobs = []
         self._palette_names = []
-        self._sprite_blobs = []
-        self._sprite_names = []
+
+        self._sprite8_blobs = []
+        self._sprite8_names = []
+
+        self._sprite16_blobs = []
+        self._sprite16_names = []
+
+        self._sprite32_blobs = []
+        self._sprite32_names = []
+
+        self._sprite64_blobs = []
+        self._sprite64_names = []
 
     def __len__(self) -> int:
-        return len(self._sprite_blobs)
+        return (
+            len(self._sprite8_blobs)
+            + len(self._sprite16_blobs)
+            + len(self._sprite32_blobs)
+            + len(self._sprite64_blobs)
+        )
 
     # Public methods
 
@@ -75,29 +98,50 @@ class AtlasLinker:
 
         :param sprite_paths: Sequence of paths to baked sprite files.
         :raises FileNotFoundError: If a path does not exist.
-        :raises ValueError: If a sprite is not 1,072-bytes in size.
+        :raises ResourceLayoutError: If a sprite is less than or equal to 54 bytes in size
+            or has invalid dimensions.
         """
 
+        pixels_end = SPRITE_PALETTE_SIZE_BYTES + SPRITE_DIMENSIONS_SIZE_BYTES
         for path in sprite_paths:
             if not path.exists():
                 raise FileNotFoundError(f"Sprite not found: {path}.")
 
             blob = path.read_bytes()
-            if len(blob) != SPRITE_SIZE_BYTES:
+            if len(blob) <= SPRITE_MINIMUM_FILE_SIZE_BYTES:
                 raise ResourceLayoutError(
-                    f"{path.name} must be {SPRITE_SIZE_BYTES} bytes."
+                    f"'{path.name}' must be bigger than {SPRITE_MINIMUM_FILE_SIZE_BYTES} bytes."
                 )
 
-            sprite_blob = bytearray(blob[:-SPRITE_PALETTE_SIZE_BYTES])
-            palette_blob = blob[-SPRITE_PALETTE_SIZE_BYTES:]
+            sprite_blob = bytearray(blob[:-pixels_end])
+            palette_blob = blob[-pixels_end:-SPRITE_DIMENSIONS_SIZE_BYTES]
+            height, width = blob[-SPRITE_DIMENSIONS_SIZE_BYTES:]
 
             if palette_blob not in self._palette_blobs:
                 self._palette_blobs.append(palette_blob)
                 self._palette_names.append(f"{path.stem}_palette")
 
             sprite_blob[13] = self._palette_blobs.index(palette_blob)
-            self._sprite_blobs.append(sprite_blob)
-            self._sprite_names.append(path.stem)
+
+            if height == 8 and width == 8:
+                blob_dst = self._sprite8_blobs
+                name_dst = self._sprite8_names
+            elif height == 16 and width == 16:
+                blob_dst = self._sprite16_blobs
+                name_dst = self._sprite16_names
+            elif height == 32 and width == 32:
+                blob_dst = self._sprite32_blobs
+                name_dst = self._sprite32_names
+            elif height == 64 and width == 64:
+                blob_dst = self._sprite64_blobs
+                name_dst = self._sprite64_names
+            else:
+                raise ResourceLayoutError(
+                    f"'{path.name}' has invalid dimensions: {width}{height}!"
+                )
+
+            blob_dst.append(sprite_blob)
+            name_dst.append(path.stem)
 
     def link(self, output_path: Path) -> None:
         """
@@ -109,28 +153,40 @@ class AtlasLinker:
         :param output_path: The path to save the atlas to.
         """
 
-        palette_count = len(self._palette_blobs)
-        sprite_count = len(self._sprite_blobs)
-        header = struct.pack(
-            ATLAS_METADATA_LAYOUT, ATLAS_MAGIC, palette_count, sprite_count
+        metadata_bytes = struct.pack(
+            ATLAS_METADATA_LAYOUT,
+            ATLAS_MAGIC,
+            len(self._sprite16_blobs),
+            len(self._sprite32_blobs),
+            len(self._palette_blobs),
         )
 
         with output_path.open("wb") as f:
-            f.write(header)
+            f.write(metadata_bytes)
             for palette in self._palette_blobs:
                 f.write(palette)
-            for sprite in self._sprite_blobs:
+            for sprite in self._sprite16_blobs:
+                f.write(sprite)
+            for sprite in self._sprite32_blobs:
                 f.write(sprite)
 
-        self._generate_enum_header(
-            output_path.with_name(f"{PALETTE_INDEX_ENUM_NAME}.hh"),
-            self._palette_names,
-        )
+        if self._palette_blobs:
+            self._generate_enum_header(
+                output_path.with_name(f"palette_index.hh"),
+                self._palette_names,
+            )
 
-        self._generate_enum_header(
-            output_path.with_name(f"{SPRITE_INDEX_ENUM_NAME}.hh"),
-            self._sprite_names,
-        )
+        if self._sprite16_blobs:
+            self._generate_enum_header(
+                output_path.with_name(f"sprite16_index.hh"),
+                self._sprite16_names,
+            )
+
+        if self._sprite32_blobs:
+            self._generate_enum_header(
+                output_path.with_name(f"sprite32_index.hh"),
+                self._sprite32_names,
+            )
 
     # Protected static methods
 
@@ -154,7 +210,7 @@ class AtlasLinker:
             "",
             "namespace sc::sprites {",
             "",
-            f"{indent}enum class {header_path.stem} : core::atlas_index_t {{",
+            f"{indent}enum class {header_path.stem} : core::atlas_index {{",
         ]
 
         for name in enumerators:

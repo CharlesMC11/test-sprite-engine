@@ -13,7 +13,7 @@
 #include "physics.hh"
 #include "render_bridge.hh"
 #include "sprite.hh"
-#include "sprite_index.hh"
+#include "sprite32_index.hh"
 
 @implementation SCStage {
     std::unique_ptr<sc::core::mapped_view<sc::sprites::atlas>> _view;
@@ -53,7 +53,7 @@
 
         self.framebufferOnly = false;
 
-        constexpr auto id{sc::sprites::sprite_index::LANCIS};
+        constexpr auto id{sc::sprites::sprite32_index::LANCIS};
         const sc::sprites::metadata& sprite{(*_atlas)[id].meta};
         _registry.spawn(
                 (sc::display::kWidth - sc::sprites::kWidth - sprite.origin_u) *
@@ -62,13 +62,12 @@
                         0.5f,
                 0.0f, id);
 
-        _registry.spawn(sc::display::kWidth * 0.25f,
-                sc::display::kHeight * 0.25, 0.0f,
-                sc::sprites::sprite_index::MYARRA);
+        _registry.spawn(0.0f, 0.0f, 0.0f, sc::sprites::sprite32_index::MYARRA);
 
         _registry.spawn(sc::display::kWidth * 0.75f,
                 sc::display::kHeight * 0.75f, 0.0f,
                 sc::sprites::sprite_index::HEART_OW_F);
+                sc::sprites::sprite32_index::HEART_OW_F);
     }
 
     return self;

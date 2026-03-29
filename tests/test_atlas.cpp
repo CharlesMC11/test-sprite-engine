@@ -1,4 +1,4 @@
-#include <cstdio>
+#include <format>
 #include <iostream>
 
 #include "../include/atlas.hh"
@@ -22,11 +22,21 @@ int main(const int argc, const char* argv[])
 
     std::cout << "Atlas File Size: " << view.size()
               << " bytes\tPalette Count: " << view->meta.palette_count
-              << "\tSprite Count: " << view->meta.sprite_count << std::endl;
+              << "\tSprite16 Count: " << view->meta.sprite16_count
+              << "\tSprite32 Count: " << view->meta.sprite32_count << std::endl;
 
-    for (std::size_t i{0}; i < view->meta.sprite_count; ++i) {
-        std::cout << "Sprite " << i + 1 << "\t";
-        debug_sprite(view->sprites()[i]);
+    std::size_t i{0u};
+    for (; i < view->meta.palette_count; ++i) {
+        std::cout << std::format("Palette {:02}: ", i + 1u);
+        for (const auto& p: view->palettes()[i]) {
+            std::cout << std::format("{:04X} ", p);
+        }
+        std::cout << std::endl;
+    }
+
+    for (i = 0u; i < view->meta.sprite32_count; ++i) {
+        std::cout << std::format("Sprite {:02}\t", i + 1u);
+        debug_sprite(view->sprite32()[i]);
     }
 }
 
@@ -34,8 +44,13 @@ void debug_sprite(const sc::sprites::sprite32x32& sprite)
 {
     const sc::sprites::metadata& meta{sprite.meta};
 
-    std::cout << "Encoding " << static_cast<int>(meta.color_encoding)
-              << std::endl;
+    std::cout << std::format(
+            "BBox: ({:02}, {:02}, {:02}, {:02})\tOrigin: ({:02.2f}, "
+            "{:02.2f})\tEncoding: {}\tPalette: {}\tPhysics: {}\n",
+            meta.bbox.min_u, meta.bbox.min_v, meta.bbox.max_u, meta.bbox.max_v,
+            meta.origin_u, meta.origin_v,
+            static_cast<unsigned>(meta.color_encoding), meta.palette_index,
+            meta.physics_type);
 
     for (uint_fast8_t y = 0; y < sc::sprites::kHeight; ++y) {
         for (uint_fast8_t x = 0; x < sc::sprites::kWidth; ++x) {
@@ -44,11 +59,8 @@ void debug_sprite(const sc::sprites::sprite32x32& sprite)
             const bool a{(pixel & sc::sprites::kMaskAlpha) > 0x00};
             const auto i{pixel & sc::sprites::kMaskPaletteIndex};
 
-            if (a)
-                std::printf("%X", i);
-            else
-                std::cout << ' ';
+            std::cout << (a ? std::format("{:X}*", i) : "  ");
         }
-        puts("");
+        std::cout << std::endl;
     }
 }

@@ -56,9 +56,9 @@ namespace sc {
         NS::SharedPtr<MTL::CommandQueue> queue_;
         NS::SharedPtr<MTL::ComputePipelineState> clear_pso_{nullptr};
         NS::SharedPtr<MTL::ComputePipelineState> sprite_pso_{nullptr};
-        NS::SharedPtr<MTL::Buffer> sprite_buffer_{nullptr};
-        NS::UInteger palette_offset_{0u};
-        NS::UInteger sprites_offset_{0u};
+        NS::SharedPtr<MTL::Buffer> sprite32_buffer_{nullptr};
+        NS::UInteger palette_span_offset_{0u};
+        NS::UInteger sprite32_span_offset_{0u};
 
         MTL::CommandBuffer* command_buffer_{nullptr};
         MTL::ComputeCommandEncoder* encoder_{nullptr};

@@ -25,7 +25,7 @@ namespace sc::sprites {
      * @brief Distribution of color channels across a 16-bit packed integer.
      */
     enum class color_encoding {
-        DEFAULT = 1u, // R5G6B5
+        DEFAULT = 0u, // R5G6B5
         WARM, // R6G5B5
         COOL // R5G5B6
     };

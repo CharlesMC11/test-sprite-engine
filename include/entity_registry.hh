@@ -14,7 +14,7 @@
 
 #include "core.hh"
 #include "memory.hh"
-#include "sprite_index.hh"
+#include "sprite32_index.hh"
 
 #define REGISTER_CHANNEL_ACCESSOR(name, enum_val)                              \
     [[nodiscard]] constexpr auto name##_ptr() noexcept -> float*               \
@@ -60,7 +60,7 @@ namespace sc {
          * @param i The entity's ID.
          */
         constexpr void spawn(float start_x, float start_y, float start_z,
-                sprites::sprite_index i) noexcept;
+                sprites::sprite32_index i) noexcept;
 
         /**
          * @brief Update the current layout.
@@ -87,7 +87,7 @@ namespace sc {
         [[nodiscard]] constexpr std::size_t count() const noexcept;
         [[nodiscard]] constexpr std::size_t capacity() const noexcept;
 
-        std::vector<sprites::sprite_index> indices;
+        std::vector<sprites::sprite32_index> indices;
         std::vector<core::index_t> physics_order;
         std::vector<core::index_t> draw_order;
 
@@ -143,7 +143,7 @@ namespace sc {
 
     constexpr void entity_registry::spawn(const float start_x,
             const float start_y, const float start_z,
-            const sprites::sprite_index i) noexcept
+            const sprites::sprite32_index i) noexcept
     {
         if (buffer_.capacity <= buffer_.count) [[unlikely]]
             reserve(std::max(static_cast<std::size_t>(core::kCacheAlignment),
