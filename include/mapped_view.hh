@@ -39,11 +39,13 @@ namespace sc::core {
         // Operators
 
         [[nodiscard]] explicit constexpr operator bool() const noexcept;
-        [[nodiscard]] constexpr const T* operator->() const noexcept;
+        [[nodiscard]] constexpr auto operator->() const noexcept
+                -> const T* __restrict;
 
         // Accessors
 
-        [[nodiscard]] constexpr const T* data() const noexcept;
+        [[nodiscard]] constexpr auto data() const noexcept
+                -> const T* __restrict;
         [[nodiscard]] constexpr std::size_t size() const noexcept;
 
     private:
@@ -95,7 +97,8 @@ namespace sc::core {
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr const T* mapped_view<T>::operator->() const noexcept
+    [[nodiscard]] constexpr auto mapped_view<T>::operator->() const noexcept
+            -> const T* __restrict
     {
         return buffer_;
     }
@@ -103,7 +106,8 @@ namespace sc::core {
     // Accessors
 
     template<mappable T>
-    [[nodiscard]] constexpr const T* mapped_view<T>::data() const noexcept
+    [[nodiscard]] constexpr auto mapped_view<T>::data() const noexcept
+            -> const T* __restrict
     {
         return buffer_;
     }

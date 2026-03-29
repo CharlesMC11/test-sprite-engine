@@ -54,7 +54,8 @@ namespace sc::sprites {
 
         // Accessors
 
-        [[nodiscard]] constexpr auto data() const noexcept -> const std::byte*;
+        [[nodiscard]] constexpr auto data() const noexcept
+                -> const std::byte* __restrict;
 
         [[nodiscard]] constexpr auto palette_span() const noexcept
                 -> std::span<const palette>;
@@ -118,7 +119,7 @@ namespace sc::sprites {
     // Accessors
 
     [[nodiscard]] constexpr auto atlas::data() const noexcept
-            -> const std::byte*
+            -> const std::byte* __restrict
     {
         return reinterpret_cast<const std::byte*>(&meta + 1);
     }

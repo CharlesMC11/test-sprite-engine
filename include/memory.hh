@@ -16,7 +16,8 @@ namespace sc::mem {
 
         // Operators
 
-        constexpr T* operator[](std::size_t i) const noexcept;
+        constexpr auto operator[](std::size_t i) const noexcept
+                -> T* __restrict;
 
         // Mutators
 
@@ -30,7 +31,8 @@ namespace sc::mem {
     };
 
     template<typename T, std::size_t N>
-    constexpr T* soa_block<T, N>::operator[](const std::size_t i) const noexcept
+    constexpr auto soa_block<T, N>::operator[](
+            const std::size_t i) const noexcept -> T* __restrict
     {
         return data.get() + capacity * i;
     }

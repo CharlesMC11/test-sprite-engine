@@ -17,12 +17,13 @@
 #include "sprite32_index.hh"
 
 #define REGISTER_CHANNEL_ACCESSOR(name, enum_val)                              \
-    [[nodiscard]] constexpr auto name##_ptr() noexcept -> float*               \
+    [[nodiscard]] constexpr auto name##_ptr() noexcept -> float* __restrict    \
     {                                                                          \
         return get_ptr<channel::enum_val, false>();                            \
     }                                                                          \
                                                                                \
-    [[nodiscard]] constexpr auto name##_ptr() const noexcept -> const float*   \
+    [[nodiscard]] constexpr auto name##_ptr() const noexcept                   \
+            -> const float* __restrict                                         \
     {                                                                          \
         return get_ptr<channel::enum_val, true>();                             \
     }
@@ -128,7 +129,8 @@ namespace sc {
         // Accessors
 
         template<channel Channel, bool IsConst>
-        [[nodiscard]] constexpr auto get_ptr() const noexcept -> ptr_t<IsConst>;
+        [[nodiscard]] constexpr auto get_ptr() const noexcept
+                -> ptr_t<IsConst> __restrict;
 
         // Attributes
 
@@ -258,7 +260,7 @@ namespace sc {
 
     template<entity_registry::channel Channel, bool IsConst>
     [[nodiscard]] constexpr auto entity_registry::get_ptr() const noexcept
-            -> ptr_t<IsConst>
+            -> ptr_t<IsConst> __restrict
     {
         return buffer_[static_cast<std::size_t>(Channel)];
     }
