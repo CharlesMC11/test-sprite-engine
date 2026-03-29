@@ -49,9 +49,9 @@ inline float4 unpack_color(
 
 [[kernel]] void k_draw_sprites(constant sp::palette* palettes [[buffer(0u)]],
         constant sp::sprite32* sprites [[buffer(1u)]],
-        constant float* x_coords [[buffer(2u)]],
-        constant float* y_coords [[buffer(3u)]],
-        constant float* z_coords [[buffer(4u)]],
+        constant float* pos_x_ptr [[buffer(2u)]],
+        constant float* pos_y_ptr [[buffer(3u)]],
+        constant float* pos_z_ptr [[buffer(4u)]],
         constant sc::core::atlas_index* sprite_indices [[buffer(5u)]],
         constant sc::core::index_t* draw_order [[buffer(6u)]],
         constant uint& entity_count [[buffer(7u)]],
@@ -66,14 +66,15 @@ inline float4 unpack_color(
     for (uint i{0u}; i < entity_count; ++i) {
         const sc::core::index_t draw_idx{draw_order[i]};
 
-        const auto entity_coord{float2(
-                x_coords[draw_idx], y_coords[draw_idx] - z_coords[draw_idx])};
+        const auto entity_coord{float2(pos_x_ptr[draw_idx],
+                pos_y_ptr[draw_idx] - pos_z_ptr[draw_idx])};
+
         const auto local_coord{int2(gid) - int2(floor(entity_coord))};
 
         if (local_coord.x < 0 ||
-                static_cast<uint>(local_coord.x) > sp::kWidth ||
+                static_cast<uint>(local_coord.x) >= sp::kWidth ||
                 local_coord.y < 0 ||
-                static_cast<uint>(local_coord.y) > sp::kHeight)
+                static_cast<uint>(local_coord.y) >= sp::kHeight)
             continue;
 
         constant sp::sprite32& sprite{sprites[sprite_indices[draw_idx]]};
@@ -90,11 +91,11 @@ inline float4 unpack_color(
 
         const float4 color_normalized{unpack_color(packed_color,
                 static_cast<sp::color_encoding>(sprite.meta.color_encoding))};
+
         const float alpha_normalized{static_cast<float>(alpha_raw) / 3.0f};
         if (alpha_normalized < 1.0f) {
-            out_color = (color_normalized * alpha_normalized) +
-                    (out_color * (1.0f - alpha_normalized));
-            out_color.a = 1.0f;
+            out_color.rgb = (color_normalized.rgb * alpha_normalized) +
+                    (out_color.rgb * (1.0f - alpha_normalized));
         }
         else
             out_color = color_normalized;
