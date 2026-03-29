@@ -98,8 +98,8 @@ inline float4 unpack_color(
                     (out_color.rgb * (1.0f - alpha_normalized));
         }
         else
-            out_color = color_normalized;
-
-        out.write(out_color, gid);
+            out_color.rgb = color_normalized.rgb;
     }
+
+    out.write(out_color, gid);
 }
