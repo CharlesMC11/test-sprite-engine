@@ -31,16 +31,20 @@ namespace sc {
 
         clear_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
-        if (!clear_pso_) [[unlikely]]
+        if (!clear_pso_) [[unlikely]] {
             std::cerr << error->localizedDescription() << std::endl;
+            throw;
+        }
 
         fn_name = NS::String::string("k_draw_sprites", NS::UTF8StringEncoding);
         function = library->newFunction(fn_name);
 
         sprite_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
-        if (!sprite_pso_) [[unlikely]]
+        if (!sprite_pso_) [[unlikely]] {
             std::cerr << error->localizedDescription() << std::endl;
+            throw;
+        }
 
         function->release();
         library->release();
