@@ -1,15 +1,12 @@
 #pragma once
 
-#include <cstdlib>
-#include <memory>
+#include <Metal/Metal.hpp>
+
+#include <cstring>
 
 #include "core.hh"
 
 namespace sc::mem {
-
-    struct c_deleter final {
-        void operator()(void* ptr) const { std::free(ptr); }
-    };
 
     /**
      * @brief A dynamic array meant to contain at least 2 subarrays.
@@ -18,7 +15,6 @@ namespace sc::mem {
      */
     template<typename T, std::size_t N = 2u>
     struct channel_pool final {
-
         // Operators
 
         /**
@@ -26,58 +22,85 @@ namespace sc::mem {
          * @param i
          * @return
          */
-        constexpr auto operator[](std::size_t i) const noexcept
+        [[nodiscard]] constexpr auto operator[](std::size_t i) const noexcept
                 -> T* __restrict;
 
         // Mutators
 
         /**
          * @brief Increate the capacity of each subarray.
+         * @param device The metal device.
          * @param new_capacity The new capacity size.
          */
-        constexpr void grow(std::size_t new_capacity);
+        constexpr void grow(MTL::Device* device, std::size_t new_capacity);
+
+        // Accessors
+
+        /**
+         * @brief Calculate the subarray’s offset from the base pointer.
+         * @param i The subarray’s index.
+         * @return The offset.
+         */
+        [[nodiscard]] constexpr auto subarray_offset(
+                std::size_t i) const noexcept -> std::size_t;
 
         // Attributes
 
-        std::unique_ptr<T[], c_deleter> data{nullptr};
+        NS::SharedPtr<MTL::Buffer> buffer{nullptr};
         std::size_t count{0u};
         std::size_t capacity{0u};
     };
 
-    template<typename T, std::size_t N>
-    constexpr auto channel_pool<T, N>::operator[](
-            const std::size_t i) const noexcept -> T* __restrict
-    {
-        return data.get() + capacity * i;
-    }
+    // Operators
 
     template<typename T, std::size_t N>
-    constexpr void channel_pool<T, N>::grow(const std::size_t new_capacity)
+    [[nodiscard]] constexpr auto channel_pool<T, N>::operator[](
+            const std::size_t i) const noexcept -> T* __restrict
+    {
+        if (!buffer) [[unlikely]]
+            return nullptr;
+
+        auto* base{static_cast<std::byte*>(buffer->contents())};
+        return reinterpret_cast<T*>(base + subarray_offset(i));
+    }
+
+    // Mutators
+
+    template<typename T, std::size_t N>
+    constexpr void channel_pool<T, N>::grow(
+            MTL::Device* device, const std::size_t new_capacity)
     {
         const std::size_t aligned_new_capacity{
                 new_capacity + core::kCacheAlignment - 1u &
                 ~(core::kCacheAlignment - 1u)};
-        if (aligned_new_capacity <= capacity)
+        if (aligned_new_capacity <= capacity) [[unlikely]]
             return;
 
-        T* old_buffer{data.get()};
-        auto* new_buffer{static_cast<T*>(std::realloc(
-                old_buffer, sizeof(T) * aligned_new_capacity * N))};
-        if (!new_buffer) {
-            return;
+        const std::size_t new_total_bytes{sizeof(T) * aligned_new_capacity * N};
+        const NS::SharedPtr new_buffer{NS::TransferPtr(device->newBuffer(
+                new_total_bytes, MTL::ResourceStorageModeShared))};
+
+        if (buffer) [[likely]] {
+            const auto* src{static_cast<const std::byte*>(buffer->contents())};
+            auto* dst{static_cast<std::byte*>(new_buffer->contents())};
+
+            for (std::size_t i{0u}; i < N; ++i) {
+                std::memcpy(dst + sizeof(T) * aligned_new_capacity * i,
+                        src + subarray_offset(i), sizeof(T) * count);
+            }
         }
 
-        for (std::ptrdiff_t i{N - 1}; i >= 0; --i) {
-            const T* src{old_buffer + i * capacity};
-            if (T* dst{new_buffer + i * aligned_new_capacity}; src != dst)
-                std::memmove(dst, src, sizeof(T) * count);
-        }
-
-        if (old_buffer != new_buffer) {
-            data.release();
-            data.reset(new_buffer);
-        }
+        buffer = new_buffer;
         capacity = aligned_new_capacity;
+    }
+
+    // Accessors
+
+    template<typename T, std::size_t N>
+    [[nodiscard]] constexpr auto channel_pool<T, N>::subarray_offset(
+            const std::size_t i) const noexcept -> std::size_t
+    {
+        return sizeof(T) * capacity * i;
     }
 
 } // namespace sc::mem
