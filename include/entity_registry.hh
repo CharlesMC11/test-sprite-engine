@@ -134,7 +134,7 @@ namespace sc {
 
         // Attributes
 
-        mem::soa_block<float, static_cast<std::size_t>(channel::count)> buffer_;
+        mem::channel_pool<float> buffer_;
     };
 
     // Constructors
@@ -212,7 +212,7 @@ namespace sc {
 
     constexpr void entity_registry::reserve(const std::size_t n)
     {
-        buffer_.grow(n);
+        buffer_.grow<static_cast<std::size_t>(channel::count)>(n);
         indices.reserve(buffer_.capacity);
         physics_order.reserve(buffer_.capacity);
         draw_order.reserve(buffer_.capacity);

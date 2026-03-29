@@ -11,8 +11,8 @@ namespace sc::mem {
         void operator()(void* ptr) const { std::free(ptr); }
     };
 
-    template<typename T, std::size_t N>
-    struct soa_block {
+    template<typename T>
+    struct channel_pool final {
 
         // Operators
 
@@ -21,6 +21,7 @@ namespace sc::mem {
 
         // Mutators
 
+        template<std::size_t N>
         constexpr void grow(std::size_t new_capacity);
 
         // Attributes
@@ -30,15 +31,16 @@ namespace sc::mem {
         std::size_t capacity{0u};
     };
 
-    template<typename T, std::size_t N>
-    constexpr auto soa_block<T, N>::operator[](
+    template<typename T>
+    constexpr auto channel_pool<T>::operator[](
             const std::size_t i) const noexcept -> T* __restrict
     {
         return data.get() + capacity * i;
     }
 
-    template<typename T, std::size_t N>
-    constexpr void soa_block<T, N>::grow(const std::size_t new_capacity)
+    template<typename T>
+    template<std::size_t N>
+    constexpr void channel_pool<T>::grow(const std::size_t new_capacity)
     {
         const std::size_t aligned_new_capacity{
                 new_capacity + core::kCacheAlignment - 1u &
