@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <memory>
 
-#include "Metal/MTL4PipelineDataSetSerializer.hpp"
 #include "core.hh"
 
 namespace sc::mem {
@@ -15,9 +14,15 @@ namespace sc::mem {
     template<typename T, std::size_t N>
     struct soa_block {
 
+        // Operators
+
         constexpr T* operator[](std::size_t i) const noexcept;
 
+        // Mutators
+
         constexpr void grow(std::size_t new_capacity);
+
+        // Attributes
 
         std::unique_ptr<T[], c_deleter> data{nullptr};
         std::size_t count{0u};
