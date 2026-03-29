@@ -1,7 +1,3 @@
-/**
- * @file mapped_view.hh
- * @brief RAII wrapper for POSIX memory-mapped files.
- */
 #pragma once
 
 #include <fcntl.h>
@@ -16,8 +12,8 @@
 namespace sc::core {
 
     /**
-     * @class mapped_view
-     * @brief Manages `mmap`/`munmap` lifecycle for a specific file path.
+     * RAII wrapper for POSIX memory-mapped files.
+     *
      * @tparam T The type to cast the mapped memory to.
      */
     template<mappable T>

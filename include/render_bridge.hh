@@ -1,7 +1,3 @@
-/**
- * @file render_bridge.hh
- * @brief
- */
 #pragma once
 
 #include <Metal/Metal.hpp>
@@ -13,8 +9,7 @@
 namespace sc {
 
     /**
-     * @class render_bridge
-     * @brief High-level interface for the Metal Compute pipeline.
+     * High-level interface for the Metal Compute pipeline.
      *
      * Orchestrates the dispatch of kernels to the GPU using `sc::sprite` data
      * as primary input.
@@ -36,33 +31,40 @@ namespace sc {
         // Public methods
 
         /**
-         * @brief
-         * @param buffer The destination drawable/texture.
+         *
+         *
+         * @param buffer
+         * The destination drawable/texture.
          */
         void begin_frame(const MTL::Drawable* buffer);
 
         /**
-         * @brief
-         * @param buffer The destination drawable/texture.
+         *
+         *
+         * @param buffer
+         * The destination drawable/texture.
          */
         void end_frame(const MTL::Drawable* buffer);
 
         /**
-         * @brief
+         *
          */
         void clear() const;
 
         /**
-         * @brief Encode a draw command for entities on screen.
+         * Encode a draw command for entities on screen.
+         *
          * @param registry
+         *
          */
         void draw(const entity_registry& registry) const;
 
         // Mutators
 
         /**
-         * @brief
+         *
          * @param view
+         *
          */
         void set_sprite_atlas(const core::mapped_view<sprites::atlas>& view);
 

@@ -1,7 +1,3 @@
-/**
- * @file physics.hh
- * @brief
- */
 #pragma once
 
 #include "atlas.hh"

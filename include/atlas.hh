@@ -1,7 +1,3 @@
-/**
- * @file atlas.hh
- * @brief Core definitions and atlas data structures.
- */
 #pragma once
 
 #include <cstddef>
@@ -19,8 +15,7 @@ namespace sc::sprites {
     static constexpr std::uint64_t kAtlasMagicBytes{0x3476205441204353};
 
     /**
-     * @struct atlas
-     * @brief A contiguous collection of sprites.
+     * A contiguous collection of sprites.
      *
      * This class is designed to memory-mapped by `sc::core::mapped_view`.
      */
@@ -31,6 +26,7 @@ namespace sc::sprites {
                 const void* ptr, std::size_t mapped_size) noexcept;
 
         // Delete constructors because the atlas is never constructed.
+
         atlas() = delete;
 
         atlas(const atlas&) = delete;
@@ -54,9 +50,6 @@ namespace sc::sprites {
 
         // Accessors
 
-        [[nodiscard]] constexpr auto data() const noexcept
-                -> const std::byte* __restrict;
-
         [[nodiscard]] constexpr auto palette_span() const noexcept
                 -> std::span<const palette>;
 
@@ -74,6 +67,10 @@ namespace sc::sprites {
             const std::uint16_t sprite32_count;
             const std::uint16_t palette_count;
         } meta;
+
+    private:
+        [[nodiscard]] constexpr auto data() const noexcept
+                -> const std::byte* __restrict;
     };
 
     // Static methods
@@ -118,11 +115,6 @@ namespace sc::sprites {
 
     // Accessors
 
-    [[nodiscard]] constexpr auto atlas::data() const noexcept
-            -> const std::byte* __restrict
-    {
-        return reinterpret_cast<const std::byte*>(&meta + 1);
-    }
 
     [[nodiscard]] constexpr auto atlas::palette_span() const noexcept
             -> std::span<const palette>
@@ -147,5 +139,14 @@ namespace sc::sprites {
                         sizeof(sprite16) * meta.sprite16_count,
                 sizeof(sprite32) * meta.sprite32_count};
     }
+
+    // Private helpers
+
+    [[nodiscard]] constexpr auto atlas::data() const noexcept
+            -> const std::byte* __restrict
+    {
+        return reinterpret_cast<const std::byte*>(&meta + 1);
+    }
+
 
 } // namespace sc::sprites

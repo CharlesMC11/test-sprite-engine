@@ -1,7 +1,3 @@
-/**
- * @file sprite.hh
- * @brief Core definitions and sprite data structures.
- */
 #pragma once
 
 #ifndef __METAL_VERSION__
@@ -21,8 +17,7 @@ namespace sc::sprites {
     using palette = packed_color[kMaxPaletteSize];
 
     /**
-     * @enum color_encoding
-     * @brief Distribution of color channels across a 16-bit packed integer.
+     * Distribution of color channels across a 16-bit packed integer.
      */
     enum class color_encoding : uint8_t {
         DEFAULT = 0u, // R5G6B5
@@ -37,8 +32,7 @@ namespace sc::sprites {
     static SC_CONSTANT packed_pixel kMaskSpecular{0x80};
 
     /**
-     * @struct metadata
-     * @brief A sprite’s metadata.
+     * A sprite’s metadata.
      *
      * Contains information regarding a sprite’s bounding box, pivot, color
      * encoding, and physics type.
@@ -53,8 +47,7 @@ namespace sc::sprites {
     };
 
     /**
-     * @struct sprite
-     * @brief A hardware-aware sprite definition.
+     * hardware-aware sprite definition.
      */
     template<unsigned Height, unsigned Width = Height>
     struct alignas(core::kNeonAlignment) sprite final {

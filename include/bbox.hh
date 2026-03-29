@@ -1,6 +1,3 @@
-/**
- * @file bbox.hh
- */
 #pragma once
 
 #ifndef __METAL_VERSION__
@@ -10,9 +7,10 @@
 namespace sc::geometry {
 
     /**
-     * @struct bbox
-     * @brief A bounding box.
-     * @tparam T Integer or float.
+     * A bounding box.
+     *
+     * @tparam T
+     * Integer or float.
      *
      * This struct is compatible with both C++ and Metal.
      */

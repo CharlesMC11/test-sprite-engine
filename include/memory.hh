@@ -9,18 +9,26 @@
 namespace sc::mem {
 
     /**
-     * @brief A dynamic array meant to contain at least 2 subarrays.
-     * @tparam T The type of the contained elements.
-     * @tparam N The number of subarrays.
+     * A dynamic array meant to contain at least 2 subarrays.
+     *
+     * @tparam T
+     * The type of the contained elements.
+     *
+     * @tparam N
+     * The number of subarrays.
      */
     template<typename T, std::size_t N = 2u>
     struct channel_pool final {
         // Operators
 
         /**
-         * @brief Get the subarray
+         * Get the subarray
+         *
          * @param i
+         * The index.
+         *
          * @return
+         * The subarray.
          */
         [[nodiscard]] constexpr auto operator[](std::size_t i) const noexcept
                 -> T* __restrict;
@@ -28,18 +36,26 @@ namespace sc::mem {
         // Mutators
 
         /**
-         * @brief Increate the capacity of each subarray.
-         * @param device The metal device.
-         * @param new_capacity The new capacity size.
+         * Increate the capacity of each subarray.
+         *
+         * @param device
+         * The metal device.
+         *
+         * @param new_capacity
+         * The new capacity size.
          */
         constexpr void grow(MTL::Device* device, std::size_t new_capacity);
 
         // Accessors
 
         /**
-         * @brief Calculate the subarray’s offset from the base pointer.
-         * @param i The subarray’s index.
-         * @return The offset.
+         * Calculate the subarray’s offset from the base pointer.
+         *
+         * @param i
+         * The subarray’s index.
+         *
+         * @return
+         * The offset.
          */
         [[nodiscard]] constexpr auto subarray_offset(
                 std::size_t i) const noexcept -> std::size_t;

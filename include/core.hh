@@ -1,6 +1,5 @@
 /**
- * @file core.hh
- * @brief Source of truth for type aliases, constants, and enums.
+ * Source of truth for type aliases, constants, and enums.
  */
 #pragma once
 
@@ -31,8 +30,7 @@ namespace sc {
 #ifndef __METAL_VERSION__
 
         /**
-         * @concept mappable
-         * @brief Requirements for types to be safe to direct memory mapping.
+         * Requirements for types to be safe to direct memory mapping.
          *
          * Type must be 16-byte aligned and follow Standard Layout to ensure the
          * CPU and GPU interpret the raw bytes identically.

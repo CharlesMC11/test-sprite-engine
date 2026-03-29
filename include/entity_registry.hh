@@ -1,17 +1,11 @@
-/**
- * @file entity_registry.hh
- * @brief
- */
 #pragma once
 
 #include <arm_neon.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
-#include <cstdlib>
-#include <cstring>
 #include <span>
-#include <vector>
 
 #include "core.hh"
 #include "memory.hh"
@@ -21,7 +15,7 @@
  * Register a channel accessor method for the registry.
  *
  * @param enum_T
- *  The enum referred to by the buffer.
+ * The enum referred to by the buffer.
  *
  * @param T
  * The type contained in the buffer.
@@ -88,52 +82,70 @@ namespace sc {
         entity_registry& operator=(const entity_registry&) = delete;
 
         entity_registry(entity_registry&&) = default;
-        entity_registry& operator=(entity_registry&&) = default;
+        entity_registry& operator=(entity_registry&&) noexcept = default;
 
         ~entity_registry() = default;
 
         // Public methods
 
         /**
-         * @brief Update the current layout.
-         * @param dt The delta time.
+         * Update the current layout.
+         *
+         * @param dt
+         * The delta time.
          */
         constexpr void update(float dt) noexcept;
 
         /**
-         * @brief Commit the changes to the registry.
+         * Commit the changes to the registry.
          */
         constexpr void commit() noexcept;
 
         /**
-         * @brief Sort the draw order based on screen coordinates.
+         * Sort the draw order based on screen coordinates.
          */
         constexpr void sort_draw() noexcept;
 
         /**
-         * @brief Print the entries in the registry.
+         * Print the entries in the registry.
          */
         void print() const;
 
         // Mutators
 
         /**
-         * @brief Reserve space in the registry.
-         * @param n The number of entries to reserve.
+         * Reserve space in the registry.
+         *
+         * @param n
+         * The number of entries to reserve.
          */
         constexpr void reserve(std::size_t n);
 
         /**
-         * @brief Add a new entity to the layout.
-         * @param start_x The starting horizontal position.
-         * @param start_y The starting vertical position.
-         * @param start_z The starting aerial position.
-         * @param i The entity's index in the atlas.
+         * Add a new entity to the layout.
+         *
+         * @param start_x
+         * The starting horizontal position.
+         *
+         * @param start_y
+         * The starting vertical position.
+         *
+         * @param start_z
+         * The starting aerial position.
+         *
+         * @param i
+         * The entity's index in the atlas.
          */
         constexpr void spawn(float start_x, float start_y, float start_z,
                 sprites::sprite32_index i);
 
         // Accessors
+
+        [[nodiscard]] constexpr auto xform_buffer() const noexcept
+                -> const MTL::Buffer* __restrict;
+
+        [[nodiscard]] constexpr auto index_buffer() const noexcept
+                -> const MTL::Buffer* __restrict;
 
         REGISTER_XFORM_CHANNEL_ACCESSOR(pos_x)
         REGISTER_XFORM_CHANNEL_ACCESSOR(pos_y)
@@ -159,12 +171,6 @@ namespace sc {
 
         [[nodiscard]] constexpr std::size_t offset(
                 index_channel) const noexcept;
-
-        [[nodiscard]] constexpr auto xform_buffer() const noexcept
-                -> const MTL::Buffer* __restrict;
-
-        [[nodiscard]] constexpr auto index_buffer() const noexcept
-                -> const MTL::Buffer* __restrict;
 
         // Attributes
 
@@ -344,7 +350,7 @@ namespace sc {
         return index_buffer_.buffer.get();
     }
 
-    // Private static methods
+    // Private helpers
 
     template<typename Channel, typename T, bool IsConst>
     [[nodiscard]] constexpr auto entity_registry::get_ptr(
@@ -357,5 +363,6 @@ namespace sc {
 
 } // namespace sc
 
-#undef REGISTER_XFORM_CHANNEL_ACCESSOR
 #undef REGISTER_INDEX_CHANNEL_ACCESSOR
+#undef REGISTER_XFORM_CHANNEL_ACCESSOR
+#undef REGISTER_ACCESSOR
