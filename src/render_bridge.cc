@@ -60,8 +60,8 @@ namespace sc {
                 sizeof(sprites::sprite16) * view->meta.sprite16_count};
         const std::size_t sprite32_span_size{
                 sizeof(sprites::sprite32) * view->meta.sprite32_count};
-        const std::size_t total_size{
-                sizeof(view) + palette_span_size + sprite32_span_size};
+        const std::size_t total_size{sizeof(view) + palette_span_size +
+                sprite16_span_size + sprite32_span_size};
 
         sprite32_buffer_ = NS::TransferPtr(device_->newBuffer(view.data(),
                 total_size, MTL::ResourceStorageModeShared, nullptr));
