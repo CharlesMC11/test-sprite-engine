@@ -1,65 +1,82 @@
 /**
  * @file atlas.hh
- * @brief
+ * @brief Core definitions and atlas data structures.
  */
 #pragma once
 
 #include <cstddef>
 #include <cstdint>
+#include <span>
 
-#include "atlas_index.hh"
 #include "core.hh"
+#include "palette_index.hh"
 #include "sprite.hh"
+#include "sprite16_index.hh"
+#include "sprite32_index.hh"
 
 namespace sc::sprites {
 
-    static constexpr core::atlas_magic_t kAtlasMagicBytes{0x53414C5441204353};
+    static constexpr std::uint64_t kAtlasMagicBytes{0x3476205441204353};
 
     /**
      * @struct atlas
      * @brief A contiguous collection of sprites.
      *
-     * This class is designed to live within an `sc::core::file_mapping`. It
-     * uses a flexible array member `data` to provide indexed access to sprites
-     * loaded directly from an `.atlas` file.
+     * This class is designed to memory-mapped by `sc::core::mapped_view`.
      */
-    struct alignas(core::kAlignment) atlas final {
-
-        // Delete constructors because the atlas is mapped, not instantiated.
-        atlas() = delete;
-        atlas(const atlas&) = delete;
-        atlas(atlas&&) = delete;
-
-        ~atlas() = delete;
-
-        atlas& operator=(const atlas&) = delete;
-        atlas& operator=(atlas&&) = delete;
-
-        [[nodiscard]] constexpr const sprite& operator[](
-                core::index_t i) const noexcept;
-
-        [[nodiscard]] constexpr const sprite& operator[](
-                atlas_index i) const noexcept;
+    struct alignas(core::kCacheAlignment) atlas final {
+        // Static methods
 
         [[nodiscard]] static constexpr bool validate(
                 const void* ptr, std::size_t mapped_size) noexcept;
 
-        core::atlas_magic_t magic;
-        std::uint64_t count;
-        sprite data[];
+        // Delete constructors because the atlas is never constructed.
+        atlas() = delete;
+
+        atlas(const atlas&) = delete;
+        atlas& operator=(const atlas&) = delete;
+
+        atlas(atlas&&) = delete;
+        atlas& operator=(atlas&&) = delete;
+
+        ~atlas() = default;
+
+        // Operators
+
+        [[nodiscard]] constexpr auto operator[](palette_index i) const noexcept
+                -> const palette&;
+
+        [[nodiscard]] constexpr auto operator[](sprite16_index i) const noexcept
+                -> const sprite16&;
+
+        [[nodiscard]] constexpr auto operator[](sprite32_index i) const noexcept
+                -> const sprite32&;
+
+        // Accessors
+
+        [[nodiscard]] constexpr auto data() const noexcept
+                -> const std::byte* __restrict;
+
+        [[nodiscard]] constexpr auto palette_span() const noexcept
+                -> std::span<const palette>;
+
+        [[nodiscard]] constexpr auto sprite16_span() const noexcept
+                -> std::span<const sprite16>;
+
+        [[nodiscard]] constexpr auto sprite32_span() const noexcept
+                -> std::span<const sprite32>;
+
+        // Attributes
+
+        struct alignas(core::kNeonAlignment) metadata final {
+            const std::uint64_t magic;
+            const std::uint32_t sprite16_count;
+            const std::uint16_t sprite32_count;
+            const std::uint16_t palette_count;
+        } meta;
     };
 
-    [[nodiscard]] constexpr const sprite& atlas::operator[](
-            const core::atlas_index_t i) const noexcept
-    {
-        return data[i];
-    }
-
-    [[nodiscard]] constexpr const sprite& atlas::operator[](
-            const atlas_index i) const noexcept
-    {
-        return (*this)[static_cast<core::atlas_index_t>(i)];
-    }
+    // Static methods
 
     [[nodiscard]] constexpr bool atlas::validate(
             const void* ptr, const std::size_t mapped_size) noexcept
@@ -67,13 +84,68 @@ namespace sc::sprites {
         if (!ptr || mapped_size < sizeof(atlas))
             return false;
 
-        const auto* header{static_cast<const atlas*>(ptr)};
-        if (header->magic != kAtlasMagicBytes)
+        const auto [magic, sprite16_count, sprite32_count, palette_count]{
+                static_cast<const atlas*>(ptr)->meta};
+        if (magic != kAtlasMagicBytes)
             return false;
 
-        const std::size_t expected_size{
-                sizeof(atlas) + header->count * sizeof(sprite)};
+        const std::size_t expected_size{sizeof(metadata) +
+                sizeof(palette) * palette_count +
+                sizeof(sprite16) * sprite16_count +
+                sizeof(sprite32) * sprite32_count};
         return mapped_size >= expected_size;
+    }
+
+    // Operators
+
+    [[nodiscard]] constexpr auto atlas::operator[](
+            const palette_index i) const noexcept -> const palette&
+    {
+        return palette_span()[static_cast<std::size_t>(i)];
+    }
+
+    [[nodiscard]] constexpr auto atlas::operator[](
+            const sprite16_index i) const noexcept -> const sprite16&
+    {
+        return sprite16_span()[static_cast<std::size_t>(i)];
+    }
+
+    [[nodiscard]] constexpr auto atlas::operator[](
+            const sprite32_index i) const noexcept -> const sprite32&
+    {
+        return sprite32_span()[static_cast<std::size_t>(i)];
+    }
+
+    // Accessors
+
+    [[nodiscard]] constexpr auto atlas::data() const noexcept
+            -> const std::byte* __restrict
+    {
+        return reinterpret_cast<const std::byte*>(&meta + 1);
+    }
+
+    [[nodiscard]] constexpr auto atlas::palette_span() const noexcept
+            -> std::span<const palette>
+    {
+        return {reinterpret_cast<const palette*>(data()),
+                sizeof(palette) * meta.palette_count};
+    }
+
+    [[nodiscard]] constexpr auto atlas::sprite16_span() const noexcept
+            -> std::span<const sprite16>
+    {
+        return {reinterpret_cast<const sprite16*>(
+                        data() + sizeof(palette) * meta.palette_count),
+                sizeof(sprite16) * meta.sprite16_count};
+    }
+
+    [[nodiscard]] constexpr auto atlas::sprite32_span() const noexcept
+            -> std::span<const sprite32>
+    {
+        return {reinterpret_cast<const sprite32*>(
+                        data() + sizeof(palette) * meta.palette_count) +
+                        sizeof(sprite16) * meta.sprite16_count,
+                sizeof(sprite32) * meta.sprite32_count};
     }
 
 } // namespace sc::sprites

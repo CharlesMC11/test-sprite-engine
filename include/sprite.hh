@@ -13,68 +13,63 @@
 
 namespace sc::sprites {
 
-    static SC_CONSTANT uint32_t kHeight{32u};
-    static SC_CONSTANT uint32_t kWidth{32u};
-    static SC_CONSTANT uint32_t kMaxPaletteSize{16u};
+    static SC_CONSTANT unsigned kMaxPaletteSize{16u};
+    static SC_CONSTANT unsigned kHeight{32u};
+    static SC_CONSTANT unsigned kWidth{32u};
 
-    static SC_CONSTANT core::packed_pixel_t kMaskPaletteIndex{0x0F};
-    static SC_CONSTANT core::packed_pixel_t kMaskAlpha{0x30};
-    static SC_CONSTANT core::packed_pixel_t kMaskEmission{0x40};
-    static SC_CONSTANT core::packed_pixel_t kMaskSpecular{0x80};
+    using packed_color = uint16_t;
+    using palette = packed_color[kMaxPaletteSize];
 
     /**
      * @enum color_encoding
-     * @brief Distribution of color channels across 16-bit packed integers.
+     * @brief Distribution of color channels across a 16-bit packed integer.
      */
     enum class color_encoding : uint8_t {
-        DEFAULT = 1u, ///< R5G6B5
-        WARM, ///< R6G5B5
-        COOL ///< R5G5B6
+        DEFAULT = 0u, // R5G6B5
+        WARM, // R6G5B5
+        COOL // R5G5B6
     };
 
-    /**
-     * @union packed_pixel
-     * @brief 8-bit packed index/metadata pixel.
-     */
-    union packed_pixel {
-        core::packed_pixel_t data;
-        struct {
-            core::packed_pixel_t index : 4u;
-            core::packed_pixel_t alpha : 2u;
-            core::packed_pixel_t emission : 1u;
-            core::packed_pixel_t specular : 1u;
-        };
-    };
+    using packed_pixel = uint8_t; // [S][E][AA][IIII]
+    static SC_CONSTANT packed_pixel kMaskPaletteIndex{0x0F};
+    static SC_CONSTANT packed_pixel kMaskAlpha{0x30};
+    static SC_CONSTANT packed_pixel kMaskEmission{0x40};
+    static SC_CONSTANT packed_pixel kMaskSpecular{0x80};
 
     /**
      * @struct metadata
      * @brief A sprite’s metadata.
      *
-     * Contains information regarding a sprite’s bounding box, anchors, color
+     * Contains information regarding a sprite’s bounding box, pivot, color
      * encoding, and physics type.
      */
-    struct alignas(core::kAlignment) metadata final {
-        geometry::bbox<uint8_t> bbox;
-        uint8_t anchor_x, anchor_y;
-        color_encoding encoding;
-        core::physics_t physics;
-        uint64_t padding;
+    struct alignas(core::kNeonAlignment) metadata final {
+        geometry::bbox<> bbox;
+        float origin_u, origin_v;
+        color_encoding color_encoding;
+        uint8_t palette_index;
+        uint8_t physics_type;
+        uint8_t padding;
     };
 
     /**
      * @struct sprite
      * @brief A hardware-aware sprite definition.
-     *
-     * Uses 16-byte alignment to satisfy AArch64 SIMD and Metal address space
-     * for constant sys.
      */
-    struct alignas(core::kAlignment) sprite final {
-        metadata metadata;
-        core::packed_color_t palette[kMaxPaletteSize]; ///< 16-color LUT
-        packed_pixel pixels[kHeight][kWidth]; ///< Row-major pixels
+    template<unsigned Height, unsigned Width = Height>
+    struct alignas(core::kNeonAlignment) sprite final {
+        metadata meta;
+        packed_pixel pixels[Height][Width]; // Row-major pixels
     };
 
-    static_assert(sizeof(metadata) == 16, "Metadata must be 16 B.");
-    static_assert(sizeof(sprite) == 1'072, "Sprite must be exactly 1,072 B.");
+    using sprite8 = sprite<8u>;
+    using sprite16 = sprite<16u>;
+    using sprite32 = sprite<32u>;
+    using sprite64 = sprite<64u>;
+
+    static_assert(
+            sizeof(metadata) == core::kNeonAlignment, "Metadata must be 16 B.");
+    static_assert(sizeof(sprite16) == 272, "Sprite16 must be 272 B.");
+    static_assert(sizeof(sprite32) == 1'040, "Sprite32 must be 1,040 B.");
 
 } // namespace sc::sprites

@@ -1,6 +1,6 @@
 [project]
-name = "pipeline-tools"
-version = "0.3.0"
+name = "test-sprite-engine"
+version = "0.5.0"
 description = "Compile artworks into sprites, and preview them."
 readme = "README.md"
 requires-python = ">=3.14"
@@ -28,3 +28,6 @@ quote-style = "double"
 
 [tool.ruff.lint]
 select = ["I"]
+
+[tool.uv]
+package = true

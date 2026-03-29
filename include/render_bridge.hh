@@ -7,7 +7,8 @@
 #include <Metal/Metal.hpp>
 
 #include "atlas.hh"
-#include "scene_registry.hh"
+#include "entity_registry.hh"
+#include "mapped_view.hh"
 
 namespace sc {
 
@@ -20,16 +21,19 @@ namespace sc {
      */
     class render_bridge final {
     public:
+        // Constructors
+
         explicit render_bridge(MTL::Device* device);
+
         render_bridge(const render_bridge&) = delete;
+        render_bridge& operator=(const render_bridge&) = delete;
+
         render_bridge(render_bridge&&) = delete;
+        render_bridge& operator=(render_bridge&&) = delete;
 
         ~render_bridge() = default;
 
-        render_bridge& operator=(const render_bridge&) = delete;
-        render_bridge& operator=(render_bridge&&) = delete;
-
-        void set_sprite_atlas(const sprites::atlas& atlas);
+        // Public methods
 
         /**
          * @brief
@@ -39,23 +43,41 @@ namespace sc {
 
         /**
          * @brief
+         * @param buffer The destination drawable/texture.
          */
         void end_frame(const MTL::Drawable* buffer);
 
+        /**
+         * @brief
+         */
         void clear() const;
 
         /**
          * @brief Encode a draw command for entities on screen.
          * @param registry
          */
-        void draw(const scene_registry& registry) const;
+        void draw(const entity_registry& registry) const;
+
+        // Mutators
+
+        /**
+         * @brief
+         * @param view
+         */
+        void set_sprite_atlas(const core::mapped_view<sprites::atlas>& view);
 
     private:
+        // Attributes
+
         NS::SharedPtr<MTL::Device> device_;
         NS::SharedPtr<MTL::CommandQueue> queue_;
+
         NS::SharedPtr<MTL::ComputePipelineState> clear_pso_{nullptr};
         NS::SharedPtr<MTL::ComputePipelineState> sprite_pso_{nullptr};
-        NS::SharedPtr<MTL::Buffer> sprite_buffer_{nullptr};
+
+        NS::SharedPtr<MTL::Buffer> sprite32_buffer_{nullptr};
+        std::size_t palette_span_offset_{0u};
+        std::size_t sprite32_span_offset_{0u};
 
         MTL::CommandBuffer* command_buffer_{nullptr};
         MTL::ComputeCommandEncoder* encoder_{nullptr};

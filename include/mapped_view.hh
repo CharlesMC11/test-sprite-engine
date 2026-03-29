@@ -1,5 +1,5 @@
 /**
- * @file file_mapping.hh
+ * @file mapped_view.hh
  * @brief RAII wrapper for POSIX memory-mapped files.
  */
 #pragma once
@@ -10,56 +10,55 @@
 #include <unistd.h>
 
 #include <cstddef>
-#include <type_traits>
 
 #include "core.hh"
 
 namespace sc::core {
 
     /**
-     * @concept mappable
-     * @brief Requirements for types to be safe to direct memory mapping.
-     *
-     * Type must be 16-byte aligned and follow Standard Layout to ensure the CPU
-     * and GPU interpret the raw bytes identically.
-     */
-    template<typename T>
-    concept mappable =
-            alignof(T) == kAlignment && std::is_standard_layout_v<T> &&
-            std::is_trivially_copyable_v<T> && !std::is_polymorphic_v<T>;
-
-    /**
-     * @class file_mapping
+     * @class mapped_view
      * @brief Manages `mmap`/`munmap` lifecycle for a specific file path.
      * @tparam T The type to cast the mapped memory to.
      */
     template<mappable T>
-    class file_mapping final {
+    class mapped_view final {
     public:
-        [[nodiscard]] explicit constexpr file_mapping(
+        // Constructors
+
+        [[nodiscard]] explicit constexpr mapped_view(
                 const char path[]) noexcept;
-        file_mapping(const file_mapping&) = delete;
-        file_mapping(file_mapping&&) = delete;
 
-        ~file_mapping() noexcept;
+        mapped_view(const mapped_view&) = delete;
+        mapped_view& operator=(const mapped_view&) = delete;
 
-        file_mapping& operator=(const file_mapping&) = delete;
-        file_mapping& operator=(file_mapping&&) = delete;
+        mapped_view(mapped_view&&) = delete;
+        mapped_view& operator=(mapped_view&&) = delete;
+
+        ~mapped_view() noexcept;
+
+        // Operators
 
         [[nodiscard]] explicit constexpr operator bool() const noexcept;
-        [[nodiscard]] constexpr const T* operator->() const noexcept;
-        [[nodiscard]] constexpr const T& operator*() const noexcept;
+        [[nodiscard]] constexpr auto operator->() const noexcept
+                -> const T* __restrict;
 
-        [[nodiscard]] constexpr const T* data() const noexcept;
+        // Accessors
+
+        [[nodiscard]] constexpr auto data() const noexcept
+                -> const T* __restrict;
         [[nodiscard]] constexpr std::size_t size() const noexcept;
 
     private:
+        // Attributes
+
         const T* buffer_ = nullptr;
         std::size_t size_{0};
     };
 
+    // Constructors
+
     template<mappable T>
-    constexpr file_mapping<T>::file_mapping(const char path[]) noexcept
+    constexpr mapped_view<T>::mapped_view(const char path[]) noexcept
     {
         const int fd{open(path, O_RDONLY)};
         if (fd < 0) [[unlikely]]
@@ -83,39 +82,38 @@ namespace sc::core {
     }
 
     template<mappable T>
-    file_mapping<T>::~file_mapping() noexcept
+    mapped_view<T>::~mapped_view() noexcept
     {
         if (buffer_) [[likely]]
             munmap(const_cast<T*>(buffer_), size_);
     }
 
+    // Operators
+
     template<mappable T>
-    [[nodiscard]] constexpr file_mapping<T>::operator bool() const noexcept
+    [[nodiscard]] constexpr mapped_view<T>::operator bool() const noexcept
     {
         return buffer_ != nullptr;
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr const T*
-    file_mapping<T>::operator->() const noexcept
+    [[nodiscard]] constexpr auto mapped_view<T>::operator->() const noexcept
+            -> const T* __restrict
+    {
+        return buffer_;
+    }
+
+    // Accessors
+
+    template<mappable T>
+    [[nodiscard]] constexpr auto mapped_view<T>::data() const noexcept
+            -> const T* __restrict
     {
         return buffer_;
     }
 
     template<mappable T>
-    [[nodiscard]] constexpr const T& file_mapping<T>::operator*() const noexcept
-    {
-        return *buffer_;
-    }
-
-    template<mappable T>
-    [[nodiscard]] constexpr const T* file_mapping<T>::data() const noexcept
-    {
-        return buffer_;
-    }
-
-    template<mappable T>
-    [[nodiscard]] constexpr std::size_t file_mapping<T>::size() const noexcept
+    [[nodiscard]] constexpr std::size_t mapped_view<T>::size() const noexcept
     {
         return size_;
     }

@@ -9,9 +9,13 @@
 
 #include <iostream>
 
+#include "atlas.hh"
 #include "core.hh"
+#include "mapped_view.hh"
 
 namespace sc {
+
+    // Constructors
 
     render_bridge::render_bridge(MTL::Device* device)
         : device_{NS::TransferPtr(device)},
@@ -29,30 +33,26 @@ namespace sc {
 
         clear_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
-        if (!clear_pso_) [[unlikely]]
+        if (!clear_pso_) [[unlikely]] {
             std::cerr << error->localizedDescription() << std::endl;
+            throw;
+        }
 
         fn_name = NS::String::string("k_draw_sprites", NS::UTF8StringEncoding);
         function = library->newFunction(fn_name);
 
         sprite_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
-        if (!sprite_pso_) [[unlikely]]
+        if (!sprite_pso_) [[unlikely]] {
             std::cerr << error->localizedDescription() << std::endl;
+            throw;
+        }
 
         function->release();
         library->release();
     }
 
-    void render_bridge::set_sprite_atlas(const sprites::atlas& atlas)
-    {
-        const std::size_t size{sizeof(sprites::sprite) * atlas.count};
-
-        sprite_buffer_ = NS::TransferPtr(
-                device_->newBuffer(size, MTL::ResourceStorageModeShared));
-
-        std::memcpy(sprite_buffer_->contents(), &atlas[0], size);
-    }
+    // Public methods
 
     void render_bridge::begin_frame(const MTL::Drawable* buffer)
     {
@@ -84,29 +84,59 @@ namespace sc {
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }
 
-    void render_bridge::draw(const scene_registry& registry) const
+    void render_bridge::draw(const entity_registry& registry) const
     {
         encoder_->setComputePipelineState(sprite_pso_.get());
 
-        encoder_->setBuffer(sprite_buffer_.get(), 0, 0);
+        encoder_->setBuffer(sprite32_buffer_.get(), palette_span_offset_, 0u);
+        encoder_->setBuffer(sprite32_buffer_.get(), sprite32_span_offset_, 1u);
+
         encoder_->setBytes(
-                registry.x.data(), sizeof(float) * registry.size(), 1);
+                registry.pos_x_ptr(), sizeof(float) * registry.count(), 2u);
         encoder_->setBytes(
-                registry.y.data(), sizeof(float) * registry.size(), 2);
+                registry.pos_y_ptr(), sizeof(float) * registry.count(), 3u);
         encoder_->setBytes(
-                registry.z.data(), sizeof(float) * registry.size(), 3);
+                registry.pos_z_ptr(), sizeof(float) * registry.count(), 4u);
+
         encoder_->setBytes(registry.indices.data(),
-                sizeof(core::atlas_index_t) * registry.size(), 4);
-        encoder_->setBytes(registry.draw_order.data(),
-                sizeof(core::index_t) * registry.size(), 5);
+                sizeof(core::atlas_index) * registry.count(), 5u);
+        encoder_->setBytes(registry.draw_order_ptr(),
+                sizeof(core::index_t) * registry.count(), 6u);
 
-        const auto count{static_cast<std::uint32_t>(registry.size())};
-        encoder_->setBytes(&count, sizeof(count), 6);
+        const auto count{static_cast<std::uint32_t>(registry.count())};
+        encoder_->setBytes(&count, sizeof(count), 7u);
 
-        const MTL::Size grid_size{display::kWidth, display::kHeight, 1};
-        const MTL::Size thread_group_size{16, 16, 1};
+        const MTL::Size grid_size{display::kWidth, display::kHeight, 1u};
+        const MTL::Size thread_group_size{16u, 16u, 1u};
 
         encoder_->dispatchThreads(grid_size, thread_group_size);
+    }
+
+    // Mutators
+
+    void render_bridge::set_sprite_atlas(
+            const core::mapped_view<sprites::atlas>& view)
+    {
+        constexpr std::size_t metadata_size{sizeof(view->meta)};
+        const std::size_t palette_span_size{
+                sizeof(sprites::palette) * view->meta.palette_count};
+        const std::size_t sprite16_span_size{
+                sizeof(sprites::sprite16) * view->meta.sprite16_count};
+        const std::size_t sprite32_span_size{
+                sizeof(sprites::sprite32) * view->meta.sprite32_count};
+        const std::size_t total_size{sizeof(view) + palette_span_size +
+                sprite16_span_size + sprite32_span_size};
+
+        sprite32_buffer_ = NS::TransferPtr(device_->newBuffer(view.data(),
+                total_size, MTL::ResourceStorageModeShared, nullptr));
+        if (!sprite32_buffer_) [[unlikely]] {
+            std::cerr << "Metal buffer is empty!\n";
+            throw;
+        }
+
+        palette_span_offset_ = metadata_size;
+        sprite32_span_offset_ =
+                metadata_size + palette_span_size + sprite16_span_size;
     }
 
 } // namespace sc

@@ -1,18 +1,30 @@
 """
 Sprite Compiler.
 
-Bakes a 32×32 source (BGR/RGBA) image and optional glow masks into a specialized
-1,072-byte binary format.
+Bakes a source (BGR/RGBA) image and optional emission & specular masks
+into a specialized binary format of at least 54 bytes.
 
 The binary layout contains:
-- Metadata (16 bytes): Hitbox, anchor data, and padding.
-- Palette (32 bytes): 16 colors as 16-bit packed integers.
-- Pixels (1,024 bytes): 8-bit packed values [S][E][AA][IIII].
+- Header (16 bytes): sprite metadata
+    - Bounding box (4 bytes)
+    - Origin (8 bytes)
+    - Color encoding (1 byte)
+    - Palette index (1 byte), set to 0 as a placeholder
+    - Physics type (1 byte)
+    - Padding (1 byte)
+- Pixels (height × width bytes): 8-bit packed values [S][E][AA][IIII].
+- Footer (34 bytes):
+    - Color palette (32 bytes): 16 unique colors in the sprite.
+    - Height (1 byte): height in pixels
+    - Width (1 byte): width in pixels
 """
 
 import struct
 from argparse import ArgumentParser
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Final
+from warnings import warn
 
 import cv2
 import numpy as np
@@ -20,11 +32,13 @@ import numpy.typing as npt
 
 from pipeline import (
     MAX_PALETTE_SIZE,
-    SPRITE_HEIGHT,
-    SPRITE_METADATA,
-    SPRITE_WIDTH,
+    SPRITE_METADATA_LAYOUT,
+    SPRITE_METADATA_SIZE_BYTES,
+    SPRITE_MINIMUM_FILE_SIZE_BYTES,
+    SPRITE_PALETTE_SIZE_BYTES,
     ColorEncoding,
     PhysicsType,
+    ResourceLayoutError,
 )
 
 type BGRImage = npt.NDArray[np.uint8]
@@ -37,50 +51,7 @@ type PackedColors = npt.NDArray[np.uint16]
 type BakedPixels = npt.NDArray[np.uint8]
 
 
-def calculate_bounding_box(mask: AlphaMask) -> tuple[int, int, int, int]:
-    """
-    Calculate the bounding box of a sprite based from an alpha mask.
-
-    :param mask: An alpha mask to calculate the bounding box from.
-    :returns: The top-left and bottom-right coordinates of the bounding box.
-    """
-
-    visible_coords = np.argwhere(mask > 0)
-    if visible_coords.size > 0:
-        min_y, min_x = visible_coords.min(axis=0)
-        max_y, max_x = visible_coords.max(axis=0)
-    else:
-        min_x = min_y = max_x = max_y = 0
-
-    return min_x, min_y, max_x, max_y
-
-
-def pack_colors_to_16bit(
-        image_bgr: BGRImage, encoding: ColorEncoding
-) -> PackedColors:
-    """
-    Pack the 8-bit BGR channels into 16-bit integers.
-
-    :param image_bgr: The original color channels to pack.
-    :param encoding: The color encoding mode to use.
-    :returns: The packed 16-bit colors.
-    """
-
-    b, g, r = image_bgr.astype(np.uint16).T
-
-    if encoding == ColorEncoding.DEFAULT:
-        packed_colors = (r >> 3) << 11 | (g >> 2) << 5 | b >> 3
-
-    elif encoding == ColorEncoding.WARM:
-        packed_colors = (r >> 2) << 10 | (g >> 3) << 5 | b >> 3
-
-    elif encoding == ColorEncoding.COOL:
-        packed_colors = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
-
-    else:
-        raise ValueError("Invalid color mode.")
-
-    return packed_colors
+class ResourceLayoutWarning(UserWarning): ...
 
 
 class SpriteCompiler:
@@ -88,8 +59,13 @@ class SpriteCompiler:
 
     # Type annotations
 
+    _source_path: Path
+    _origin_u: float
+    _origin_v: float
     _encoding: ColorEncoding
     _physics: PhysicsType
+    _width: int
+    _height: int
     _source_image: BGRImage | None
     _source_alpha: AlphaMask | None
     _pixel_flat_list: BGRImage | None
@@ -98,9 +74,20 @@ class SpriteCompiler:
     _palette: Palette | None
 
     # Magic methods
-    def __init__(self, encoding: ColorEncoding, physics: PhysicsType):
+
+    def __init__(
+        self,
+        source_path: Path,
+        origin: Sequence[float],
+        encoding: ColorEncoding,
+        physics: PhysicsType,
+    ):
+        self._source_path = source_path
+        self._origin_u, self._origin_v = origin
         self._encoding = encoding
         self._physics = physics
+        self._width = 0
+        self._height = 0
         self._source_image = None
         self._source_alpha = None
         self._pixel_flat_list = None
@@ -108,13 +95,22 @@ class SpriteCompiler:
         self._specular_bits = None
         self._palette = None
 
+    # Properties
+
+    @property
+    def pixels_size_bytes(self) -> int:
+        return self._height * self._width
+
+    @property
+    def sprite_size_bytes(self) -> int:
+        return SPRITE_MINIMUM_FILE_SIZE_BYTES + self.pixels_size_bytes
+
     # Public methods
 
     def ingest_asset(
-            self,
-            image_path: Path,
-            emission_mask_path: Path | None,
-            specular_mask_path: Path | None,
+        self,
+        emission_mask_path: Path | None,
+        specular_mask_path: Path | None,
     ) -> None:
         """
         Validate the source asset.
@@ -122,33 +118,36 @@ class SpriteCompiler:
         Split the source image into color and alpha channels, flatten the pixel
         grid for evaluation, and pre-threshold the glow mask.
 
-        :param image_path: The filesystem path to a 32×32 BGR/RGBA image.
         :param emission_mask_path: Optional path to a 32×32 grayscale emission mask.
         :param specular_mask_path: Optional path to a 32×32 grayscale specular mask.
 
         :raises RuntimeError: If OpenCV fails to read the assets.
         :raises ValueError: If the image dimensions are not 32×32.
         """
-        if not image_path.exists():
-            raise FileNotFoundError(f"Missing image file: {image_path}")
+        if not self._source_path.exists():
+            raise FileNotFoundError(f"Missing image file: {self._source_path}")
 
-        if (image := cv2.imread(image_path, cv2.IMREAD_UNCHANGED)) is None:
+        if (
+            image := cv2.imread(self._source_path, cv2.IMREAD_UNCHANGED)
+        ) is None:
             raise RuntimeError("Could not read source image.")
 
         h, w = image.shape[:2]
-        if h != SPRITE_HEIGHT or w != SPRITE_WIDTH:
-            raise ValueError(
-                f"Asset dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
+        if not (is_power_of_2(h) and is_power_of_2(w)):
+            raise ResourceLayoutError(
+                f"Source image '{self._source_path.name}' dimensions must be a "
+                f"power of 2 (8, 16, 32, etc...)! Got {w}×{h}."
             )
+
+        self._height = h
+        self._width = w
 
         if image.shape[2] >= 4:
             self._source_image = image[:, :, :3]
             self._source_alpha = image[:, :, 3]
         else:
             self._source_image = image
-            self._source_alpha = np.full(
-                (SPRITE_HEIGHT, SPRITE_WIDTH), 0xFF, dtype=np.uint8
-            )
+            self._source_alpha = np.full((h, w), 0xFF, dtype=np.uint8)
 
         self._pixel_flat_list = self._source_image.reshape(-1, 3)
 
@@ -157,18 +156,14 @@ class SpriteCompiler:
                 emission_mask_path
             )
         if self._emission_bits is None:
-            self._emission_bits = np.zeros(
-                SPRITE_HEIGHT * SPRITE_WIDTH, dtype=np.uint8
-            )
+            self._emission_bits = np.zeros(h * w, dtype=np.uint8)
 
         if specular_mask_path:
             self._specular_bits = self._ingest_grayscale_mask(
                 specular_mask_path
             )
         if self._specular_bits is None:
-            self._specular_bits = np.zeros(
-                SPRITE_HEIGHT * SPRITE_WIDTH, dtype=np.uint8
-            )
+            self._specular_bits = np.zeros(h * w, dtype=np.uint8)
 
         self._palette = self._extract_palette()
 
@@ -179,23 +174,34 @@ class SpriteCompiler:
         :param output_path: The path to save the sprite to.
         """
 
-        left, top, right, bottom = calculate_bounding_box(self._source_alpha)
+        min_u, min_v, max_u, max_v = calculate_bounding_box(self._source_alpha)
 
-        anchor_x = (right - left) // 2
-        anchor_y = bottom
+        origin_u = (
+            self._width / 2.0
+            if self._origin_u != self._origin_u
+            else self._origin_u
+        )
+        origin_v = (
+            self._height / 2.0
+            if self._origin_v != self._origin_v
+            else self._origin_v
+        )
 
         metadata_bytes = struct.pack(
-            f"<{SPRITE_METADATA}",
-            left,
-            top,
-            right,
-            bottom,
-            anchor_x,
-            anchor_y,
+            SPRITE_METADATA_LAYOUT,
+            min_u,
+            min_v,
+            max_u,
+            max_v,
+            origin_u,
+            origin_v,
             self._encoding.value,
+            0,  # palette index placeholder
             self._physics.value,
+            0,  # padding
         )
-        padding_bytes = struct.pack("<Q", 0)
+
+        pixel_bytes = self._bake_pixels().tobytes()
 
         palette_bytes = bytearray()
         palette_size = len(self._palette)
@@ -207,14 +213,48 @@ class SpriteCompiler:
             else:
                 palette_bytes.extend(struct.pack("<H", 0x00))
 
-        pixel_bytes = self._bake_pixels().tobytes()
+        footer_bytes = struct.pack("<BB", self._height, self._width)
 
-        with output_path.open("wb") as f:
-            f.write(
-                metadata_bytes + padding_bytes + palette_bytes + pixel_bytes
+        combined_buffer = (
+            metadata_bytes + pixel_bytes + palette_bytes + footer_bytes
+        )
+        if len(combined_buffer) != self.sprite_size_bytes:
+            raise ResourceLayoutError(
+                f"Buffer size mismatch for {output_path.name}! "
+                f"Expected {self.sprite_size_bytes} bytes, got {combined_buffer} bytes "
+                f"(Metadata: {len(metadata_bytes)} bytes, Pixels: {len(pixel_bytes)} bytes, "
+                f"Palette: {len(palette_bytes)} bytes, Dimensions: {len(footer_bytes)})."
             )
 
+        output_path.write_bytes(combined_buffer)
+
     # Protected methods
+
+    def _ingest_grayscale_mask(
+        self, mask_path: Path
+    ) -> EmissionMask | SpecularMask:
+        """
+        Ingest the grayscale mask.
+
+        :param mask_path: The path to the mask.
+        :raises FileNotFoundError: If the mask is missing.
+        :raises RuntimeError: If OpenCV fails to read the mask.
+        :raises ValueError: If the mask dimensions are not 32×32.
+        """
+
+        if not mask_path.exists():
+            raise FileNotFoundError(f"Missing mask file: '{mask_path}'")
+        if (make := cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)) is None:
+            raise RuntimeError(f"Could not read mask file: '{mask_path}'.")
+
+        h, w = make.shape[:2]
+        if h != self._height or w != self._width:
+            raise ResourceLayoutError(
+                f"Mask '{mask_path.name}' dimensions do not match source image! "
+                f"Expected {self._width}×{self._height}, got {w}×{h}."
+            )
+
+        return (make.flatten() > 0x80).astype(np.uint8)
 
     def _extract_palette(self) -> Palette:
         """
@@ -226,9 +266,23 @@ class SpriteCompiler:
         unique_colors, counts = np.unique(
             self._pixel_flat_list, axis=0, return_counts=True
         )
-        sorted_indices = np.argsort(-counts)
 
-        return unique_colors[sorted_indices[:MAX_PALETTE_SIZE]]
+        colors_count = len(unique_colors)
+        if colors_count > MAX_PALETTE_SIZE:
+            warn(
+                f"'{self._source_path.name}' has {colors_count} unique colors. "
+                f"It will be truncated to {MAX_PALETTE_SIZE}.",
+                ResourceLayoutWarning,
+            )
+
+        top_indices = np.argsort(-counts)[:MAX_PALETTE_SIZE]
+        top_colors = unique_colors[top_indices]
+
+        normalized_indices = np.lexsort(
+            (top_colors[:, 0], top_colors[:, 1], top_colors[:, 2])
+        )
+
+        return top_colors[normalized_indices]
 
     def _index_colors(self):
         """
@@ -258,39 +312,72 @@ class SpriteCompiler:
         indices = self._index_colors() & 0x0F
         alphas = (self._source_alpha.flatten() >> 6) & 0x03
         baked_pixels = (
-                self._specular_bits << 7
-                | self._emission_bits << 6
-                | alphas << 4
-                | indices
+            self._specular_bits << 7
+            | self._emission_bits << 6
+            | alphas << 4
+            | indices
         )
 
         return baked_pixels.astype(np.uint8)
 
     # Protected static methods
 
-    @staticmethod
-    def _ingest_grayscale_mask(mask_path: Path) -> EmissionMask | SpecularMask:
-        """
-        Ingest the grayscale mask.
 
-        :param mask_path: The path to the mask.
-        :raises FileNotFoundError: If the mask is missing.
-        :raises RuntimeError: If OpenCV fails to read the mask.
-        :raises ValueError: If the mask dimensions are not 32×32.
-        """
+def is_power_of_2(n: int) -> bool:
+    """
+    Check if a number is a power of 2.
 
-        if not mask_path.exists():
-            raise FileNotFoundError(f"Missing mask file: {mask_path}")
-        if (glow_mask := cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)) is None:
-            raise RuntimeError(f"Could not read mask file: {mask_path}.")
+    :param n: The number to check.
+    :return: `True` if it is; `False` otherwise.
+    """
 
-        h, w = glow_mask.shape[:2]
-        if h != SPRITE_HEIGHT or w != SPRITE_WIDTH:
-            raise ValueError(
-                f"Mask dimensions must be {SPRITE_WIDTH}×{SPRITE_HEIGHT}."
-            )
+    return n > 0 and (n & (n - 1)) == 0
 
-        return (glow_mask.flatten() > 0x80).astype(np.uint8)
+
+def calculate_bounding_box(mask: AlphaMask) -> tuple[int, int, int, int]:
+    """
+    Calculate the bounding box of a sprite based from an alpha mask.
+
+    :param mask: An alpha mask to calculate the bounding box from.
+    :returns: The top-left and bottom-right coordinates of the bounding box.
+    """
+
+    visible_coords = np.argwhere(mask > 0)
+    if visible_coords.size > 0:
+        min_y, min_x = visible_coords.min(axis=0)
+        max_y, max_x = visible_coords.max(axis=0)
+    else:
+        min_x = min_y = max_x = max_y = 0
+
+    return min_x, min_y, max_x, max_y
+
+
+def pack_colors_to_16bit(
+    image_bgr: BGRImage, encoding: ColorEncoding
+) -> PackedColors:
+    """
+    Pack the 8-bit BGR channels into 16-bit integers.
+
+    :param image_bgr: The original color channels to pack.
+    :param encoding: The color encoding mode to use.
+    :returns: The packed 16-bit colors.
+    """
+
+    b, g, r = image_bgr.astype(np.uint16).T
+
+    if encoding == ColorEncoding.DEFAULT:
+        packed_colors = (r >> 3) << 11 | (g >> 2) << 5 | b >> 3
+
+    elif encoding == ColorEncoding.WARM:
+        packed_colors = (r >> 2) << 10 | (g >> 3) << 5 | b >> 3
+
+    elif encoding == ColorEncoding.COOL:
+        packed_colors = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
+
+    else:
+        raise ValueError("Invalid color mode.")
+
+    return packed_colors
 
 
 def main() -> None:
@@ -300,6 +387,14 @@ def main() -> None:
     )
     parser.add_argument(
         "output_path", type=Path, help="Target path for the 1072-byte sprite."
+    )
+    parser.add_argument(
+        "-o",
+        "--origin",
+        nargs=2,
+        default=(float("NaN"), float("Nan")),
+        type=float,
+        help=f"Sprite origin (u, v). Default is center.",
     )
     parser.add_argument(
         "-c",
@@ -314,7 +409,7 @@ def main() -> None:
         "--physics_type",
         type=lambda p: PhysicsType[p.upper()],
         choices=list(PhysicsType),
-        help="Physics type (None, Actor, Static, Sensor, or Projectile",
+        help="Physics type (None, Actor, Static, Sensor, or Projectile)",
         required=True,
     )
     parser.add_argument(
@@ -334,10 +429,10 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    compiler = SpriteCompiler(args.color_encoding, args.physics_type)
-    compiler.ingest_asset(
-        args.source_image, args.emission_mask, args.specular_mask
+    compiler = SpriteCompiler(
+        args.source_image, args.origin, args.color_encoding, args.physics_type
     )
+    compiler.ingest_asset(args.emission_mask, args.specular_mask)
     compiler.compile(args.output_path)
 
 
