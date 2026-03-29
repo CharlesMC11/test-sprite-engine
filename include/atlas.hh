@@ -22,13 +22,13 @@ namespace sc::sprites {
      * @struct atlas
      * @brief A contiguous collection of sprites.
      *
-     * This class is designed to live within an `sc::core::mapped_view`.
+     * This class is designed to memory-mapped by `sc::core::mapped_view`.
      */
     struct alignas(core::kCacheAlignment) atlas final {
         [[nodiscard]] static constexpr bool validate(
                 const void* ptr, std::size_t mapped_size) noexcept;
 
-        // Delete constructors because the atlas is mapped, not instantiated.
+        // Delete constructors because the atlas is never constructed.
         atlas() = delete;
         atlas(const atlas&) = delete;
         atlas(atlas&&) = delete;
