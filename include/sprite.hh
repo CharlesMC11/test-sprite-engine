@@ -24,7 +24,7 @@ namespace sc::sprites {
      * @enum color_encoding
      * @brief Distribution of color channels across a 16-bit packed integer.
      */
-    enum class color_encoding {
+    enum class color_encoding : uint8_t {
         DEFAULT = 0u, // R5G6B5
         WARM, // R6G5B5
         COOL // R5G5B6
@@ -46,7 +46,7 @@ namespace sc::sprites {
     struct alignas(core::kNeonAlignment) metadata final {
         geometry::bbox<> bbox;
         float origin_u, origin_v;
-        uint8_t color_encoding;
+        color_encoding color_encoding;
         uint8_t palette_index;
         uint8_t physics_type;
         uint8_t padding;

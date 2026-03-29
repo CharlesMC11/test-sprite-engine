@@ -89,8 +89,8 @@ inline float4 unpack_color(
                 palettes[sprite.meta.palette_index]
                         [pixel & sp::kMaskPaletteIndex]};
 
-        const float4 color_normalized{unpack_color(packed_color,
-                static_cast<sp::color_encoding>(sprite.meta.color_encoding))};
+        const float4 color_normalized{
+                unpack_color(packed_color, sprite.meta.color_encoding)};
 
         const float alpha_normalized{static_cast<float>(alpha_raw) / 3.0f};
         if (alpha_normalized < 1.0f) {
