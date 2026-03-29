@@ -39,8 +39,7 @@ namespace sc {
          */
         template<typename T>
         concept mappable = alignof(T) % kNeonAlignment == 0 &&
-                std::is_standard_layout_v<T> &&
-                std::is_trivially_copyable_v<T> && !std::is_polymorphic_v<T>;
+                std::is_standard_layout_v<T> && !std::is_polymorphic_v<T>;
 
         using float_limits = std::numeric_limits<float>;
 
