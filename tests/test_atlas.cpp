@@ -5,7 +5,7 @@
 #include "../include/mapped_view.hh"
 #include "../include/sprite.hh"
 
-void debug_sprite(const sc::sprites::sprite32x32& sprite);
+void debug_sprite(const sc::sprites::sprite32& sprite);
 
 int main(const int argc, const char* argv[])
 {
@@ -40,7 +40,7 @@ int main(const int argc, const char* argv[])
     }
 }
 
-void debug_sprite(const sc::sprites::sprite32x32& sprite)
+void debug_sprite(const sc::sprites::sprite32& sprite)
 {
     const sc::sprites::metadata& meta{sprite.meta};
 
