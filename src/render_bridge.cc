@@ -15,6 +15,8 @@
 
 namespace sc {
 
+    // Constructors
+
     render_bridge::render_bridge(MTL::Device* device)
         : device_{NS::TransferPtr(device)},
           queue_{NS::TransferPtr(device_->newCommandQueue())}
@@ -50,30 +52,7 @@ namespace sc {
         library->release();
     }
 
-    void render_bridge::set_sprite_atlas(
-            const core::mapped_view<sprites::atlas>& view)
-    {
-        constexpr std::size_t metadata_size{sizeof(view->meta)};
-        const std::size_t palette_span_size{
-                sizeof(sprites::palette) * view->meta.palette_count};
-        const std::size_t sprite16_span_size{
-                sizeof(sprites::sprite16) * view->meta.sprite16_count};
-        const std::size_t sprite32_span_size{
-                sizeof(sprites::sprite32) * view->meta.sprite32_count};
-        const std::size_t total_size{sizeof(view) + palette_span_size +
-                sprite16_span_size + sprite32_span_size};
-
-        sprite32_buffer_ = NS::TransferPtr(device_->newBuffer(view.data(),
-                total_size, MTL::ResourceStorageModeShared, nullptr));
-        if (!sprite32_buffer_) [[unlikely]] {
-            std::cerr << "Metal buffer is empty!" << std::endl;
-            throw;
-        }
-
-        palette_span_offset_ = metadata_size;
-        sprite32_span_offset_ =
-                metadata_size + palette_span_size + sprite16_span_size;
-    }
+    // Public methods
 
     void render_bridge::begin_frame(const MTL::Drawable* buffer)
     {
@@ -131,6 +110,33 @@ namespace sc {
         const MTL::Size thread_group_size{16u, 16u, 1u};
 
         encoder_->dispatchThreads(grid_size, thread_group_size);
+    }
+
+    // Mutators
+
+    void render_bridge::set_sprite_atlas(
+            const core::mapped_view<sprites::atlas>& view)
+    {
+        constexpr std::size_t metadata_size{sizeof(view->meta)};
+        const std::size_t palette_span_size{
+                sizeof(sprites::palette) * view->meta.palette_count};
+        const std::size_t sprite16_span_size{
+                sizeof(sprites::sprite16) * view->meta.sprite16_count};
+        const std::size_t sprite32_span_size{
+                sizeof(sprites::sprite32) * view->meta.sprite32_count};
+        const std::size_t total_size{sizeof(view) + palette_span_size +
+                sprite16_span_size + sprite32_span_size};
+
+        sprite32_buffer_ = NS::TransferPtr(device_->newBuffer(view.data(),
+                total_size, MTL::ResourceStorageModeShared, nullptr));
+        if (!sprite32_buffer_) [[unlikely]] {
+            std::cerr << "Metal buffer is empty!" << std::endl;
+            throw;
+        }
+
+        palette_span_offset_ = metadata_size;
+        sprite32_span_offset_ =
+                metadata_size + palette_span_size + sprite16_span_size;
     }
 
 } // namespace sc

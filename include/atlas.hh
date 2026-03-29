@@ -25,18 +25,23 @@ namespace sc::sprites {
      * This class is designed to memory-mapped by `sc::core::mapped_view`.
      */
     struct alignas(core::kCacheAlignment) atlas final {
+        // Static methods
+
         [[nodiscard]] static constexpr bool validate(
                 const void* ptr, std::size_t mapped_size) noexcept;
 
         // Delete constructors because the atlas is never constructed.
         atlas() = delete;
+
         atlas(const atlas&) = delete;
+        atlas& operator=(const atlas&) = delete;
+
         atlas(atlas&&) = delete;
+        atlas& operator=(atlas&&) = delete;
 
         ~atlas() = default;
 
-        atlas& operator=(const atlas&) = delete;
-        atlas& operator=(atlas&&) = delete;
+        // Operators
 
         [[nodiscard]] constexpr auto operator[](palette_index i) const noexcept
                 -> const palette&;
@@ -46,6 +51,8 @@ namespace sc::sprites {
 
         [[nodiscard]] constexpr auto operator[](sprite32_index i) const noexcept
                 -> const sprite32&;
+
+        // Accessors
 
         [[nodiscard]] constexpr auto data() const noexcept -> const std::byte*;
 
@@ -58,6 +65,8 @@ namespace sc::sprites {
         [[nodiscard]] constexpr auto sprite32_span() const noexcept
                 -> std::span<const sprite32>;
 
+        // Attributes
+
         struct alignas(core::kNeonAlignment) metadata final {
             const std::uint64_t magic;
             const std::uint32_t sprite16_count;
@@ -65,6 +74,8 @@ namespace sc::sprites {
             const std::uint16_t palette_count;
         } meta;
     };
+
+    // Static methods
 
     [[nodiscard]] constexpr bool atlas::validate(
             const void* ptr, const std::size_t mapped_size) noexcept
@@ -84,6 +95,8 @@ namespace sc::sprites {
         return mapped_size >= expected_size;
     }
 
+    // Operators
+
     [[nodiscard]] constexpr auto atlas::operator[](
             const palette_index i) const noexcept -> const palette&
     {
@@ -101,6 +114,8 @@ namespace sc::sprites {
     {
         return sprite32_span()[static_cast<std::size_t>(i)];
     }
+
+    // Accessors
 
     [[nodiscard]] constexpr auto atlas::data() const noexcept
             -> const std::byte*

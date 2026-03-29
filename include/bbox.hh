@@ -18,15 +18,22 @@ namespace sc::geometry {
      */
     template<typename T = uint8_t>
     struct alignas(T) bbox final {
+        // Operators
 
         template<typename U>
         [[nodiscard]] explicit constexpr operator bbox<U>() const;
 
+        // Accessors
+
         [[nodiscard]] constexpr T width() const;
         [[nodiscard]] constexpr T height() const;
 
+        // Attributes
+
         T min_u, min_v, max_u, max_v;
     };
+
+    // Operators
 
     template<typename T>
     template<typename U>
@@ -35,6 +42,8 @@ namespace sc::geometry {
         return {static_cast<U>(min_u), static_cast<U>(min_v),
                 static_cast<U>(max_u), static_cast<U>(max_v)};
     }
+
+    // Accessors
 
     template<typename T>
     [[nodiscard]] constexpr T bbox<T>::width() const

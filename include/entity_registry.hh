@@ -35,32 +35,34 @@ namespace sc {
      */
     class entity_registry final {
     public:
-        [[nodiscard]] explicit constexpr entity_registry() noexcept;
+        // Enums
+
+        enum class channel : std::uint8_t {
+            pos_x,
+            pos_y,
+            pos_z,
+            vec_x,
+            vec_y,
+            vec_z,
+            new_x,
+            new_y,
+            new_z,
+            count
+        };
+
+        // Constructors
+
+        [[nodiscard]] explicit constexpr entity_registry();
+
         entity_registry(const entity_registry&) = delete;
+        entity_registry& operator=(const entity_registry&) = delete;
+
         entity_registry(entity_registry&&) = default;
+        entity_registry& operator=(entity_registry&&) = default;
 
         ~entity_registry() = default;
 
-        entity_registry& operator=(const entity_registry&) = delete;
-        entity_registry& operator=(entity_registry&&) = default;
-
-        /**
-         * @brief Reserve space in the registry.
-         * @param n The number of entries to reserve.
-         */
-        constexpr void reserve(std::size_t n) noexcept;
-
-        void print() const noexcept;
-
-        /**
-         * @brief Add a new entity to the layout.
-         * @param start_x The starting horizontal position.
-         * @param start_y The starting vertical position.
-         * @param start_z The starting aerial position.
-         * @param i The entity's ID.
-         */
-        constexpr void spawn(float start_x, float start_y, float start_z,
-                sprites::sprite32_index i) noexcept;
+        // Public methods
 
         /**
          * @brief Update the current layout.
@@ -71,6 +73,28 @@ namespace sc {
         constexpr void commit() noexcept;
 
         constexpr void sort_draw() noexcept;
+
+        void print() const noexcept;
+
+        // Mutators
+
+        /**
+         * @brief Reserve space in the registry.
+         * @param n The number of entries to reserve.
+         */
+        constexpr void reserve(std::size_t n);
+
+        /**
+         * @brief Add a new entity to the layout.
+         * @param start_x The starting horizontal position.
+         * @param start_y The starting vertical position.
+         * @param start_z The starting aerial position.
+         * @param i The entity's ID.
+         */
+        constexpr void spawn(float start_x, float start_y, float start_z,
+                sprites::sprite32_index i);
+
+        // Accessors
 
         REGISTER_CHANNEL_ACCESSOR(pos_x, pos_x)
         REGISTER_CHANNEL_ACCESSOR(pos_y, pos_y)
@@ -87,6 +111,8 @@ namespace sc {
         [[nodiscard]] constexpr std::size_t count() const noexcept;
         [[nodiscard]] constexpr std::size_t capacity() const noexcept;
 
+        // Attributes
+
         std::vector<sprites::sprite32_index> indices;
         std::vector<core::index_t> physics_order;
         std::vector<core::index_t> draw_order;
@@ -94,78 +120,29 @@ namespace sc {
         bool needs_sort{false};
 
     private:
-        enum class channel {
-            pos_x,
-            pos_y,
-            pos_z,
-            vec_x,
-            vec_y,
-            vec_z,
-            new_x,
-            new_y,
-            new_z,
-            count
-        };
+        // Type aliases
 
         template<bool IsConst>
         using ptr_t = std::conditional_t<IsConst, const float*, float*>;
 
+        // Accessors
+
         template<channel Channel, bool IsConst>
         [[nodiscard]] constexpr auto get_ptr() const noexcept -> ptr_t<IsConst>;
+
+        // Attributes
 
         mem::soa_block<float, static_cast<std::size_t>(channel::count)> buffer_;
     };
 
-    // Public methods
+    // Constructors
 
-    constexpr entity_registry::entity_registry() noexcept
+    constexpr entity_registry::entity_registry()
     {
         reserve(core::kCacheAlignment);
     }
 
-    constexpr std::size_t entity_registry::count() const noexcept
-    {
-        return buffer_.count;
-    }
-
-    constexpr std::size_t entity_registry::capacity() const noexcept
-    {
-        return buffer_.capacity;
-    }
-
-    constexpr void entity_registry::reserve(const std::size_t n) noexcept
-    {
-        buffer_.grow(n);
-        indices.reserve(buffer_.capacity);
-        physics_order.reserve(buffer_.capacity);
-        draw_order.reserve(buffer_.capacity);
-    }
-
-    constexpr void entity_registry::spawn(const float start_x,
-            const float start_y, const float start_z,
-            const sprites::sprite32_index i) noexcept
-    {
-        if (buffer_.capacity <= buffer_.count) [[unlikely]]
-            reserve(std::max(static_cast<std::size_t>(core::kCacheAlignment),
-                    capacity() * 2u));
-
-        const auto idx{static_cast<core::index_t>(buffer_.count++)};
-
-        pos_x_ptr()[idx] = start_x;
-        pos_y_ptr()[idx] = start_y;
-        pos_z_ptr()[idx] = start_z;
-        vec_x_ptr()[idx] = 0.0f;
-        vec_y_ptr()[idx] = 0.0f;
-        vec_z_ptr()[idx] = 0.0f;
-        new_x_ptr()[idx] = start_x;
-        new_y_ptr()[idx] = start_y;
-        new_z_ptr()[idx] = start_z;
-        indices.push_back(i);
-        physics_order.push_back(idx);
-        draw_order.push_back(idx);
-
-        needs_sort = true;
-    }
+    // Public methods
 
     constexpr void entity_registry::update(const float dt) noexcept
     {
@@ -220,6 +197,54 @@ namespace sc {
 
             needs_sort = false;
         }
+    }
+
+    // Mutators
+
+    constexpr void entity_registry::reserve(const std::size_t n)
+    {
+        buffer_.grow(n);
+        indices.reserve(buffer_.capacity);
+        physics_order.reserve(buffer_.capacity);
+        draw_order.reserve(buffer_.capacity);
+    }
+
+    constexpr void entity_registry::spawn(const float start_x,
+            const float start_y, const float start_z,
+            const sprites::sprite32_index i)
+    {
+        if (buffer_.capacity <= buffer_.count) [[unlikely]]
+            reserve(std::max(static_cast<std::size_t>(core::kCacheAlignment),
+                    capacity() * 2u));
+
+        const auto idx{static_cast<core::index_t>(buffer_.count++)};
+
+        pos_x_ptr()[idx] = start_x;
+        pos_y_ptr()[idx] = start_y;
+        pos_z_ptr()[idx] = start_z;
+        vec_x_ptr()[idx] = 0.0f;
+        vec_y_ptr()[idx] = 0.0f;
+        vec_z_ptr()[idx] = 0.0f;
+        new_x_ptr()[idx] = start_x;
+        new_y_ptr()[idx] = start_y;
+        new_z_ptr()[idx] = start_z;
+        indices.push_back(i);
+        physics_order.push_back(idx);
+        draw_order.push_back(idx);
+
+        needs_sort = true;
+    }
+
+    // Accessors
+
+    constexpr std::size_t entity_registry::count() const noexcept
+    {
+        return buffer_.count;
+    }
+
+    constexpr std::size_t entity_registry::capacity() const noexcept
+    {
+        return buffer_.capacity;
     }
 
     // Private methods

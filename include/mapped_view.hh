@@ -23,26 +23,37 @@ namespace sc::core {
     template<mappable T>
     class mapped_view final {
     public:
+        // Constructors
+
         [[nodiscard]] explicit constexpr mapped_view(
                 const char path[]) noexcept;
+
         mapped_view(const mapped_view&) = delete;
+        mapped_view& operator=(const mapped_view&) = delete;
+
         mapped_view(mapped_view&&) = delete;
+        mapped_view& operator=(mapped_view&&) = delete;
 
         ~mapped_view() noexcept;
 
-        mapped_view& operator=(const mapped_view&) = delete;
-        mapped_view& operator=(mapped_view&&) = delete;
+        // Operators
 
         [[nodiscard]] explicit constexpr operator bool() const noexcept;
         [[nodiscard]] constexpr const T* operator->() const noexcept;
+
+        // Accessors
 
         [[nodiscard]] constexpr const T* data() const noexcept;
         [[nodiscard]] constexpr std::size_t size() const noexcept;
 
     private:
+        // Attributes
+
         const T* buffer_ = nullptr;
         std::size_t size_{0};
     };
+
+    // Constructors
 
     template<mappable T>
     constexpr mapped_view<T>::mapped_view(const char path[]) noexcept
@@ -75,6 +86,8 @@ namespace sc::core {
             munmap(const_cast<T*>(buffer_), size_);
     }
 
+    // Operators
+
     template<mappable T>
     [[nodiscard]] constexpr mapped_view<T>::operator bool() const noexcept
     {
@@ -86,6 +99,8 @@ namespace sc::core {
     {
         return buffer_;
     }
+
+    // Accessors
 
     template<mappable T>
     [[nodiscard]] constexpr const T* mapped_view<T>::data() const noexcept
