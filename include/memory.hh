@@ -7,7 +7,7 @@
 
 namespace sc::mem {
 
-    struct c_deleter {
+    struct c_deleter final {
         void operator()(void* ptr) const { std::free(ptr); }
     };
 

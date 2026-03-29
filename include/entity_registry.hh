@@ -71,11 +71,20 @@ namespace sc {
          */
         constexpr void update(float dt) noexcept;
 
+        /**
+         * @brief Commit the changes to the registry.
+         */
         constexpr void commit() noexcept;
 
+        /**
+         * @brief Sort the draw order based on screen coordinates.
+         */
         constexpr void sort_draw() noexcept;
 
-        void print() const noexcept;
+        /**
+         * @brief Print the entries in the registry.
+         */
+        void print() const;
 
         // Mutators
 
@@ -90,7 +99,7 @@ namespace sc {
          * @param start_x The starting horizontal position.
          * @param start_y The starting vertical position.
          * @param start_z The starting aerial position.
-         * @param i The entity's ID.
+         * @param i The entity's index in the atlas.
          */
         constexpr void spawn(float start_x, float start_y, float start_z,
                 sprites::sprite32_index i);
@@ -124,13 +133,13 @@ namespace sc {
         // Type aliases
 
         template<bool IsConst>
-        using ptr_t = std::conditional_t<IsConst, const float*, float*>;
+        using ptr = std::conditional_t<IsConst, const float*, float*>;
 
         // Accessors
 
         template<channel Channel, bool IsConst>
         [[nodiscard]] constexpr auto get_ptr() const noexcept
-                -> ptr_t<IsConst> __restrict;
+                -> ptr<IsConst> __restrict;
 
         // Attributes
 
@@ -260,7 +269,7 @@ namespace sc {
 
     template<entity_registry::channel Channel, bool IsConst>
     [[nodiscard]] constexpr auto entity_registry::get_ptr() const noexcept
-            -> ptr_t<IsConst> __restrict
+            -> ptr<IsConst> __restrict
     {
         return buffer_[static_cast<std::size_t>(Channel)];
     }
