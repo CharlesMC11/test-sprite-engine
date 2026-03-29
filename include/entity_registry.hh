@@ -149,25 +149,23 @@ namespace sc {
         const auto n{static_cast<core::index_t>(count())};
         const core::index_t vectorized_lim{n - n % 4u};
 
-        if (vectorized_lim > 0u) {
-            const float32x4_t v_dt{vdupq_n_f32(dt)};
-            for (core::index_t i{0u}; i < vectorized_lim; i += 4u) {
-                const float32x4_t v_pos_x{vld1q_f32(&pos_x_ptr()[i])};
-                const float32x4_t v_pos_y{vld1q_f32(&pos_y_ptr()[i])};
-                const float32x4_t v_pos_z{vld1q_f32(&pos_z_ptr()[i])};
+        const float32x4_t v_dt{vdupq_n_f32(dt)};
+        for (core::index_t i{0u}; i < vectorized_lim; i += 4u) {
+            const float32x4_t v_pos_x{vld1q_f32(&pos_x_ptr()[i])};
+            const float32x4_t v_pos_y{vld1q_f32(&pos_y_ptr()[i])};
+            const float32x4_t v_pos_z{vld1q_f32(&pos_z_ptr()[i])};
 
-                const float32x4_t v_vec_x{vld1q_f32(&vec_x_ptr()[i])};
-                const float32x4_t v_vec_y{vld1q_f32(&vec_y_ptr()[i])};
-                const float32x4_t v_vec_z{vld1q_f32(&vec_z_ptr()[i])};
+            const float32x4_t v_vec_x{vld1q_f32(&vec_x_ptr()[i])};
+            const float32x4_t v_vec_y{vld1q_f32(&vec_y_ptr()[i])};
+            const float32x4_t v_vec_z{vld1q_f32(&vec_z_ptr()[i])};
 
-                const float32x4_t v_new_x{vfmaq_f32(v_pos_x, v_vec_x, v_dt)};
-                const float32x4_t v_new_y{vfmaq_f32(v_pos_y, v_vec_y, v_dt)};
-                const float32x4_t v_new_z{vfmaq_f32(v_pos_z, v_vec_z, v_dt)};
+            const float32x4_t v_new_x{vfmaq_f32(v_pos_x, v_vec_x, v_dt)};
+            const float32x4_t v_new_y{vfmaq_f32(v_pos_y, v_vec_y, v_dt)};
+            const float32x4_t v_new_z{vfmaq_f32(v_pos_z, v_vec_z, v_dt)};
 
-                vst1q_f32(&new_x_ptr()[i], v_new_x);
-                vst1q_f32(&new_y_ptr()[i], v_new_y);
-                vst1q_f32(&new_z_ptr()[i], v_new_z);
-            }
+            vst1q_f32(&new_x_ptr()[i], v_new_x);
+            vst1q_f32(&new_y_ptr()[i], v_new_y);
+            vst1q_f32(&new_z_ptr()[i], v_new_z);
         }
 
         for (core::index_t i{vectorized_lim}; i < n; ++i) {
@@ -179,11 +177,20 @@ namespace sc {
 
     constexpr void entity_registry::commit() noexcept
     {
-        const std::size_t size{sizeof(float) * count()};
+        const auto n{static_cast<core::index_t>(count())};
+        const core::index_t vectorized_lim{n - n % 4u};
 
-        std::memcpy(pos_x_ptr(), new_x_ptr(), size);
-        std::memcpy(pos_y_ptr(), new_y_ptr(), size);
-        std::memcpy(pos_z_ptr(), new_z_ptr(), size);
+        for (core::index_t i{0u}; i < vectorized_lim; i += 4u) {
+            vst1q_f32(&pos_x_ptr()[i], vld1q_f32(&new_x_ptr()[i]));
+            vst1q_f32(&pos_y_ptr()[i], vld1q_f32(&new_y_ptr()[i]));
+            vst1q_f32(&pos_z_ptr()[i], vld1q_f32(&new_z_ptr()[i]));
+        }
+
+        for (core::index_t i{vectorized_lim}; i < n; ++i) {
+            pos_x_ptr()[i] = new_x_ptr()[i];
+            pos_y_ptr()[i] = new_y_ptr()[i];
+            pos_z_ptr()[i] = new_z_ptr()[i];
+        }
     }
 
     constexpr void entity_registry::sort_draw() noexcept
