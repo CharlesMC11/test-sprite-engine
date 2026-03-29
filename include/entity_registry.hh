@@ -10,22 +10,37 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <span>
 #include <vector>
 
 #include "core.hh"
 #include "memory.hh"
 #include "sprite32_index.hh"
 
-#define REGISTER_CHANNEL_ACCESSOR(name, enum_val)                              \
-    [[nodiscard]] constexpr auto name##_ptr() noexcept -> float* __restrict    \
+#define REGISTER_XFORM_CHANNEL_ACCESSOR(enum_val)                              \
+    [[nodiscard]] constexpr auto enum_val##_ptr() noexcept                     \
+            -> float* __restrict                                               \
     {                                                                          \
-        return get_ptr<channel::enum_val, false>();                            \
+        return float_ptr<xform_channel::enum_val, false>();                    \
     }                                                                          \
                                                                                \
-    [[nodiscard]] constexpr auto name##_ptr() const noexcept                   \
+    [[nodiscard]] constexpr auto enum_val##_ptr() const noexcept               \
             -> const float* __restrict                                         \
     {                                                                          \
-        return get_ptr<channel::enum_val, true>();                             \
+        return float_ptr<xform_channel::enum_val, true>();                     \
+    }
+
+#define REGISTER_INDEX_CHANNEL_ACCESSOR(enum_val)                              \
+    [[nodiscard]] constexpr auto enum_val##_ptr() noexcept                     \
+            -> core::index_t* __restrict                                       \
+    {                                                                          \
+        return index_ptr<index_channel::enum_val, false>();                    \
+    }                                                                          \
+                                                                               \
+    [[nodiscard]] constexpr auto enum_val##_ptr() const noexcept               \
+            -> const core::index_t* __restrict                                 \
+    {                                                                          \
+        return index_ptr<index_channel::enum_val, true>();                     \
     }
 
 namespace sc {
@@ -38,7 +53,7 @@ namespace sc {
     public:
         // Enums
 
-        enum class channel : std::uint8_t {
+        enum class xform_channel : std::uint8_t {
             pos_x,
             pos_y,
             pos_z,
@@ -48,6 +63,12 @@ namespace sc {
             new_x,
             new_y,
             new_z,
+            count
+        };
+
+        enum class index_channel : std::uint8_t {
+            physics_order,
+            draw_order,
             count
         };
 
@@ -106,17 +127,20 @@ namespace sc {
 
         // Accessors
 
-        REGISTER_CHANNEL_ACCESSOR(pos_x, pos_x)
-        REGISTER_CHANNEL_ACCESSOR(pos_y, pos_y)
-        REGISTER_CHANNEL_ACCESSOR(pos_z, pos_z)
+        REGISTER_XFORM_CHANNEL_ACCESSOR(pos_x)
+        REGISTER_XFORM_CHANNEL_ACCESSOR(pos_y)
+        REGISTER_XFORM_CHANNEL_ACCESSOR(pos_z)
 
-        REGISTER_CHANNEL_ACCESSOR(vec_x, vec_x)
-        REGISTER_CHANNEL_ACCESSOR(vec_y, vec_y)
-        REGISTER_CHANNEL_ACCESSOR(vec_z, vec_z)
+        REGISTER_XFORM_CHANNEL_ACCESSOR(vec_x)
+        REGISTER_XFORM_CHANNEL_ACCESSOR(vec_y)
+        REGISTER_XFORM_CHANNEL_ACCESSOR(vec_z)
 
-        REGISTER_CHANNEL_ACCESSOR(new_x, new_x)
-        REGISTER_CHANNEL_ACCESSOR(new_y, new_y)
-        REGISTER_CHANNEL_ACCESSOR(new_z, new_z)
+        REGISTER_XFORM_CHANNEL_ACCESSOR(new_x)
+        REGISTER_XFORM_CHANNEL_ACCESSOR(new_y)
+        REGISTER_XFORM_CHANNEL_ACCESSOR(new_z)
+
+        REGISTER_INDEX_CHANNEL_ACCESSOR(physics_order)
+        REGISTER_INDEX_CHANNEL_ACCESSOR(draw_order)
 
         [[nodiscard]] constexpr std::size_t count() const noexcept;
         [[nodiscard]] constexpr std::size_t capacity() const noexcept;
@@ -124,26 +148,32 @@ namespace sc {
         // Attributes
 
         std::vector<sprites::sprite32_index> indices;
-        std::vector<core::index_t> physics_order;
-        std::vector<core::index_t> draw_order;
 
         bool needs_sort{false};
 
     private:
         // Type aliases
 
-        template<bool IsConst>
-        using ptr = std::conditional_t<IsConst, const float*, float*>;
+        template<typename T, bool IsConst>
+        using ptr_t = std::conditional_t<IsConst, const T*, T*>;
 
         // Accessors
 
-        template<channel Channel, bool IsConst>
-        [[nodiscard]] constexpr auto get_ptr() const noexcept
-                -> ptr<IsConst> __restrict;
+        template<xform_channel Channel, bool IsConst>
+        [[nodiscard]] constexpr auto float_ptr() const noexcept
+                -> ptr_t<float, IsConst> __restrict;
+
+        template<index_channel Channel, bool IsConst>
+        [[nodiscard]] constexpr auto index_ptr() const noexcept
+                -> ptr_t<core::index_t, IsConst> __restrict;
 
         // Attributes
 
-        mem::channel_pool<float> buffer_;
+        mem::channel_pool<float, static_cast<std::size_t>(xform_channel::count)>
+                float_buffer_;
+        mem::channel_pool<core::index_t,
+                static_cast<std::size_t>(index_channel::count)>
+                index_buffer_;
     };
 
     // Constructors
@@ -207,10 +237,19 @@ namespace sc {
     constexpr void entity_registry::sort_draw() noexcept
     {
         if (needs_sort) {
-            std::ranges::sort(draw_order.begin(), draw_order.end(),
-                    [&](const core::index_t a,
+            std::span tmp{draw_order_ptr(), count()};
+
+            const float* __restrict y_ptr{pos_y_ptr()};
+            const float* __restrict z_ptr{pos_z_ptr()};
+
+            std::ranges::sort(tmp.begin(), tmp.end(),
+                    [y_ptr, z_ptr](const core::index_t a,
                             const core::index_t b) noexcept -> bool {
-                        return pos_y_ptr()[a] < pos_y_ptr()[b];
+                        const float y_a{y_ptr[a]};
+                        const float y_b{y_ptr[b]};
+                        return std::abs(y_a - y_b) > core::kEpsilon
+                                ? y_a < y_b
+                                : z_ptr[a] < z_ptr[b];
                     });
 
             needs_sort = false;
@@ -221,22 +260,22 @@ namespace sc {
 
     constexpr void entity_registry::reserve(const std::size_t n)
     {
-        buffer_.grow<static_cast<std::size_t>(channel::count)>(n);
-        indices.reserve(buffer_.capacity);
-        physics_order.reserve(buffer_.capacity);
-        draw_order.reserve(buffer_.capacity);
+        indices.reserve(float_buffer_.capacity);
+        float_buffer_.grow(n);
+        index_buffer_.grow(n);
     }
 
     constexpr void entity_registry::spawn(const float start_x,
             const float start_y, const float start_z,
             const sprites::sprite32_index i)
     {
-        if (buffer_.capacity <= buffer_.count) [[unlikely]]
+        if (float_buffer_.capacity <= float_buffer_.count) [[unlikely]]
             reserve(std::max(static_cast<std::size_t>(core::kCacheAlignment),
                     capacity() * 2u));
 
-        const auto idx{static_cast<core::index_t>(buffer_.count++)};
+        const auto idx{static_cast<core::index_t>(float_buffer_.count++)};
 
+        indices.push_back(i);
         pos_x_ptr()[idx] = start_x;
         pos_y_ptr()[idx] = start_y;
         pos_z_ptr()[idx] = start_z;
@@ -246,10 +285,10 @@ namespace sc {
         new_x_ptr()[idx] = start_x;
         new_y_ptr()[idx] = start_y;
         new_z_ptr()[idx] = start_z;
-        indices.push_back(i);
-        physics_order.push_back(idx);
-        draw_order.push_back(idx);
+        physics_order_ptr()[idx] = idx;
+        draw_order_ptr()[idx] = idx;
 
+        index_buffer_.count = float_buffer_.count;
         needs_sort = true;
     }
 
@@ -257,23 +296,30 @@ namespace sc {
 
     constexpr std::size_t entity_registry::count() const noexcept
     {
-        return buffer_.count;
+        return float_buffer_.count;
     }
 
     constexpr std::size_t entity_registry::capacity() const noexcept
     {
-        return buffer_.capacity;
+        return float_buffer_.capacity;
     }
 
     // Private methods
 
-    template<entity_registry::channel Channel, bool IsConst>
-    [[nodiscard]] constexpr auto entity_registry::get_ptr() const noexcept
-            -> ptr<IsConst> __restrict
+    template<entity_registry::xform_channel Channel, bool IsConst>
+    [[nodiscard]] constexpr auto entity_registry::float_ptr() const noexcept
+            -> ptr_t<float, IsConst> __restrict
     {
-        return buffer_[static_cast<std::size_t>(Channel)];
+        return float_buffer_[static_cast<std::size_t>(Channel)];
+    }
+
+    template<entity_registry::index_channel Channel, bool IsConst>
+    [[nodiscard]] constexpr auto entity_registry::index_ptr() const noexcept
+            -> ptr_t<core::index_t, IsConst> __restrict
+    {
+        return index_buffer_[static_cast<std::size_t>(Channel)];
     }
 
 } // namespace sc
 
-#undef REGISTER_CHANNEL_ACCESSOR
+#undef REGISTER_XFORM_CHANNEL_ACCESSOR

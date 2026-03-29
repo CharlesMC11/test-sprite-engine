@@ -151,8 +151,8 @@ namespace sc::physics {
 
     constexpr void sort_compute(entity_registry& registry) noexcept
     {
-        std::ranges::sort(registry.physics_order.begin(),
-                registry.physics_order.end(),
+        std::span tmp{registry.physics_order_ptr(), registry.count()};
+        std::ranges::sort(tmp.begin(), tmp.end(),
                 [&](const core::index_t a, const core::index_t b) -> bool {
                     return registry.pos_x_ptr()[a] < registry.pos_x_ptr()[b];
                 });
@@ -217,7 +217,7 @@ namespace sc::physics {
         sort_compute(registry);
 
         for (core::index_t i{0u}; i < registry.count(); ++i) {
-            const core::index_t idx_a{registry.physics_order[i]};
+            const core::index_t idx_a{registry.physics_order_ptr()[i]};
             const sprites::metadata& sprite_a{
                     atlas[registry.indices[idx_a]].meta};
 
@@ -251,7 +251,7 @@ namespace sc::physics {
             sweep_result hit;
 
             for (core::index_t j{i + 1u}; j < registry.count(); ++j) {
-                const core::index_t index_b{registry.physics_order[j]};
+                const core::index_t index_b{registry.physics_order_ptr()[j]};
                 const sprites::metadata& sprite_b{
                         atlas[registry.indices[index_b]].meta};
 
@@ -280,7 +280,7 @@ namespace sc::physics {
             }
 
             for (int32_t j{static_cast<int32_t>(i) - 1}; j >= 0; --j) {
-                const core::index_t idx_b{registry.physics_order[j]};
+                const core::index_t idx_b{registry.physics_order_ptr()[j]};
                 const sprites::metadata& sprite_b{
                         atlas[registry.indices[idx_b]].meta};
 

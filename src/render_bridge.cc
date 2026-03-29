@@ -100,7 +100,7 @@ namespace sc {
 
         encoder_->setBytes(registry.indices.data(),
                 sizeof(core::atlas_index) * registry.count(), 5u);
-        encoder_->setBytes(registry.draw_order.data(),
+        encoder_->setBytes(registry.draw_order_ptr(),
                 sizeof(core::index_t) * registry.count(), 6u);
 
         const auto count{static_cast<std::uint32_t>(registry.count())};
@@ -130,7 +130,7 @@ namespace sc {
         sprite32_buffer_ = NS::TransferPtr(device_->newBuffer(view.data(),
                 total_size, MTL::ResourceStorageModeShared, nullptr));
         if (!sprite32_buffer_) [[unlikely]] {
-            std::cerr << "Metal buffer is empty!" << std::endl;
+            std::cerr << "Metal buffer is empty!\n";
             throw;
         }
 
