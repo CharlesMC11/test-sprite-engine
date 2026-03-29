@@ -12,9 +12,9 @@ namespace sc {
             std::cout << std::format(
                     "Entity {} (Sprite Index: {})\n\tpos ({:7.2f}, {:7.2f}, "
                     "{:7.2f})\n\tvec <{:7.2f}, {:7.2f}, {:7.2f}>\n\n",
-                    i, static_cast<core::index_t>(indices[i]), pos_x_ptr()[i],
-                    pos_y_ptr()[i], pos_z_ptr()[i], vec_x_ptr()[i],
-                    vec_y_ptr()[i], vec_z_ptr()[i]);
+                    i, static_cast<core::index_t>(sprite32_index_ptr()[i]),
+                    pos_x_ptr()[i], pos_y_ptr()[i], pos_z_ptr()[i],
+                    vec_x_ptr()[i], vec_y_ptr()[i], vec_z_ptr()[i]);
         }
     }
 

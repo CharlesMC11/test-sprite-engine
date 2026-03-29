@@ -181,8 +181,9 @@ namespace sc::physics {
 
         for (Iterator it{begin}; it != end; ++it) {
             const core::index_t idx_b{*it};
-            const sprites::metadata& sprite_b{
-                    atlas[registry.indices[idx_b]].meta};
+            const auto sprite_idx_b{static_cast<sprites::sprite32_index>(
+                    registry.sprite32_index_ptr()[idx_b])};
+            const sprites::metadata& sprite_b{atlas[sprite_idx_b].meta};
 
             if (sprite_b.physics_type & type::NONE) {
                 continue;
@@ -218,8 +219,9 @@ namespace sc::physics {
 
         for (core::index_t i{0u}; i < registry.count(); ++i) {
             const core::index_t idx_a{registry.physics_order_ptr()[i]};
-            const sprites::metadata& sprite_a{
-                    atlas[registry.indices[idx_a]].meta};
+            const auto sprite32_idx_a{static_cast<sprites::sprite32_index>(
+                    registry.sprite32_index_ptr()[i])};
+            const sprites::metadata& sprite_a{atlas[sprite32_idx_a].meta};
 
             if (!(sprite_a.physics_type & type::ACTOR)) {
                 continue;
@@ -252,8 +254,9 @@ namespace sc::physics {
 
             for (core::index_t j{i + 1u}; j < registry.count(); ++j) {
                 const core::index_t index_b{registry.physics_order_ptr()[j]};
-                const sprites::metadata& sprite_b{
-                        atlas[registry.indices[index_b]].meta};
+                const auto sprite32_idx_b{static_cast<sprites::sprite32_index>(
+                        registry.sprite32_index_ptr()[j])};
+                const sprites::metadata& sprite_b{atlas[sprite32_idx_b].meta};
 
                 if (sprite_b.physics_type & type::NONE) {
                     continue;
@@ -281,8 +284,9 @@ namespace sc::physics {
 
             for (int32_t j{static_cast<int32_t>(i) - 1}; j >= 0; --j) {
                 const core::index_t idx_b{registry.physics_order_ptr()[j]};
-                const sprites::metadata& sprite_b{
-                        atlas[registry.indices[idx_b]].meta};
+                const auto sprite32_idx_b{static_cast<sprites::sprite32_index>(
+                        registry.sprite32_index_ptr()[j])};
+                const sprites::metadata& sprite_b{atlas[sprite32_idx_b].meta};
 
                 if (sprite_b.physics_type & type::NONE) {
                     continue;

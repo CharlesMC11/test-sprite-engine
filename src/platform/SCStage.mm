@@ -17,9 +17,9 @@
 
 @implementation SCStage {
     std::unique_ptr<sc::core::mapped_view<sc::sprites::atlas>> _view;
+    std::unique_ptr<sc::entity_registry> _registry;
     std::unique_ptr<sc::render_bridge> _bridge;
     const sc::sprites::atlas* _atlas;
-    sc::entity_registry _registry;
     sc::core::input_mask _keysPressed;
     float _accumulator;
 }
@@ -47,6 +47,9 @@
         }
         _atlas = _view->data();
 
+        _registry = std::make_unique<sc::entity_registry>(
+                (__bridge MTL::Device*) device);
+
         _bridge = std::make_unique<sc::render_bridge>(
                 (__bridge MTL::Device*) device);
         _bridge->set_sprite_atlas(*_view);
@@ -55,7 +58,7 @@
 
         constexpr auto id{sc::sprites::sprite32_index::LANCIS};
         const sc::sprites::metadata& sprite{(*_atlas)[id].meta};
-        _registry.spawn(
+        _registry->spawn(
                 (sc::display::kWidth - sc::sprites::kWidth - sprite.origin_u) *
                         0.5f,
                 (sc::display::kHeight - sc::sprites::kHeight -
@@ -63,9 +66,9 @@
                         0.5f,
                 0.0f, id);
 
-        _registry.spawn(0.0f, 0.0f, 0.0f, sc::sprites::sprite32_index::MYARRA);
+        _registry->spawn(0.0f, 0.0f, 0.0f, sc::sprites::sprite32_index::MYARRA);
 
-        _registry.spawn(sc::display::kWidth * 0.75f,
+        _registry->spawn(sc::display::kWidth * 0.75f,
                 sc::display::kHeight * 0.75f, 26.0f,
                 sc::sprites::sprite32_index::HEART_OW_F);
     }
@@ -98,6 +101,8 @@
     case 2:
         _keysPressed |= sc::input::mask::RIGHT;
         break;
+    default:
+        break;
     }
 }
 
@@ -116,6 +121,8 @@
     case 2:
         _keysPressed &= ~sc::input::mask::RIGHT;
         break;
+    default:
+        break;
     }
 }
 
@@ -133,29 +140,29 @@
 
     float speed{200.0f};
     while (_accumulator >= sc::physics::kFixedTimestep) {
-        _registry.vec_x_ptr()[0] = _registry.vec_y_ptr()[0] = 0;
+        _registry->vec_x_ptr()[0] = _registry->vec_y_ptr()[0] = 0;
         if (_keysPressed & sc::input::mask::UP)
-            _registry.vec_y_ptr()[0] -= speed;
+            _registry->vec_y_ptr()[0] -= speed;
         if (_keysPressed & sc::input::mask::DOWN)
-            _registry.vec_y_ptr()[0] += speed;
+            _registry->vec_y_ptr()[0] += speed;
         if (_keysPressed & sc::input::mask::LEFT)
-            _registry.vec_x_ptr()[0] -= speed;
+            _registry->vec_x_ptr()[0] -= speed;
         if (_keysPressed & sc::input::mask::RIGHT)
-            _registry.vec_x_ptr()[0] += speed;
+            _registry->vec_x_ptr()[0] += speed;
 
-        _registry.update(sc::physics::kFixedTimestep);
+        _registry->update(sc::physics::kFixedTimestep);
         sc::physics::resolve_entity_collisions(
-                *_atlas, _registry, sc::physics::kFixedTimestep);
-        _registry.commit();
+                *_atlas, *_registry, sc::physics::kFixedTimestep);
+        _registry->commit();
 
         _accumulator -= sc::physics::kFixedTimestep;
     }
 
-    _registry.sort_draw();
+    _registry->sort_draw();
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
     _bridge->begin_frame(drawable);
     _bridge->clear();
-    _bridge->draw(_registry);
+    _bridge->draw(*_registry);
     _bridge->end_frame(drawable);
 }
 
