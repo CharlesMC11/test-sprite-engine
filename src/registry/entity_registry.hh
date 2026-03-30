@@ -15,35 +15,39 @@
 /**
  * Register a channel accessor method for the registry.
  *
- * @param enum_T
+ * @param name
+ * The name to use for the accessor.
+ *
+ * @param EnumType
  * The enum referred to by the buffer.
  *
- * @param T
+ * @param DataType
  * The type contained in the buffer.
  *
- * @param enum_val
+ * @param ENUM_VAL
  * The enum value to access.
  *
  * @param buffer
  * The name of the buffer.
  */
-#define REGISTER_ACCESSOR(enum_T, T, enum_val, buffer)                         \
-    [[nodiscard]] constexpr auto enum_val##_ptr() noexcept -> T* __restrict    \
+#define SC_REGISTER_ACCESSOR(name, EnumType, DataType, ENUM_VAL, buffer)       \
+    [[nodiscard]] constexpr auto name##_ptr() noexcept -> DataType* __restrict \
     {                                                                          \
-        return get_ptr<enum_T, T, false>(buffer, enum_T::enum_val);            \
+        return get_ptr<EnumType, DataType, false>(buffer, EnumType::ENUM_VAL); \
     }                                                                          \
                                                                                \
-    [[nodiscard]] constexpr auto enum_val##_ptr() const noexcept               \
-            -> const T* __restrict                                             \
+    [[nodiscard]] constexpr auto name##_ptr() const noexcept                   \
+            -> const DataType* __restrict                                      \
     {                                                                          \
-        return get_ptr<enum_T, T, true>(buffer, enum_T::enum_val);             \
+        return get_ptr<EnumType, DataType, true>(buffer, EnumType::ENUM_VAL);  \
     }
 
-#define REGISTER_XFORM_CHANNEL_ACCESSOR(enum_val)                              \
-    REGISTER_ACCESSOR(xform_channel, float, enum_val, float_buffer_)
+#define SC_REGISTER_XFORM_CHANNEL_ACCESSOR(name, ENUM_VAL)                     \
+    SC_REGISTER_ACCESSOR(name, xform_channel, float, ENUM_VAL, float_buffer_)
 
-#define REGISTER_INDEX_CHANNEL_ACCESSOR(enum_val)                              \
-    REGISTER_ACCESSOR(index_channel, core::index_t, enum_val, index_buffer_)
+#define SC_REGISTER_INDEX_CHANNEL_ACCESSOR(name, ENUM_VAL)                     \
+    SC_REGISTER_ACCESSOR(                                                      \
+            name, index_channel, core::index_t, ENUM_VAL, index_buffer_)
 
 namespace sc {
 
@@ -56,23 +60,23 @@ namespace sc {
         // Enums
 
         enum class xform_channel : std::uint8_t {
-            pos_x,
-            pos_y,
-            pos_z,
-            vec_x,
-            vec_y,
-            vec_z,
-            new_x,
-            new_y,
-            new_z,
-            count
+            X_POSITION,
+            Y_POSITION,
+            Z_POSITION,
+            X_VELOCITY,
+            Y_VELOCITY,
+            Z_VELOCITY,
+            X_TARGET_POSITION,
+            Y_TARGET_POSITION,
+            Z_TARGET_POSITION,
+            COUNT
         };
 
         enum class index_channel : std::uint8_t {
-            sprite32_index,
-            physics_order,
-            draw_order,
-            count
+            SPRITE32_INDEX,
+            PHYSICS_ORDER,
+            DRAW_ORDER,
+            COUNT
         };
 
         // Constructors
@@ -138,7 +142,7 @@ namespace sc {
          * The entity's index in the atlas.
          */
         constexpr void spawn(float start_x, float start_y, float start_z,
-                sprites::sprite32_index i);
+                assets::sprite32_index i);
 
         // Accessors
 
@@ -148,21 +152,21 @@ namespace sc {
         [[nodiscard]] constexpr auto index_buffer() const noexcept
                 -> const MTL::Buffer* __restrict;
 
-        REGISTER_XFORM_CHANNEL_ACCESSOR(pos_x)
-        REGISTER_XFORM_CHANNEL_ACCESSOR(pos_y)
-        REGISTER_XFORM_CHANNEL_ACCESSOR(pos_z)
+        SC_REGISTER_XFORM_CHANNEL_ACCESSOR(pos_x, X_POSITION)
+        SC_REGISTER_XFORM_CHANNEL_ACCESSOR(pos_y, Y_POSITION)
+        SC_REGISTER_XFORM_CHANNEL_ACCESSOR(pos_z, Z_POSITION)
 
-        REGISTER_XFORM_CHANNEL_ACCESSOR(vec_x)
-        REGISTER_XFORM_CHANNEL_ACCESSOR(vec_y)
-        REGISTER_XFORM_CHANNEL_ACCESSOR(vec_z)
+        SC_REGISTER_XFORM_CHANNEL_ACCESSOR(vel_x, X_VELOCITY)
+        SC_REGISTER_XFORM_CHANNEL_ACCESSOR(vel_y, Y_VELOCITY)
+        SC_REGISTER_XFORM_CHANNEL_ACCESSOR(vel_z, Z_VELOCITY)
 
-        REGISTER_XFORM_CHANNEL_ACCESSOR(new_x)
-        REGISTER_XFORM_CHANNEL_ACCESSOR(new_y)
-        REGISTER_XFORM_CHANNEL_ACCESSOR(new_z)
+        SC_REGISTER_XFORM_CHANNEL_ACCESSOR(new_x, X_TARGET_POSITION)
+        SC_REGISTER_XFORM_CHANNEL_ACCESSOR(new_y, Y_TARGET_POSITION)
+        SC_REGISTER_XFORM_CHANNEL_ACCESSOR(new_z, Z_TARGET_POSITION)
 
-        REGISTER_INDEX_CHANNEL_ACCESSOR(sprite32_index)
-        REGISTER_INDEX_CHANNEL_ACCESSOR(physics_order)
-        REGISTER_INDEX_CHANNEL_ACCESSOR(draw_order)
+        SC_REGISTER_INDEX_CHANNEL_ACCESSOR(sprite32_index, SPRITE32_INDEX)
+        SC_REGISTER_INDEX_CHANNEL_ACCESSOR(physics_order, PHYSICS_ORDER)
+        SC_REGISTER_INDEX_CHANNEL_ACCESSOR(draw_order, DRAW_ORDER)
 
         [[nodiscard]] constexpr std::size_t count() const noexcept;
         [[nodiscard]] constexpr std::size_t capacity() const noexcept;
@@ -187,16 +191,16 @@ namespace sc {
 
         template<typename E, typename T, bool IsConst>
         [[nodiscard]] static constexpr auto get_ptr(
-                const mem::channel_pool<T, static_cast<std::size_t>(E::count)>&
+                const mem::channel_pool<T, static_cast<std::size_t>(E::COUNT)>&
                         buffer,
                 E channel) noexcept -> ptr_t<T, IsConst> __restrict;
 
         // Attributes
 
-        mem::channel_pool<float, static_cast<std::size_t>(xform_channel::count)>
+        mem::channel_pool<float, static_cast<std::size_t>(xform_channel::COUNT)>
                 float_buffer_;
         mem::channel_pool<core::index_t,
-                static_cast<std::size_t>(index_channel::count)>
+                static_cast<std::size_t>(index_channel::COUNT)>
                 index_buffer_;
         MTL::Device* device_{nullptr};
     };
@@ -222,13 +226,13 @@ namespace sc {
             const float32x4_t v_pos_y{vld1q_f32(&pos_y_ptr()[i])};
             const float32x4_t v_pos_z{vld1q_f32(&pos_z_ptr()[i])};
 
-            const float32x4_t v_vec_x{vld1q_f32(&vec_x_ptr()[i])};
-            const float32x4_t v_vec_y{vld1q_f32(&vec_y_ptr()[i])};
-            const float32x4_t v_vec_z{vld1q_f32(&vec_z_ptr()[i])};
+            const float32x4_t v_vel_x{vld1q_f32(&vel_x_ptr()[i])};
+            const float32x4_t v_vel_y{vld1q_f32(&vel_y_ptr()[i])};
+            const float32x4_t v_vel_z{vld1q_f32(&vel_z_ptr()[i])};
 
-            const float32x4_t v_new_x{vfmaq_f32(v_pos_x, v_vec_x, v_dt)};
-            const float32x4_t v_new_y{vfmaq_f32(v_pos_y, v_vec_y, v_dt)};
-            const float32x4_t v_new_z{vfmaq_f32(v_pos_z, v_vec_z, v_dt)};
+            const float32x4_t v_new_x{vfmaq_f32(v_pos_x, v_vel_x, v_dt)};
+            const float32x4_t v_new_y{vfmaq_f32(v_pos_y, v_vel_y, v_dt)};
+            const float32x4_t v_new_z{vfmaq_f32(v_pos_z, v_vel_z, v_dt)};
 
             vst1q_f32(&new_x_ptr()[i], v_new_x);
             vst1q_f32(&new_y_ptr()[i], v_new_y);
@@ -236,9 +240,9 @@ namespace sc {
         }
 
         for (core::index_t i{vectorized_lim}; i < n; ++i) {
-            new_x_ptr()[i] = pos_x_ptr()[i] + vec_x_ptr()[i] * dt;
-            new_y_ptr()[i] = pos_y_ptr()[i] + vec_y_ptr()[i] * dt;
-            new_z_ptr()[i] = pos_z_ptr()[i] + vec_z_ptr()[i] * dt;
+            new_x_ptr()[i] = pos_x_ptr()[i] + vel_x_ptr()[i] * dt;
+            new_y_ptr()[i] = pos_y_ptr()[i] + vel_y_ptr()[i] * dt;
+            new_z_ptr()[i] = pos_z_ptr()[i] + vel_z_ptr()[i] * dt;
         }
     }
 
@@ -292,7 +296,7 @@ namespace sc {
 
     constexpr void entity_registry::spawn(const float start_x,
             const float start_y, const float start_z,
-            const sprites::sprite32_index i)
+            const assets::sprite32_index i)
     {
         if (float_buffer_.capacity <= float_buffer_.count) [[unlikely]]
             reserve(std::max(static_cast<std::size_t>(core::kCacheAlignment),
@@ -304,7 +308,7 @@ namespace sc {
         pos_y_ptr()[idx] = new_y_ptr()[idx] = start_y;
         pos_z_ptr()[idx] = new_z_ptr()[idx] = start_z;
 
-        vec_x_ptr()[idx] = vec_y_ptr()[idx] = vec_z_ptr()[idx] = 0.0f;
+        vel_x_ptr()[idx] = vel_y_ptr()[idx] = vel_z_ptr()[idx] = 0.0f;
 
         sprite32_index_ptr()[idx] = static_cast<core::index_t>(i);
         physics_order_ptr()[idx] = draw_order_ptr()[idx] = idx;
@@ -356,7 +360,7 @@ namespace sc {
     template<typename Channel, typename T, bool IsConst>
     [[nodiscard]] constexpr auto entity_registry::get_ptr(
             const mem::channel_pool<T,
-                    static_cast<std::size_t>(Channel::count)>& buffer,
+                    static_cast<std::size_t>(Channel::COUNT)>& buffer,
             Channel channel) noexcept -> ptr_t<T, IsConst> __restrict
     {
         return buffer[static_cast<std::size_t>(channel)];
@@ -364,8 +368,8 @@ namespace sc {
 
 } // namespace sc
 
-#undef REGISTER_INDEX_CHANNEL_ACCESSOR
-#undef REGISTER_XFORM_CHANNEL_ACCESSOR
-#undef REGISTER_ACCESSOR
+#undef SC_REGISTER_INDEX_CHANNEL_ACCESSOR
+#undef SC_REGISTER_XFORM_CHANNEL_ACCESSOR
+#undef SC_REGISTER_ACCESSOR
 
 #endif // SC_REGISTRY_SCENE_REGISTRY_HH

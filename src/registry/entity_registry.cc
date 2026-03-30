@@ -14,7 +14,7 @@ namespace sc {
                     "{:7.2f})\n\tvec <{:7.2f}, {:7.2f}, {:7.2f}>\n\n",
                     i, static_cast<core::index_t>(sprite32_index_ptr()[i]),
                     pos_x_ptr()[i], pos_y_ptr()[i], pos_z_ptr()[i],
-                    vec_x_ptr()[i], vec_y_ptr()[i], vec_z_ptr()[i]);
+                    vel_x_ptr()[i], vel_y_ptr()[i], vel_z_ptr()[i]);
         }
     }
 
