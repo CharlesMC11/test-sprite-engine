@@ -407,10 +407,10 @@ def main() -> None:
     parser.add_argument(
         "-p",
         "--physics_type",
+        default=PhysicsType.UNDEFINED,
         type=lambda p: PhysicsType[p.upper()],
         choices=list(PhysicsType),
         help="Physics type (None, Actor, Static, Sensor, or Projectile)",
-        required=True,
     )
     parser.add_argument(
         "-e",

@@ -15,6 +15,24 @@ namespace sc::physics {
 
     static constexpr float kYCollisionDistance{4.0f};
 
+    /**
+     * The type of physics that affects an entity.
+     */
+    enum class type : core::physics_t {
+        UNDEFINED = 0u,
+        NONE = 1u,
+        ACTOR = 1u << 1u,
+        STATIC = 1u << 2u,
+        SENSOR = 1u << 3u,
+        PROJECTILE = 1u << 4u,
+    };
+
+} // namespace sc::physics
+
+SC_ENABLE_ENUM_BITWISE_OPS(sc::physics::type)
+
+namespace sc::physics {
+
     struct aabb {
         explicit aabb(const float x, const float y, const float z,
                 const float vx, const float vy, const float vz,
@@ -29,35 +47,6 @@ namespace sc::physics {
         float left, back, right, front, top, bottom, vx, vy, vz;
         geometry::bbox<float> bbox;
     };
-
-    /**
-     * @enum type
-     * @brief The type of physics that affects an entity.
-     */
-    enum class type : core::physics_t {
-        NONE = 1 << 0,
-        ACTOR = 1 << 1,
-        STATIC = 1 << 2,
-        SENSOR = 1 << 3,
-        PROJECTILE = 1 << 4,
-    };
-
-    constexpr core::physics_t operator&(type a, type b)
-    {
-        return static_cast<core::physics_t>(a) &
-                static_cast<core::physics_t>(b);
-    }
-
-    constexpr core::physics_t operator&(const core::physics_t a, type b)
-    {
-        return a & static_cast<core::physics_t>(b);
-    }
-
-    constexpr core::physics_t operator|(type a, type b)
-    {
-        return static_cast<core::physics_t>(a) |
-                static_cast<core::physics_t>(b);
-    }
 
     struct sweep_result {
         float time{1.0f};
