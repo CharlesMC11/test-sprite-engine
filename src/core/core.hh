@@ -19,10 +19,6 @@ namespace sc {
 
         using index_t = unsigned;
 
-        using atlas_index = index_t;
-
-        using input_mask = unsigned;
-
         using physics_t = uint8_t;
 
         static SC_CONSTANT unsigned kNeonAlignment{16u};

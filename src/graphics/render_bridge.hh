@@ -67,7 +67,7 @@ namespace sc {
          * @param view
          *
          */
-        void set_sprite_atlas(const core::mapped_view<sprites::atlas>& view);
+        void set_sprite_atlas(const core::mapped_view<assets::atlas>& view);
 
     private:
         // Attributes

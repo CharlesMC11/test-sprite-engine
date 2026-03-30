@@ -12,6 +12,7 @@
 #include "assets/atlas.hh"
 #include "core/core.hh"
 #include "core/mapped_view.hh"
+#include "graphics/visual_types.hh"
 
 namespace sc {
 
@@ -94,16 +95,16 @@ namespace sc {
         using reg = entity_registry;
 
         encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::pos_x), 2u);
+                registry.offset(reg::xform_channel::X_POSITION), 2u);
         encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::pos_y), 3u);
+                registry.offset(reg::xform_channel::Y_POSITION), 3u);
         encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::pos_z), 4u);
+                registry.offset(reg::xform_channel::Z_POSITION), 4u);
 
         encoder_->setBuffer(registry.index_buffer(),
-                registry.offset(reg::index_channel::sprite32_index), 5u);
+                registry.offset(reg::index_channel::SPRITE32_INDEX), 5u);
         encoder_->setBuffer(registry.index_buffer(),
-                registry.offset(reg::index_channel::draw_order), 6u);
+                registry.offset(reg::index_channel::DRAW_ORDER), 6u);
 
         const auto count{static_cast<unsigned>(registry.count())};
         encoder_->setBytes(&count, sizeof(count), 7u);
@@ -117,17 +118,17 @@ namespace sc {
     // Mutators
 
     void render_bridge::set_sprite_atlas(
-            const core::mapped_view<sprites::atlas>& view)
+            const core::mapped_view<assets::atlas>& view)
     {
         const auto meta{view->meta};
 
         constexpr std::size_t metadata_size{sizeof(meta)};
         const std::size_t palette_span_size{
-                sizeof(sprites::palette) * meta.palette_count};
+                sizeof(graphics::palette) * meta.palette_count};
         const std::size_t sprite16_span_size{
-                sizeof(sprites::sprite16) * meta.sprite16_count};
+                sizeof(assets::sprite16) * meta.sprite16_count};
         const std::size_t sprite32_span_size{
-                sizeof(sprites::sprite32) * meta.sprite32_count};
+                sizeof(assets::sprite32) * meta.sprite32_count};
         const std::size_t total_size{sizeof(view) + palette_span_size +
                 sprite16_span_size + sprite32_span_size};
 

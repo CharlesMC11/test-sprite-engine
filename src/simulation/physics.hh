@@ -145,33 +145,34 @@ namespace sc::physics {
     }
 
     constexpr aabb from_registry(const entity_registry& registry,
-            const core::index_t i, const sprites::metadata& metadata)
+            const core::index_t i, const assets::sprites::metadata& metadata)
     {
         return aabb{registry.pos_x_ptr()[i], registry.pos_y_ptr()[i],
-                registry.pos_z_ptr()[i], registry.vec_x_ptr()[i],
-                registry.vec_y_ptr()[i], registry.vec_z_ptr()[i],
+                registry.pos_z_ptr()[i], registry.vel_x_ptr()[i],
+                registry.vel_y_ptr()[i], registry.vel_z_ptr()[i],
                 static_cast<geometry::bbox<float>>(metadata.bbox)};
     }
 
     template<typename Iterator>
     sweep_result find_closest_hit(const aabb& box_a, const core::index_t idx_a,
             Iterator begin, Iterator end, const entity_registry& registry,
-            const sprites::atlas& atlas, const float dt, const bool check_left)
+            const assets::atlas& atlas, const float dt, const bool check_left)
     {
         sweep_result hit;
 
-        const float vx{registry.vec_x_ptr()[idx_a] * dt};
+        const float vx{registry.vel_x_ptr()[idx_a] * dt};
         const float a_limit{check_left
                         ? std::min(box_a.left, box_a.left + vx)
                         : std::max(box_a.right, box_a.right + vx)};
 
         for (Iterator it{begin}; it != end; ++it) {
             const core::index_t idx_b{*it};
-            const auto sprite_idx_b{static_cast<sprites::sprite32_index>(
+            const auto sprite_idx_b{static_cast<assets::sprite32_index>(
                     registry.sprite32_index_ptr()[idx_b])};
-            const sprites::metadata& sprite_b{atlas[sprite_idx_b].meta};
+            const assets::sprites::metadata& sprite_b{atlas[sprite_idx_b].meta};
 
-            if (sprite_b.physics_type & type::NONE) {
+            if (core::any(static_cast<type>(sprite_b.physics_type) &
+                        type::NONE)) {
                 continue;
             }
 
@@ -180,14 +181,14 @@ namespace sc::physics {
                 break;
 
             const sweep_result result{sweep_aabb(box_a, box_b,
-                    (registry.vec_x_ptr()[idx_a] -
-                            registry.vec_x_ptr()[idx_b]) *
+                    (registry.vel_x_ptr()[idx_a] -
+                            registry.vel_x_ptr()[idx_b]) *
                             dt,
-                    (registry.vec_y_ptr()[idx_a] -
-                            registry.vec_y_ptr()[idx_b]) *
+                    (registry.vel_y_ptr()[idx_a] -
+                            registry.vel_y_ptr()[idx_b]) *
                             dt,
-                    (registry.vec_z_ptr()[idx_a] -
-                            registry.vec_z_ptr()[idx_b]) *
+                    (registry.vel_z_ptr()[idx_a] -
+                            registry.vel_z_ptr()[idx_b]) *
                             dt)};
 
             if (result.time < hit.time) {
@@ -198,30 +199,32 @@ namespace sc::physics {
         return hit;
     }
 
-    constexpr void resolve_entity_collisions(const sprites::atlas& atlas,
+    constexpr void resolve_entity_collisions(const assets::atlas& atlas,
             entity_registry& registry, const float dt)
     {
         sort_compute(registry);
 
         for (core::index_t i{0u}; i < registry.count(); ++i) {
             const core::index_t idx_a{registry.physics_order_ptr()[i]};
-            const auto sprite32_idx_a{static_cast<sprites::sprite32_index>(
+            const auto sprite32_idx_a{static_cast<assets::sprite32_index>(
                     registry.sprite32_index_ptr()[i])};
-            const sprites::metadata& sprite_a{atlas[sprite32_idx_a].meta};
+            const assets::sprites::metadata& sprite_a{
+                    atlas[sprite32_idx_a].meta};
 
-            if (!(sprite_a.physics_type & type::ACTOR)) {
+            if (!core::any(static_cast<type>(sprite_a.physics_type) &
+                        type::ACTOR)) {
                 continue;
             }
 
-            if (std::abs(registry.vec_x_ptr()[idx_a]) < core::kEpsilon &&
-                    std::abs(registry.vec_y_ptr()[idx_a]) < core::kEpsilon) {
+            if (std::abs(registry.vel_x_ptr()[idx_a]) < core::kEpsilon &&
+                    std::abs(registry.vel_y_ptr()[idx_a]) < core::kEpsilon) {
                 registry.new_x_ptr()[idx_a] = registry.pos_x_ptr()[idx_a];
                 registry.new_y_ptr()[idx_a] = registry.pos_y_ptr()[idx_a];
                 registry.new_z_ptr()[idx_a] = registry.pos_z_ptr()[idx_a];
                 continue;
             }
 
-            if (std::abs(registry.vec_y_ptr()[idx_a]) > core::kEpsilon) {
+            if (std::abs(registry.vel_y_ptr()[idx_a]) > core::kEpsilon) {
                 registry.needs_sort = true;
             }
 
@@ -232,7 +235,7 @@ namespace sc::physics {
             //         registry.physics_order.end(), registry, atlas, dt,
             //         true)};
 
-            const float vx{registry.vec_x_ptr()[idx_a] * dt};
+            const float vx{registry.vel_x_ptr()[idx_a] * dt};
             const float a_min_x{std::min(a.left, a.left + vx)};
             const float a_max_x{std::max(a.right, a.right + vx)};
 
@@ -240,11 +243,13 @@ namespace sc::physics {
 
             for (core::index_t j{i + 1u}; j < registry.count(); ++j) {
                 const core::index_t index_b{registry.physics_order_ptr()[j]};
-                const auto sprite32_idx_b{static_cast<sprites::sprite32_index>(
+                const auto sprite32_idx_b{static_cast<assets::sprite32_index>(
                         registry.sprite32_index_ptr()[j])};
-                const sprites::metadata& sprite_b{atlas[sprite32_idx_b].meta};
+                const assets::sprites::metadata& sprite_b{
+                        atlas[sprite32_idx_b].meta};
 
-                if (sprite_b.physics_type & type::NONE) {
+                if (core::any(static_cast<type>(sprite_b.physics_type) &
+                            type::NONE)) {
                     continue;
                 }
 
@@ -253,14 +258,14 @@ namespace sc::physics {
                     break;
 
                 const sweep_result result{sweep_aabb(a, b,
-                        (registry.vec_x_ptr()[idx_a] -
-                                registry.vec_x_ptr()[index_b]) *
+                        (registry.vel_x_ptr()[idx_a] -
+                                registry.vel_x_ptr()[index_b]) *
                                 dt,
-                        (registry.vec_y_ptr()[idx_a] -
-                                registry.vec_y_ptr()[index_b]) *
+                        (registry.vel_y_ptr()[idx_a] -
+                                registry.vel_y_ptr()[index_b]) *
                                 dt,
-                        (registry.vec_z_ptr()[idx_a] -
-                                registry.vec_z_ptr()[index_b]) *
+                        (registry.vel_z_ptr()[idx_a] -
+                                registry.vel_z_ptr()[index_b]) *
                                 dt)};
 
                 if (result.time < hit.time) {
@@ -270,11 +275,13 @@ namespace sc::physics {
 
             for (int32_t j{static_cast<int32_t>(i) - 1}; j >= 0; --j) {
                 const core::index_t idx_b{registry.physics_order_ptr()[j]};
-                const auto sprite32_idx_b{static_cast<sprites::sprite32_index>(
+                const auto sprite32_idx_b{static_cast<assets::sprite32_index>(
                         registry.sprite32_index_ptr()[j])};
-                const sprites::metadata& sprite_b{atlas[sprite32_idx_b].meta};
+                const assets::sprites::metadata& sprite_b{
+                        atlas[sprite32_idx_b].meta};
 
-                if (sprite_b.physics_type & type::NONE) {
+                if (core::any(static_cast<type>(sprite_b.physics_type) &
+                            type::NONE)) {
                     continue;
                 }
 
@@ -283,14 +290,14 @@ namespace sc::physics {
                     break;
 
                 const sweep_result result{sweep_aabb(a, b,
-                        (registry.vec_x_ptr()[idx_a] -
-                                registry.vec_x_ptr()[idx_b]) *
+                        (registry.vel_x_ptr()[idx_a] -
+                                registry.vel_x_ptr()[idx_b]) *
                                 dt,
-                        (registry.vec_y_ptr()[idx_a] -
-                                registry.vec_y_ptr()[idx_b]) *
+                        (registry.vel_y_ptr()[idx_a] -
+                                registry.vel_y_ptr()[idx_b]) *
                                 dt,
-                        (registry.vec_z_ptr()[idx_a] -
-                                registry.vec_z_ptr()[idx_b]) *
+                        (registry.vel_z_ptr()[idx_a] -
+                                registry.vel_z_ptr()[idx_b]) *
                                 dt)};
 
                 if (result.time < hit.time) {
@@ -301,33 +308,33 @@ namespace sc::physics {
             const float padded_t{std::max(0.0f, hit.time - 0.1f)};
 
             registry.new_x_ptr()[idx_a] = registry.pos_x_ptr()[idx_a] +
-                    registry.vec_x_ptr()[idx_a] * dt * padded_t;
+                    registry.vel_x_ptr()[idx_a] * dt * padded_t;
             registry.new_y_ptr()[idx_a] = registry.pos_y_ptr()[idx_a] +
-                    registry.vec_y_ptr()[idx_a] * dt * padded_t;
+                    registry.vel_y_ptr()[idx_a] * dt * padded_t;
             registry.new_z_ptr()[idx_a] = registry.pos_z_ptr()[idx_a] +
-                    registry.vec_z_ptr()[idx_a] * dt * padded_t;
+                    registry.vel_z_ptr()[idx_a] * dt * padded_t;
 
             if (hit.time < 1.0f) {
                 const float remain_t{1.0f - hit.time};
 
-                const float dot{registry.vec_x_ptr()[idx_a] * hit.normal_x +
-                        registry.vec_y_ptr()[idx_a] * hit.normal_y +
-                        registry.vec_z_ptr()[idx_a] * hit.normal_z};
+                const float dot{registry.vel_x_ptr()[idx_a] * hit.normal_x +
+                        registry.vel_y_ptr()[idx_a] * hit.normal_y +
+                        registry.vel_z_ptr()[idx_a] * hit.normal_z};
 
                 const float slide_x{
-                        registry.vec_x_ptr()[idx_a] - dot * hit.normal_x};
+                        registry.vel_x_ptr()[idx_a] - dot * hit.normal_x};
                 const float slide_y{
-                        registry.vec_y_ptr()[idx_a] - dot * hit.normal_y};
+                        registry.vel_y_ptr()[idx_a] - dot * hit.normal_y};
                 const float slide_z{
-                        registry.vec_z_ptr()[idx_a] - dot * hit.normal_z};
+                        registry.vel_z_ptr()[idx_a] - dot * hit.normal_z};
 
                 registry.new_x_ptr()[idx_a] += slide_x * dt * remain_t;
                 registry.new_y_ptr()[idx_a] += slide_y * dt * remain_t;
                 registry.new_z_ptr()[idx_a] += slide_z * dt * remain_t;
 
-                registry.vec_x_ptr()[idx_a] = slide_x;
-                registry.vec_y_ptr()[idx_a] = slide_y;
-                registry.vec_z_ptr()[idx_a] = slide_z;
+                registry.vel_x_ptr()[idx_a] = slide_x;
+                registry.vel_y_ptr()[idx_a] = slide_y;
+                registry.vel_z_ptr()[idx_a] = slide_z;
             }
         }
     }
