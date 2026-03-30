@@ -3,7 +3,7 @@
 #include "assets/sprite.hh"
 #include "core/core.hh"
 #include "graphics/display_constants.hh"
-#include "graphics/visual_types.hh"
+#include "graphics/graphics_types.hh"
 
 using namespace metal;
 

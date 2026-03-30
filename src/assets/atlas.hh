@@ -10,7 +10,7 @@
 #include "assets/sprite16_index.hh"
 #include "assets/sprite32_index.hh"
 #include "core/core.hh"
-#include "graphics/visual_types.hh"
+#include "graphics/graphics_types.hh"
 
 namespace sc::assets {
 

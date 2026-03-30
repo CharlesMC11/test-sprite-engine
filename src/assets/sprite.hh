@@ -6,7 +6,7 @@
 #endif
 
 #include "core/core.hh"
-#include "graphics/visual_types.hh"
+#include "graphics/graphics_types.hh"
 #include "math/bbox.hh"
 
 namespace sc::assets {

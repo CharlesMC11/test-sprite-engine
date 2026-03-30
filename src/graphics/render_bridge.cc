@@ -13,7 +13,7 @@
 #include "assets/atlas.hh"
 #include "core/mapped_view.hh"
 #include "graphics/display_constants.hh"
-#include "graphics/visual_types.hh"
+#include "graphics/graphics_types.hh"
 
 namespace sc {
 
