@@ -9,9 +9,10 @@
 
 #include <iostream>
 
+#include "assets/asset_constants.hh"
 #include "assets/atlas.hh"
-#include "core/core.hh"
 #include "core/mapped_view.hh"
+#include "graphics/display_constants.hh"
 #include "graphics/visual_types.hh"
 
 namespace sc {

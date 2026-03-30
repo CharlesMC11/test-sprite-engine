@@ -2,6 +2,7 @@
 
 #include "assets/sprite.hh"
 #include "core/core.hh"
+#include "graphics/display_constants.hh"
 #include "graphics/visual_types.hh"
 
 using namespace metal;
@@ -75,8 +76,7 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
                 local_coord.y < 0 || static_cast<uint>(local_coord.y) >= 32u)
             continue;
 
-        constant sc::assets::sprite32& sprite{
-                sprites[atlas_indices[draw_idx]]};
+        constant sc::assets::sprite32& sprite{sprites[atlas_indices[draw_idx]]};
         const sc::graphics::packed_pixel_t pixel{
                 sprite.pixels[local_coord.y][local_coord.x]};
 

@@ -5,16 +5,15 @@
 
 namespace sc::graphics {
 
+    using packed_color_t = uint16_t;
+    using packed_pixel_t = uint8_t; // [S][E][AA][IIII]
+
     static SC_CONSTANT unsigned kMaxPaletteSize{16u};
 
-    using packed_color_t = uint16_t;
-
-    /**
-     * A palette of colors packed into a 16-bit integer.
-     */
-    struct alignas(core::kNeonAlignment) palette final {
-        packed_color_t colors[kMaxPaletteSize];
-    };
+    static SC_CONSTANT packed_pixel_t kMaskPaletteIndex{0x0F};
+    static SC_CONSTANT packed_pixel_t kMaskAlpha{0x30};
+    static SC_CONSTANT packed_pixel_t kMaskEmission{0x40};
+    static SC_CONSTANT packed_pixel_t kMaskSpecular{0x80};
 
     /**
      * Distribution of color channels across a 16-bit packed integer.
@@ -25,11 +24,12 @@ namespace sc::graphics {
         COOL // R5G5B6
     };
 
-    using packed_pixel_t = uint8_t; // [S][E][AA][IIII]
-    static SC_CONSTANT packed_pixel_t kMaskPaletteIndex{0x0F};
-    static SC_CONSTANT packed_pixel_t kMaskAlpha{0x30};
-    static SC_CONSTANT packed_pixel_t kMaskEmission{0x40};
-    static SC_CONSTANT packed_pixel_t kMaskSpecular{0x80};
+    /**
+     * A palette of colors packed into 16-bit integers.
+     */
+    struct alignas(core::kNeonAlignment) palette final {
+        packed_color_t colors[kMaxPaletteSize];
+    };
 
 } // namespace sc::graphics
 

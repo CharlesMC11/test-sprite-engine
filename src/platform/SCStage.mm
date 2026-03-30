@@ -5,12 +5,14 @@
 #include <cstdint>
 #include <memory>
 
+#include "assets/asset_constants.hh"
 #include "assets/atlas.hh"
 #include "assets/sprite.hh"
 #include "assets/sprite32_index.hh"
 #include "core/core.hh"
 #include "core/input.hh"
 #include "core/mapped_view.hh"
+#include "graphics/display_constants.hh"
 #include "graphics/render_bridge.hh"
 #include "registry/entity_registry.hh"
 #include "simulation/physics.hh"
