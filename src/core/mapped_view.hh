@@ -15,7 +15,8 @@ namespace sc::core {
     /**
      * RAII wrapper for POSIX memory-mapped files.
      *
-     * @tparam T The type to cast the mapped memory to.
+     * @tparam T
+     * The type to cast the mapped memory to.
      */
     template<mappable T>
     class mapped_view final {
