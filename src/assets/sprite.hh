@@ -6,66 +6,47 @@
 #endif
 
 #include "core/core.hh"
+#include "graphics/visual_types.hh"
 #include "math/bbox.hh"
 
-namespace sc::sprites {
+namespace sc::assets {
 
-    static SC_CONSTANT unsigned kMaxPaletteSize{16u};
-    static SC_CONSTANT unsigned kHeight{32u};
-    static SC_CONSTANT unsigned kWidth{32u};
+    namespace sprites {
 
-    using packed_color = uint16_t;
-    using palette = packed_color[kMaxPaletteSize];
+        /**
+         * A sprite’s metadata.
+         *
+         * Contains information regarding a sprite’s bounding box, pivot, color
+         * encoding, and physics type.
+         */
+        struct alignas(core::kNeonAlignment) metadata final {
+            geometry::bbox<> bbox;
+            float origin_u, origin_v;
+            graphics::color_encoding color_encoding;
+            uint8_t palette_index;
+            core::physics_t physics_type;
+            uint8_t padding;
+        };
 
-    /**
-     * Distribution of color channels across a 16-bit packed integer.
-     */
-    enum class color_encoding : uint8_t {
-        DEFAULT = 0u, // R5G6B5
-        WARM, // R6G5B5
-        COOL // R5G5B6
-    };
-
-    using packed_pixel = uint8_t; // [S][E][AA][IIII]
-    static SC_CONSTANT packed_pixel kMaskPaletteIndex{0x0F};
-    static SC_CONSTANT packed_pixel kMaskAlpha{0x30};
-    static SC_CONSTANT packed_pixel kMaskEmission{0x40};
-    static SC_CONSTANT packed_pixel kMaskSpecular{0x80};
-
-    /**
-     * A sprite’s metadata.
-     *
-     * Contains information regarding a sprite’s bounding box, pivot, color
-     * encoding, and physics type.
-     */
-    struct alignas(core::kNeonAlignment) metadata final {
-        geometry::bbox<> bbox;
-        float origin_u, origin_v;
-        color_encoding color_encoding;
-        uint8_t palette_index;
-        uint8_t physics_type;
-        uint8_t padding;
-    };
+    } // namespace sprites
 
     /**
      * hardware-aware sprite definition.
      */
-    template<unsigned Height, unsigned Width = Height>
+    template<unsigned Height = 32u, unsigned Width = Height>
     struct alignas(core::kNeonAlignment) sprite final {
-        metadata meta;
-        packed_pixel pixels[Height][Width]; // Row-major pixels
+        sprites::metadata meta;
+        graphics::packed_pixel_t pixels[Height][Width]; // Row-major pixels
     };
 
-    using sprite8 = sprite<8u>;
     using sprite16 = sprite<16u>;
-    using sprite32 = sprite<32u>;
-    using sprite64 = sprite<64u>;
+    using sprite32 = sprite<>;
 
-    static_assert(
-            sizeof(metadata) == core::kNeonAlignment, "Metadata must be 16 B.");
+    static_assert(sizeof(sprites::metadata) == core::kNeonAlignment,
+            "Sprite metadata must be 16 B.");
     static_assert(sizeof(sprite16) == 272, "Sprite16 must be 272 B.");
-    static_assert(sizeof(sprite32) == 1'040, "Sprite32 must be 1,040 B.");
+    static_assert(sizeof(sprite<>) == 1'040, "Sprite32 must be 1,040 B.");
 
-} // namespace sc::sprites
+} // namespace sc::assets
 
 #endif // SC_ASSETS_SPRITE_HH
