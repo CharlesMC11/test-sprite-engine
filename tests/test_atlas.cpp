@@ -1,9 +1,9 @@
 #include <format>
 #include <iostream>
 
-#include "../include/atlas.hh"
-#include "../include/mapped_view.hh"
-#include "../include/sprite.hh"
+#include "assets/atlas.hh"
+#include "assets/sprite.hh"
+#include "core/mapped_view.hh"
 
 void debug_sprite(const sc::sprites::sprite32& sprite);
 
@@ -28,15 +28,15 @@ int main(const int argc, const char* argv[])
     std::size_t i{0u};
     for (; i < view->meta.palette_count; ++i) {
         std::cout << std::format("Palette {:02}: ", i + 1u);
-        for (const auto& p: view->palettes()[i]) {
+        for (const auto& p: view->palette_span()[i]) {
             std::cout << std::format("{:04X} ", p);
         }
-        std::cout << std::endl;
+        std::cout << "\n\n";
     }
 
     for (i = 0u; i < view->meta.sprite32_count; ++i) {
         std::cout << std::format("Sprite {:02}\t", i + 1u);
-        debug_sprite(view->sprite32()[i]);
+        debug_sprite(view->sprite32_span()[i]);
     }
 }
 

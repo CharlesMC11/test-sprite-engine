@@ -1,14 +1,15 @@
-#pragma once
+#ifndef SC_ASSETS_ATLAS_HH
+#define SC_ASSETS_ATLAS_HH
 
 #include <cstddef>
 #include <cstdint>
 #include <span>
 
-#include "core.hh"
-#include "palette_index.hh"
-#include "sprite.hh"
-#include "sprite16_index.hh"
-#include "sprite32_index.hh"
+#include "assets/palette_index.hh"
+#include "assets/sprite.hh"
+#include "assets/sprite16_index.hh"
+#include "assets/sprite32_index.hh"
+#include "core/core.hh"
 
 namespace sc::sprites {
 
@@ -115,7 +116,6 @@ namespace sc::sprites {
 
     // Accessors
 
-
     [[nodiscard]] constexpr auto atlas::palette_span() const noexcept
             -> std::span<const palette>
     {
@@ -148,5 +148,6 @@ namespace sc::sprites {
         return reinterpret_cast<const std::byte*>(&meta + 1);
     }
 
-
 } // namespace sc::sprites
+
+#endif // SC_ASSETS_ATLAS_HH

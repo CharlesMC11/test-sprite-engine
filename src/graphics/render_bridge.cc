@@ -2,16 +2,16 @@
 #define MTL_PRIVATE_IMPLEMENTATION
 #define NS_PRIVATE_IMPLEMENTATION
 
-#include "render_bridge.hh"
+#include "graphics/render_bridge.hh"
 
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
 
 #include <iostream>
 
-#include "atlas.hh"
-#include "core.hh"
-#include "mapped_view.hh"
+#include "assets/atlas.hh"
+#include "core/core.hh"
+#include "core/mapped_view.hh"
 
 namespace sc {
 

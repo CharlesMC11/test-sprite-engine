@@ -1,10 +1,11 @@
-#pragma once
+#ifndef SC_SIMULATION_PHYSICS_HH
+#define SC_SIMULATION_PHYSICS_HH
 
-#include "atlas.hh"
-#include "bbox.hh"
-#include "core.hh"
-#include "entity_registry.hh"
-#include "sprite.hh"
+#include "assets/atlas.hh"
+#include "assets/sprite.hh"
+#include "core/core.hh"
+#include "math/bbox.hh"
+#include "registry/entity_registry.hh"
 
 namespace sc::physics {
 
@@ -343,3 +344,5 @@ namespace sc::physics {
     }
 
 } // namespace sc::physics
+
+#endif // SC_SIMULATION_PHYSICS_HH

@@ -1,4 +1,4 @@
-#include "entity_registry.hh"
+#include "registry/entity_registry.hh"
 
 #include <cstddef>
 #include <format>

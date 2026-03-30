@@ -1,6 +1,7 @@
-#pragma once
+#ifndef SC_CORE_INPUT_HH
+#define SC_CORE_INPUT_HH
 
-#include "core.hh"
+#include "core/core.hh"
 
 namespace sc::input {
 
@@ -34,3 +35,5 @@ namespace sc::input {
     }
 
 } // namespace sc::input
+
+#endif // SC_CORE_INPUT_HH

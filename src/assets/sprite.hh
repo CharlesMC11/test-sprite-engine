@@ -1,11 +1,12 @@
-#pragma once
+#ifndef SC_ASSETS_SPRITE_HH
+#define SC_ASSETS_SPRITE_HH
 
 #ifndef __METAL_VERSION__
 #include <cstdint>
 #endif
 
-#include "bbox.hh"
-#include "core.hh"
+#include "core/core.hh"
+#include "math/bbox.hh"
 
 namespace sc::sprites {
 
@@ -66,3 +67,5 @@ namespace sc::sprites {
     static_assert(sizeof(sprite32) == 1'040, "Sprite32 must be 1,040 B.");
 
 } // namespace sc::sprites
+
+#endif // SC_ASSETS_SPRITE_HH

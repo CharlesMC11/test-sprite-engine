@@ -1,7 +1,8 @@
 /**
  * Source of truth for type aliases, constants, and enums.
  */
-#pragma once
+#ifndef SC_CORE_CORE_HH
+#define SC_CORE_CORE_HH
 
 #ifdef __METAL_VERSION__
 #define SC_CONSTANT constant constexpr
@@ -69,3 +70,5 @@ namespace sc {
     } // namespace display
 
 } // namespace sc
+
+#endif // SC_CORE_CORE_HH

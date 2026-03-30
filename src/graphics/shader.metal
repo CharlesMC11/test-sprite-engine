@@ -1,7 +1,7 @@
 #include <metal_stdlib>
 
-#include "core.hh"
-#include "sprite.hh"
+#include "assets/sprite.hh"
+#include "core/core.hh"
 
 using namespace metal;
 

@@ -5,15 +5,15 @@
 #include <cstdint>
 #include <memory>
 
-#include "atlas.hh"
-#include "core.hh"
-#include "entity_registry.hh"
-#include "input.hh"
-#include "mapped_view.hh"
-#include "physics.hh"
-#include "render_bridge.hh"
-#include "sprite.hh"
-#include "sprite32_index.hh"
+#include "assets/atlas.hh"
+#include "assets/sprite.hh"
+#include "assets/sprite32_index.hh"
+#include "core/core.hh"
+#include "core/input.hh"
+#include "core/mapped_view.hh"
+#include "graphics/render_bridge.hh"
+#include "registry/entity_registry.hh"
+#include "simulation/physics.hh"
 
 @implementation SCStage {
     std::unique_ptr<sc::core::mapped_view<sc::sprites::atlas>> _view;

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SC_CORE_MAPPED_VIEW_HH
+#define SC_CORE_MAPPED_VIEW_HH
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -7,7 +8,7 @@
 
 #include <cstddef>
 
-#include "core.hh"
+#include "core/core.hh"
 
 namespace sc::core {
 
@@ -115,3 +116,5 @@ namespace sc::core {
     }
 
 } // namespace sc::core
+
+#endif // SC_CORE_MAPPED_VIEW_HH

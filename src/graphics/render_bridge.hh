@@ -1,10 +1,11 @@
-#pragma once
+#ifndef SC_GRAPHICS_RENDER_BRIDGE_HH
+#define SC_GRAPHICS_RENDER_BRIDGE_HH
 
 #include <Metal/Metal.hpp>
 
-#include "atlas.hh"
-#include "entity_registry.hh"
-#include "mapped_view.hh"
+#include "assets/atlas.hh"
+#include "core/mapped_view.hh"
+#include "registry/entity_registry.hh"
 
 namespace sc {
 
@@ -86,3 +87,5 @@ namespace sc {
     };
 
 } // namespace sc
+
+#endif // SC_GRAPHICS_RENDER_BRIDGE_HH

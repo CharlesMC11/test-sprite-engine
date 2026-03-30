@@ -1,10 +1,11 @@
-#pragma once
+#ifndef SC_CORE_MEMORY_HH
+#define SC_CORE_MEMORY_HH
 
 #include <Metal/Metal.hpp>
 
 #include <cstring>
 
-#include "core.hh"
+#include "core/core.hh"
 
 namespace sc::mem {
 
@@ -120,3 +121,5 @@ namespace sc::mem {
     }
 
 } // namespace sc::mem
+
+#endif // SC_CORE_MEMORY_HH

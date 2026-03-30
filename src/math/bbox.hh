@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SC_MATH_BBOX_HH
+#define SC_MATH_BBOX_HH
 
 #ifndef __METAL_VERSION__
 #include <cstdint>
@@ -56,3 +57,5 @@ namespace sc::geometry {
     }
 
 } // namespace sc::geometry
+
+#endif // SC_MATH_BBOX_HH

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SC_REGISTRY_SCENE_REGISTRY_HH
+#define SC_REGISTRY_SCENE_REGISTRY_HH
 
 #include <arm_neon.h>
 
@@ -7,9 +8,9 @@
 #include <cstddef>
 #include <span>
 
-#include "core.hh"
-#include "memory.hh"
-#include "sprite32_index.hh"
+#include "assets/sprite32_index.hh"
+#include "core/core.hh"
+#include "core/memory.hh"
 
 /**
  * Register a channel accessor method for the registry.
@@ -366,3 +367,5 @@ namespace sc {
 #undef REGISTER_INDEX_CHANNEL_ACCESSOR
 #undef REGISTER_XFORM_CHANNEL_ACCESSOR
 #undef REGISTER_ACCESSOR
+
+#endif // SC_REGISTRY_SCENE_REGISTRY_HH
