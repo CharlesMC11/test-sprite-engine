@@ -38,7 +38,7 @@
         self.layer.magnificationFilter = kCAFilterNearest;
 
         _view = std::make_unique<sc::core::mapped_view<sc::assets::atlas>>(
-                sc::assets::kCharacterAtlas);
+                sc::assets::kAtlas);
         if (!(_view && *_view)) {
             NSLog(@"FATAL: Could not map sprite bank file.");
             abort();
