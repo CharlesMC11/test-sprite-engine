@@ -12,8 +12,8 @@ namespace sc::render {
     /**
      * High-level interface for the Metal Compute pipeline.
      *
-     * Orchestrates the dispatch of kernels to the GPU using `sc::sprite` data
-     * as primary input.
+     * Orchestrates the dispatch of kernels to the GPU using
+     * `sc::assets::sprite` data as primary input.
      */
     class metal_bridge final {
     public:
