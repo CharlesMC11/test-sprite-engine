@@ -149,13 +149,14 @@
             _registry->vel_x_ptr()[0UZ] += speed;
 
         _registry->update(sc::physics::kFixedTimestep);
-        sc::physics::resolve_entity_collisions(
-                *_atlas, *_registry, sc::physics::kFixedTimestep);
+        // sc::physics::resolve_entity_collisions(
+        //        *_atlas, *_registry, sc::physics::kFixedTimestep);
         _registry->commit();
 
         _accumulator -= sc::physics::kFixedTimestep;
     }
 
+    _registry->needs_sort = true;
     _registry->sort_draw();
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
     _bridge->begin_frame(drawable);

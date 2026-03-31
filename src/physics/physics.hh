@@ -8,6 +8,7 @@
 #include "core/core.hh"
 #include "math/bbox.hh"
 #include "physics/physics_types.hh"
+#include "physics/spatial_grid.hh"
 #include "registry/entity_registry.hh"
 
 namespace sc::physics {
@@ -130,7 +131,7 @@ namespace sc::physics {
                 continue;
             }
 
-            const aabb box_b{from_registry(registry, idx_b, sprite_b)};
+            const aabb box_b{aabb::from_registry(registry, idx_b, sprite_b)};
             if (check_left ? a_limit > box_b.right : a_limit < box_b.left)
                 break;
 
@@ -152,6 +153,8 @@ namespace sc::physics {
 
         return hit;
     }
+
+    inline spatial_grid grid;
 
     constexpr void resolve_entity_collisions(const assets::atlas& atlas,
             entity_registry& registry, const float dt)
@@ -182,80 +185,62 @@ namespace sc::physics {
                 registry.needs_sort = true;
             }
 
-            const aabb a{from_registry(registry, idx_a, sprite_a)};
+            const aabb a{aabb::from_registry(registry, idx_a, sprite_a)};
 
-            // sweep_result hit{find_closest_hit(a, idx_a,
-            //         registry.physics_order.begin() + i,
-            //         registry.physics_order.end(), registry, atlas, dt,
-            //         true)};
+            const auto start_x{
+                    std::max(0, static_cast<int>(a.left) / kCellSize)};
+            const auto end_x{std::min(
+                    kColCount - 1, static_cast<int>(a.right) / kCellSize)};
 
-            const float vx{registry.vel_x_ptr()[idx_a] * dt};
-            const float a_min_x{std::min(a.left, a.left + vx)};
-            const float a_max_x{std::max(a.right, a.right + vx)};
+            const auto start_y{
+                    std::max(0, static_cast<int>(a.back) / kCellSize)};
+            const auto end_y{std::max(
+                    kRowCount - 1, static_cast<int>(a.front) / kCellSize)};
 
             sweep_result hit;
 
-            for (core::index_t j{i + 1U}; j < registry.count(); ++j) {
-                const core::index_t index_b{registry.physics_order_ptr()[j]};
-                const auto sprite32_idx_b{static_cast<assets::sprite32_index>(
-                        registry.sprite32_index_ptr()[j])};
-                const assets::sprites::metadata& sprite_b{
-                        atlas[sprite32_idx_b].meta};
+            for (int cy{start_y}; cy <= end_y; ++cy) {
+                for (int cx{start_x}; cx <= end_x; ++cx) {
+                    const auto cell_idx{cy * kCellSize + cx};
+                    core::index_t idx_b{grid.cell_heads[cell_idx]};
 
-                if (core::any(static_cast<type>(sprite_b.physics_type) &
-                            type::NONE)) {
-                    continue;
-                }
+                    while (idx_b != core::kInvalidIndex) {
+                        if (idx_a != idx_b) {
+                            const core::index_t index_b{
+                                    registry.physics_order_ptr()[idx_b]};
+                            const auto sprite32_idx_b{static_cast<
+                                    assets::sprite32_index>(
+                                    registry.sprite32_index_ptr()[index_b])};
+                            const assets::sprites::metadata& sprite_b{
+                                    atlas[sprite32_idx_b].meta};
 
-                const aabb b{from_registry(registry, index_b, sprite_b)};
-                if (a_max_x < b.left)
-                    break;
+                            if (core::any(static_cast<type>(
+                                                  sprite_b.physics_type) &
+                                        type::NONE)) {
+                                continue;
+                            }
 
-                const sweep_result result{sweep_aabb(a, b,
-                        (registry.vel_x_ptr()[idx_a] -
-                                registry.vel_x_ptr()[index_b]) *
-                                dt,
-                        (registry.vel_y_ptr()[idx_a] -
-                                registry.vel_y_ptr()[index_b]) *
-                                dt,
-                        (registry.vel_z_ptr()[idx_a] -
-                                registry.vel_z_ptr()[index_b]) *
-                                dt)};
+                            const aabb b{aabb::from_registry(
+                                    registry, index_b, sprite_b)};
 
-                if (result.time < hit.time) {
-                    hit = result;
-                }
-            }
+                            const sweep_result result{sweep_aabb(a, b,
+                                    (registry.vel_x_ptr()[idx_a] -
+                                            registry.vel_x_ptr()[index_b]) *
+                                            dt,
+                                    (registry.vel_y_ptr()[idx_a] -
+                                            registry.vel_y_ptr()[index_b]) *
+                                            dt,
+                                    (registry.vel_z_ptr()[idx_a] -
+                                            registry.vel_z_ptr()[index_b]) *
+                                            dt)};
 
-            for (int32_t j{static_cast<int32_t>(i) - 1}; j >= 0; --j) {
-                const core::index_t idx_b{registry.physics_order_ptr()[j]};
-                const auto sprite32_idx_b{static_cast<assets::sprite32_index>(
-                        registry.sprite32_index_ptr()[j])};
-                const assets::sprites::metadata& sprite_b{
-                        atlas[sprite32_idx_b].meta};
+                            if (result.time < hit.time) {
+                                hit = result;
+                            }
+                        }
 
-                if (core::any(static_cast<type>(sprite_b.physics_type) &
-                            type::NONE)) {
-                    continue;
-                }
-
-                const aabb b{from_registry(registry, idx_b, sprite_b)};
-                if (a_min_x > b.right)
-                    break;
-
-                const sweep_result result{sweep_aabb(a, b,
-                        (registry.vel_x_ptr()[idx_a] -
-                                registry.vel_x_ptr()[idx_b]) *
-                                dt,
-                        (registry.vel_y_ptr()[idx_a] -
-                                registry.vel_y_ptr()[idx_b]) *
-                                dt,
-                        (registry.vel_z_ptr()[idx_a] -
-                                registry.vel_z_ptr()[idx_b]) *
-                                dt)};
-
-                if (result.time < hit.time) {
-                    hit = result;
+                        idx_b = registry.next_in_cell_ptr()[idx_b];
+                    }
                 }
             }
 
