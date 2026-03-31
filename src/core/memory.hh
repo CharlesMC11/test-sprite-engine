@@ -58,7 +58,7 @@ namespace sc::mem {
          * @param new_capacity
          * The new capacity size.
          */
-        constexpr void grow(MTL::Device* device, std::size_t new_capacity);
+        void grow(MTL::Device* device, std::size_t new_capacity);
 
         // Accessors
 
@@ -97,7 +97,7 @@ namespace sc::mem {
     // Mutators
 
     template<typename T, std::size_t N>
-    constexpr void channel_pool<T, N>::grow(
+    void channel_pool<T, N>::grow(
             MTL::Device* device, const std::size_t new_capacity)
     {
         const std::size_t aligned_new_capacity{
