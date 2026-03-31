@@ -48,7 +48,7 @@ namespace sc::render {
         void end_frame(const MTL::Drawable* buffer);
 
         /**
-         *
+         * Encode a command to clear the screen.
          */
         void clear() const;
 
@@ -56,18 +56,19 @@ namespace sc::render {
          * Encode a draw command for entities on screen.
          *
          * @param registry
-         *
+         * The registry containing the entities to draw.
          */
         void draw(const entity_registry& registry) const;
 
         // Mutators
 
         /**
+         * Create a shared buffer for the atlas.
          *
-         * @param view
-         *
+         * @param atlas
+         * The mapped view of atlas to store in the buffer.
          */
-        void set_sprite_atlas(const core::mapped_view<assets::atlas>& view);
+        void set_atlas_buffer(const core::mapped_view<assets::atlas>& atlas);
 
     private:
         // Attributes

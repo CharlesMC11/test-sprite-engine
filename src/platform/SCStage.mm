@@ -54,7 +54,7 @@
 
         _bridge = std::make_unique<sc::render::metal_bridge>(
                 (__bridge MTL::Device*) device);
-        _bridge->set_sprite_atlas(*_view);
+        _bridge->set_atlas_buffer(*_view);
 
         self.framebufferOnly = false;
 

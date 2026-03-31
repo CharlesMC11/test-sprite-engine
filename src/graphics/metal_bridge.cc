@@ -126,10 +126,10 @@ namespace sc::render {
 
     // Mutators
 
-    void metal_bridge::set_sprite_atlas(
-            const core::mapped_view<assets::atlas>& view)
+    void metal_bridge::set_atlas_buffer(
+            const core::mapped_view<assets::atlas>& atlas)
     {
-        const auto meta{view->meta};
+        const auto meta{atlas->meta};
 
         constexpr std::size_t metadata_size{sizeof(meta)};
         const std::size_t palette_span_size{
@@ -138,10 +138,10 @@ namespace sc::render {
                 sizeof(assets::sprite16) * meta.sprite16_count};
         const std::size_t sprite32_span_size{
                 sizeof(assets::sprite32) * meta.sprite32_count};
-        const std::size_t total_size{sizeof(view) + palette_span_size +
+        const std::size_t total_size{sizeof(atlas) + palette_span_size +
                 sprite16_span_size + sprite32_span_size};
 
-        sprite32_buffer_ = NS::TransferPtr(device_->newBuffer(view.data(),
+        sprite32_buffer_ = NS::TransferPtr(device_->newBuffer(atlas.data(),
                 total_size, MTL::ResourceStorageModeShared, nullptr));
         if (!sprite32_buffer_) [[unlikely]] {
             std::cerr << "Metal buffer is empty!\n";
