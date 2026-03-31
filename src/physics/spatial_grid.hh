@@ -9,10 +9,10 @@
 
 namespace sc ::physics {
 
-    static constexpr std::uint16_t kCellSize{16U};
-    static constexpr std::uint16_t kColCount{display::kWidth / kCellSize};
-    static constexpr std::uint16_t kRowCount{display::kHeight / kCellSize};
-    static constexpr std::uint16_t kTotalCells{kColCount * kRowCount};
+    static constexpr int kCellSize{16U};
+    static constexpr int kColCount{display::kWidth / kCellSize};
+    static constexpr int kRowCount{display::kHeight / kCellSize};
+    static constexpr std::size_t kTotalCells{kColCount * kRowCount};
 
     struct alignas(core::kCacheAlignment) spatial_grid final {
 
@@ -34,13 +34,12 @@ namespace sc ::physics {
         clear();
 
         core::index_t* __restrict next_ptr{registry.next_in_cell_ptr()};
-
-        for (core::index_t i{0U}; i < registry.count(); ++i) {
+        for (std::size_t i{0UZ}; i < registry.count(); ++i) {
             const core::index_t cell_idx{
                     hash(registry.pos_x_ptr()[i], registry.pos_y_ptr()[i])};
 
             next_ptr[i] = cell_heads[cell_idx];
-            cell_heads[cell_idx] = i;
+            cell_heads[cell_idx] = static_cast<core::index_t>(i);
         }
     }
 
