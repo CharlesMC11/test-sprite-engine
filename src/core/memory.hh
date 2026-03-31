@@ -6,6 +6,7 @@
 #include <cstring>
 
 #include "core/core.hh"
+#include "math/utils.hh"
 
 namespace sc::mem {
 
@@ -88,8 +89,7 @@ namespace sc::mem {
             MTL::Device* device, const std::size_t new_capacity)
     {
         const std::size_t aligned_new_capacity{
-                new_capacity + core::kCacheAlignment - 1u &
-                ~(core::kCacheAlignment - 1u)};
+                math::align_up(new_capacity, core::kCacheAlignment)};
         if (aligned_new_capacity <= capacity) [[unlikely]]
             return;
 
