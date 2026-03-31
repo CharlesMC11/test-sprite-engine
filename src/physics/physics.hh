@@ -107,15 +107,6 @@ namespace sc::physics {
                 });
     }
 
-    constexpr aabb from_registry(const entity_registry& registry,
-            const core::index_t i, const assets::sprites::metadata& metadata)
-    {
-        return aabb{registry.pos_x_ptr()[i], registry.pos_y_ptr()[i],
-                registry.pos_z_ptr()[i], registry.vel_x_ptr()[i],
-                registry.vel_y_ptr()[i], registry.vel_z_ptr()[i],
-                static_cast<geometry::bbox<float>>(metadata.bbox)};
-    }
-
     template<typename Iterator>
     sweep_result find_closest_hit(const aabb& box_a, const core::index_t idx_a,
             Iterator begin, Iterator end, const entity_registry& registry,
