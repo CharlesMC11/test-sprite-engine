@@ -3,6 +3,7 @@
 
 #include "core/core.hh"
 #include "math/bbox.hh"
+#include "registry/entity_registry.hh"
 
 namespace sc::physics {
 
@@ -24,16 +25,18 @@ namespace sc::physics {
         PROJECTILE = 1U << 4,
     };
 
-    struct aabb {
-        explicit aabb(const float x, const float y, const float z,
-                const float vx, const float vy, const float vz,
-                const geometry::bbox<float>& bbox) noexcept
-            : left{x + bbox.min_u}, back{y - kYCollisionDistance},
-              right{x + bbox.max_u}, front{y + kYCollisionDistance},
-              top{z + bbox.height()}, bottom{z}, vx{vx}, vy{vy}, vz{vz},
-              bbox{bbox}
-        {
-        }
+    struct alignas(float) aabb final {
+        // Constructors
+
+        [[nodiscard]] static constexpr aabb from_registry(
+                const entity_registry& registry, core::index_t i,
+                const assets::sprites::metadata& meta) noexcept;
+
+        [[nodiscard]] explicit constexpr aabb(float pos_x, float pos_y,
+                float pos_z, float vel_x, float vel_y, float vel_z,
+                const geometry::bbox<float>& bbox) noexcept;
+
+        // Attributes
 
         float left{0.0f};
         float right{0.0f};
@@ -51,12 +54,34 @@ namespace sc::physics {
         geometry::bbox<float> bbox;
     };
 
-    struct sweep_result {
+    struct alignas(core::kNeonAlignment) sweep_result final {
         float time{1.0f};
         float normal_x{0.0f};
         float normal_y{0.0f};
         float normal_z{0.0f};
     };
+
+    // Constructors
+
+    [[nodiscard]] constexpr aabb aabb::from_registry(
+            const entity_registry& registry, const core::index_t i,
+            const assets::sprites::metadata& meta) noexcept
+    {
+        return aabb{registry.pos_x_ptr()[i], registry.pos_y_ptr()[i],
+                registry.pos_z_ptr()[i], registry.vel_x_ptr()[i],
+                registry.vel_y_ptr()[i], registry.vel_z_ptr()[i],
+                static_cast<geometry::bbox<float>>(meta.bbox)};
+    }
+
+    [[nodiscard]] constexpr aabb::aabb(const float pos_x, const float pos_y,
+            const float pos_z, const float vel_x, const float vel_y,
+            const float vel_z, const geometry::bbox<float>& bbox) noexcept
+        : left{pos_x + bbox.min_u}, right{pos_x + bbox.max_u},
+          front{pos_y + kYCollisionDistance}, back{pos_y - kYCollisionDistance},
+          top{pos_z + bbox.height()}, bottom{pos_z}, vel_x{vel_x}, vel_y{vel_y},
+          vel_z{vel_z}, bbox{bbox}
+    {
+    }
 
 } // namespace sc::physics
 

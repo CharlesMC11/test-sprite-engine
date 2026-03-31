@@ -19,7 +19,7 @@ namespace sc::render {
     public:
         // Constructors
 
-        explicit metal_bridge(MTL::Device* device);
+        [[nodiscard]] explicit metal_bridge(MTL::Device* device);
 
         metal_bridge(const metal_bridge&) = delete;
         metal_bridge& operator=(const metal_bridge&) = delete;

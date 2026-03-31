@@ -21,6 +21,18 @@ namespace sc::mem {
      */
     template<typename T, std::size_t N = 2UZ>
     struct channel_pool final {
+        // Constructors
+
+        [[nodiscard]] constexpr channel_pool() = default;
+
+        channel_pool(const channel_pool&) = delete;
+        channel_pool& operator=(const channel_pool&) = delete;
+
+        channel_pool(channel_pool&&) = delete;
+        channel_pool& operator=(channel_pool&&) = delete;
+
+        ~channel_pool() = default;
+
         // Operators
 
         /**

@@ -83,8 +83,8 @@ namespace sc {
         entity_registry(const entity_registry&) = delete;
         entity_registry& operator=(const entity_registry&) = delete;
 
-        entity_registry(entity_registry&&) = default;
-        entity_registry& operator=(entity_registry&&) noexcept = default;
+        entity_registry(entity_registry&&) = delete;
+        entity_registry& operator=(entity_registry&&) noexcept = delete;
 
         ~entity_registry() = default;
 
@@ -205,7 +205,8 @@ namespace sc {
 
     // Constructors
 
-    constexpr entity_registry::entity_registry(MTL::Device* device)
+    [[nodiscard]] constexpr entity_registry::entity_registry(
+            MTL::Device* device)
         : device_{device}
     {
         reserve(core::kCacheAlignment);
