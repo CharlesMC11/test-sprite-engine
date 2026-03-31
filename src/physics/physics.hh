@@ -1,6 +1,8 @@
 #ifndef SC_SIMULATION_PHYSICS_HH
 #define SC_SIMULATION_PHYSICS_HH
 
+#include <cmath>
+
 #include "assets/atlas.hh"
 #include "assets/sprite.hh"
 #include "core/core.hh"
@@ -11,12 +13,12 @@
 namespace sc::physics {
 
     constexpr sweep_result sweep_aabb(const aabb& a, const aabb& b,
-            const float vx, const float vy, const float vz)
+            const float vel_x, const float vel_y, const float vel_z)
     {
         sweep_result result;
 
         float entry_tx, exit_tx;
-        if (std::abs(vx) < core::kEpsilon) {
+        if (std::abs(vel_x) < core::kEpsilon) {
             if (a.right < b.left || a.left > b.right) {
                 return result;
             }
@@ -24,15 +26,17 @@ namespace sc::physics {
             exit_tx = core::kInfinity;
         }
         else {
-            const float in_x{vx > 0.0f ? b.left - a.right : b.right - a.left};
-            const float out_x{vx > 0.0f ? b.right - a.left : b.left - a.right};
+            const float in_x{
+                    vel_x > 0.0f ? b.left - a.right : b.right - a.left};
+            const float out_x{
+                    vel_x > 0.0f ? b.right - a.left : b.left - a.right};
 
-            entry_tx = in_x / vx;
-            exit_tx = out_x / vx;
+            entry_tx = in_x / vel_x;
+            exit_tx = out_x / vel_x;
         }
 
         float entry_ty, exit_ty;
-        if (std::abs(vy) < core::kEpsilon) {
+        if (std::abs(vel_y) < core::kEpsilon) {
             if (a.front < b.back || a.back > b.front) {
                 return result;
             }
@@ -40,15 +44,17 @@ namespace sc::physics {
             exit_ty = core::kInfinity;
         }
         else {
-            const float in_y{vy > 0.0f ? b.back - a.front : b.front - a.back};
-            const float out_y{vy > 0.0f ? b.front - a.back : b.back - a.front};
+            const float in_y{
+                    vel_y > 0.0f ? b.back - a.front : b.front - a.back};
+            const float out_y{
+                    vel_y > 0.0f ? b.front - a.back : b.back - a.front};
 
-            entry_ty = in_y / vy;
-            exit_ty = out_y / vy;
+            entry_ty = in_y / vel_y;
+            exit_ty = out_y / vel_y;
         }
 
         float entry_tz, exit_tz;
-        if (std::abs(vz) < core::kEpsilon) {
+        if (std::abs(vel_z) < core::kEpsilon) {
             if (a.bottom > b.top || a.top < b.bottom) {
                 return result;
             }
@@ -56,11 +62,13 @@ namespace sc::physics {
             exit_tz = core::kInfinity;
         }
         else {
-            const float in_z{vz > 0.0f ? b.bottom - a.top : b.top - a.bottom};
-            const float out_z{vz > 0.0f ? b.top - a.bottom : b.bottom - a.top};
+            const float in_z{
+                    vel_z > 0.0f ? b.bottom - a.top : b.top - a.bottom};
+            const float out_z{
+                    vel_z > 0.0f ? b.top - a.bottom : b.bottom - a.top};
 
-            entry_tz = in_z / vz;
-            exit_tz = out_z / vz;
+            entry_tz = in_z / vel_z;
+            exit_tz = out_z / vel_z;
         }
 
         const float entry_t{std::max(entry_tx, std::max(entry_ty, entry_tz))};
@@ -72,19 +80,19 @@ namespace sc::physics {
 
         result.time = entry_t;
         if (entry_tx >= entry_ty && entry_tx >= entry_tz) {
-            result.normal_x = vx > 0.0f ? -1.0f : 1.0f;
+            result.normal_x = vel_x > 0.0f ? -1.0f : 1.0f;
             result.normal_y = 0.0f;
             result.normal_z = 0.0f;
         }
         else if (entry_ty >= entry_tx && entry_ty >= entry_tz) {
             result.normal_x = 0.0f;
-            result.normal_y = vy > 0.0f ? -1.0f : 1.0f;
+            result.normal_y = vel_y > 0.0f ? -1.0f : 1.0f;
             result.normal_z = 0.0f;
         }
         else {
             result.normal_x = 0.0f;
             result.normal_y = 0.0f;
-            result.normal_z = vz > 0.0f ? 1.0f : -1.0f;
+            result.normal_z = vel_z > 0.0f ? 1.0f : -1.0f;
         }
 
         return result;
