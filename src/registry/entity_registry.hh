@@ -72,6 +72,7 @@ namespace sc {
             SPRITE32_INDEX,
             PHYSICS_ORDER,
             DRAW_ORDER,
+            NEXT_IN_CELL,
             COUNT
         };
 
@@ -163,6 +164,7 @@ namespace sc {
         SC_REGISTER_INDEX_CHANNEL_ACCESSOR(sprite32_index, SPRITE32_INDEX)
         SC_REGISTER_INDEX_CHANNEL_ACCESSOR(physics_order, PHYSICS_ORDER)
         SC_REGISTER_INDEX_CHANNEL_ACCESSOR(draw_order, DRAW_ORDER)
+        SC_REGISTER_INDEX_CHANNEL_ACCESSOR(next_in_cell, NEXT_IN_CELL)
 
         [[nodiscard]] constexpr std::size_t count() const noexcept;
         [[nodiscard]] constexpr std::size_t capacity() const noexcept;
