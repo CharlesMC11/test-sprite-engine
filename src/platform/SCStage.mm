@@ -130,7 +130,7 @@
 
 - (void)drawInMTKView:(nonnull MTKView*)view
 {
-    float frameTime{1.0f / (float) view.preferredFramesPerSecond};
+    float frameTime{1.0f / sc::display::kTargetFPS};
     if (frameTime > 0.25f)
         frameTime = 0.25f;
 
