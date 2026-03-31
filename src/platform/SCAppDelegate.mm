@@ -10,9 +10,9 @@
 
 - (void)applicationDidFinishLaunching:(nonnull NSNotification*)notification
 {
-    constexpr float scale{4.0f};
-    const auto frame{NSMakeRect(
-            0, 0, sc::display::kWidth * scale, sc::display::kHeight * scale)};
+    constexpr double scale{4.0};
+    const auto frame{NSMakeRect(0.0, 0.0, sc::display::kWidth * scale,
+            sc::display::kHeight * scale)};
     self.window = [[NSWindow alloc]
             initWithContentRect:frame
                       styleMask:(NSWindowStyleMaskTitled |

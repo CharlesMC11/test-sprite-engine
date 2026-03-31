@@ -19,7 +19,7 @@ namespace sc::mem {
      * @tparam N
      * The number of subarrays.
      */
-    template<typename T, std::size_t N = 2u>
+    template<typename T, std::size_t N = 2UZ>
     struct channel_pool final {
         // Operators
 
@@ -65,8 +65,8 @@ namespace sc::mem {
         // Attributes
 
         NS::SharedPtr<MTL::Buffer> buffer{nullptr};
-        std::size_t count{0u};
-        std::size_t capacity{0u};
+        std::size_t count{0UZ};
+        std::size_t capacity{0UZ};
     };
 
     // Operators
@@ -101,7 +101,7 @@ namespace sc::mem {
             const auto* src{static_cast<const std::byte*>(buffer->contents())};
             auto* dst{static_cast<std::byte*>(new_buffer->contents())};
 
-            for (std::size_t i{0u}; i < N; ++i) {
+            for (std::size_t i{0UZ}; i < N; ++i) {
                 std::memcpy(dst + sizeof(T) * aligned_new_capacity * i,
                         src + subarray_offset(i), sizeof(T) * count);
             }

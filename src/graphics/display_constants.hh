@@ -1,18 +1,22 @@
 #ifndef SC_GRAPHICS_DISPLAY_CONSTANTS_HH
 #define SC_GRAPHICS_DISPLAY_CONSTANTS_HH
 
+#ifndef __METAL_VERSION__
+#include <cstdint>
+#endif
+
 #include "core/core.hh"
 
 namespace sc::display {
 
-    static SC_CONSTANT unsigned kWidth{240u};
-    static SC_CONSTANT unsigned kHeight{160u};
+    static SC_CONSTEXPR uint16_t kWidth{240U};
+    static SC_CONSTEXPR uint16_t kHeight{160U};
 
-    static SC_CONSTANT float kDefaultR{0.50f};
-    static SC_CONSTANT float kDefaultG{0.50f};
-    static SC_CONSTANT float kDefaultB{0.50f};
+    static SC_CONSTEXPR float kDefaultR{0.50f};
+    static SC_CONSTEXPR float kDefaultG{0.50f};
+    static SC_CONSTEXPR float kDefaultB{0.50f};
 
-    static SC_CONSTANT unsigned kTargetFPS{60u};
+    static SC_CONSTEXPR float kTargetFPS{60.0f};
 
 } // namespace sc::display
 

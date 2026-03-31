@@ -60,8 +60,8 @@
 
         constexpr auto id{sc::assets::sprite32_index::LANCIS};
         const sc::assets::sprites::metadata& sprite{(*_atlas)[id].meta};
-        _registry->spawn((sc::display::kWidth - 32u - sprite.origin_u) * 0.5f,
-                (sc::display::kHeight - 32u - sprite.origin_v) * 0.5f, 0.0f,
+        _registry->spawn((sc::display::kWidth - 32U - sprite.origin_u) * 0.5f,
+                (sc::display::kHeight - 32U - sprite.origin_v) * 0.5f, 0.0f,
                 id);
 
         _registry->spawn(0.0f, 0.0f, 0.0f, sc::assets::sprite32_index::MYARRA);
@@ -87,16 +87,16 @@
 - (void)keyDown:(nonnull NSEvent*)event
 {
     switch (event.keyCode) {
-    case 13:
+    case 13U:
         _keysPressed |= sc::input::mask::UP;
         break;
-    case 1:
+    case 1U:
         _keysPressed |= sc::input::mask::DOWN;
         break;
-    case 0:
+    case 0U:
         _keysPressed |= sc::input::mask::LEFT;
         break;
-    case 2:
+    case 2U:
         _keysPressed |= sc::input::mask::RIGHT;
         break;
     default:
@@ -107,16 +107,16 @@
 - (void)keyUp:(nonnull NSEvent*)event
 {
     switch (event.keyCode) {
-    case 13:
+    case 13U:
         _keysPressed &= ~sc::input::mask::UP;
         break;
-    case 1:
+    case 1U:
         _keysPressed &= ~sc::input::mask::DOWN;
         break;
-    case 0:
+    case 0U:
         _keysPressed &= ~sc::input::mask::LEFT;
         break;
-    case 2:
+    case 2U:
         _keysPressed &= ~sc::input::mask::RIGHT;
         break;
     default:
@@ -138,15 +138,15 @@
 
     float speed{200.0f};
     while (_accumulator >= sc::physics::kFixedTimestep) {
-        _registry->vel_x_ptr()[0] = _registry->vel_y_ptr()[0] = 0;
+        _registry->vel_x_ptr()[0UZ] = _registry->vel_y_ptr()[0UZ] = 0.0f;
         if (sc::core::any(_keysPressed & sc::input::mask::UP))
-            _registry->vel_y_ptr()[0] -= speed;
+            _registry->vel_y_ptr()[0UZ] -= speed;
         if (sc::core::any(_keysPressed & sc::input::mask::DOWN))
-            _registry->vel_y_ptr()[0] += speed;
+            _registry->vel_y_ptr()[0UZ] += speed;
         if (sc::core::any(_keysPressed & sc::input::mask::LEFT))
-            _registry->vel_x_ptr()[0] -= speed;
+            _registry->vel_x_ptr()[0UZ] -= speed;
         if (sc::core::any(_keysPressed & sc::input::mask::RIGHT))
-            _registry->vel_x_ptr()[0] += speed;
+            _registry->vel_x_ptr()[0UZ] += speed;
 
         _registry->update(sc::physics::kFixedTimestep);
         sc::physics::resolve_entity_collisions(

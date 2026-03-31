@@ -8,11 +8,11 @@
 namespace sc::input {
 
     enum class mask : std::uint8_t {
-        NONE = 0u,
-        UP = 1u,
-        DOWN = 1u << 1u,
-        LEFT = 1u << 2u,
-        RIGHT = 1u << 3u,
+        NONE = 0U,
+        UP = 1U,
+        DOWN = 1U << 1,
+        LEFT = 1U << 2,
+        RIGHT = 1U << 3,
     };
 
 } // namespace sc::input

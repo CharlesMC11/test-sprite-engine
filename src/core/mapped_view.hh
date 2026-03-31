@@ -50,7 +50,7 @@ namespace sc::core {
         // Attributes
 
         const T* buffer_ = nullptr;
-        std::size_t size_{0};
+        std::size_t size_{0UZ};
     };
 
     // Constructors
@@ -69,7 +69,8 @@ namespace sc::core {
         }
         size_ = static_cast<std::size_t>(st.st_size);
 
-        const void* result = mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd, 0);
+        const void* result =
+                mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd, 0UZ);
         if (result == MAP_FAILED) [[unlikely]] {
             close(fd);
             return;

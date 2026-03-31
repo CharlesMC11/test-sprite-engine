@@ -14,7 +14,7 @@
 
 namespace sc::assets {
 
-    static constexpr std::uint64_t kAtlasMagicBytes{0x3476205441204353};
+    static constexpr std::uint64_t kAtlasMagicBytes{0x3476205441204353ULL};
 
     /**
      * A contiguous collection of sprites.
@@ -136,8 +136,8 @@ namespace sc::assets {
             -> std::span<const sprite32>
     {
         return {reinterpret_cast<const sprite32*>(data() +
-                        sizeof(graphics::palette) * meta.palette_count) +
-                        sizeof(sprite16) * meta.sprite16_count,
+                        sizeof(graphics::palette) * meta.palette_count +
+                        sizeof(sprite16) * meta.sprite16_count),
                 sizeof(sprite32) * meta.sprite32_count};
     }
 
@@ -146,7 +146,7 @@ namespace sc::assets {
     [[nodiscard]] constexpr auto atlas::data() const noexcept
             -> const std::byte* __restrict
     {
-        return reinterpret_cast<const std::byte*>(&meta + 1);
+        return reinterpret_cast<const std::byte*>(&meta + 1UZ);
     }
 
 } // namespace sc::assets

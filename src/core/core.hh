@@ -5,9 +5,9 @@
 #define SC_CORE_CORE_HH
 
 #ifdef __METAL_VERSION__
-#define SC_CONSTANT constant constexpr
+#define SC_CONSTEXPR constant constexpr
 #else
-#define SC_CONSTANT constexpr
+#define SC_CONSTEXPR constexpr
 #include <cstdint>
 #include <numeric>
 #include <type_traits>
@@ -15,12 +15,13 @@
 
 namespace sc::core {
 
-    using index_t = unsigned;
+    using index_t = uint32_t;
+    static SC_CONSTEXPR auto kInvalidIndex{static_cast<index_t>(-1)};
 
     using physics_t = uint8_t;
 
-    static SC_CONSTANT unsigned kNeonAlignment{16u};
-    static SC_CONSTANT unsigned kCacheAlignment{128u};
+    static SC_CONSTEXPR uint64_t kNeonAlignment{16UL};
+    static SC_CONSTEXPR uint64_t kCacheAlignment{128UL};
 
 #ifndef __METAL_VERSION__
 
@@ -31,7 +32,7 @@ namespace sc::core {
      * CPU and GPU interpret the raw bytes identically.
      */
     template<typename T>
-    concept mappable = alignof(T) % kNeonAlignment == 0 &&
+    concept mappable = alignof(T) % kNeonAlignment == 0UZ &&
             std::is_standard_layout_v<T> && !std::is_polymorphic_v<T>;
 
     template<typename T>

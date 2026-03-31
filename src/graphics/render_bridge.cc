@@ -63,7 +63,7 @@ namespace sc {
 
         const auto* out_texture{
                 reinterpret_cast<const CA::MetalDrawable*>(buffer)->texture()};
-        encoder_->setTexture(out_texture, 0u);
+        encoder_->setTexture(out_texture, 0UZ);
     }
 
     void render_bridge::end_frame(const MTL::Drawable* buffer)
@@ -80,8 +80,8 @@ namespace sc {
     {
         encoder_->setComputePipelineState(clear_pso_.get());
 
-        const auto grid_size = MTL::Size(display::kWidth, display::kHeight, 1);
-        const auto thread_group_size = MTL::Size(16, 16, 1);
+        const auto grid_size = MTL::Size(display::kWidth, display::kHeight, 1U);
+        const auto thread_group_size = MTL::Size(16U, 16U, 1U);
 
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }
@@ -90,28 +90,28 @@ namespace sc {
     {
         encoder_->setComputePipelineState(sprite_pso_.get());
 
-        encoder_->setBuffer(sprite32_buffer_.get(), palette_span_offset_, 0u);
-        encoder_->setBuffer(sprite32_buffer_.get(), sprite32_span_offset_, 1u);
+        encoder_->setBuffer(sprite32_buffer_.get(), palette_span_offset_, 0UZ);
+        encoder_->setBuffer(sprite32_buffer_.get(), sprite32_span_offset_, 1UZ);
 
         using reg = entity_registry;
 
         encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::X_POSITION), 2u);
+                registry.offset(reg::xform_channel::X_POSITION), 2UZ);
         encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::Y_POSITION), 3u);
+                registry.offset(reg::xform_channel::Y_POSITION), 3UZ);
         encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::Z_POSITION), 4u);
+                registry.offset(reg::xform_channel::Z_POSITION), 4UZ);
 
         encoder_->setBuffer(registry.index_buffer(),
-                registry.offset(reg::index_channel::SPRITE32_INDEX), 5u);
+                registry.offset(reg::index_channel::SPRITE32_INDEX), 5UZ);
         encoder_->setBuffer(registry.index_buffer(),
-                registry.offset(reg::index_channel::DRAW_ORDER), 6u);
+                registry.offset(reg::index_channel::DRAW_ORDER), 6UZ);
 
         const auto count{static_cast<unsigned>(registry.count())};
-        encoder_->setBytes(&count, sizeof(count), 7u);
+        encoder_->setBytes(&count, sizeof(count), 7UZ);
 
-        const MTL::Size grid_size{display::kWidth, display::kHeight, 1u};
-        const MTL::Size thread_group_size{16u, 16u, 1u};
+        const MTL::Size grid_size{display::kWidth, display::kHeight, 1U};
+        const MTL::Size thread_group_size{16U, 16U, 1U};
 
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }

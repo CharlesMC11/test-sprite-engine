@@ -79,8 +79,8 @@ namespace sc {
         NS::SharedPtr<MTL::ComputePipelineState> sprite_pso_{nullptr};
 
         NS::SharedPtr<MTL::Buffer> sprite32_buffer_{nullptr};
-        std::size_t palette_span_offset_{0u};
-        std::size_t sprite32_span_offset_{0u};
+        std::size_t palette_span_offset_{0UZ};
+        std::size_t sprite32_span_offset_{0UZ};
 
         MTL::CommandBuffer* command_buffer_{nullptr};
         MTL::ComputeCommandEncoder* encoder_{nullptr};

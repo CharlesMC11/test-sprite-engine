@@ -8,7 +8,7 @@
 using namespace metal;
 
 [[kernel]] void k_clear_screen(texture2d<float, access::read_write> out
-        [[texture(0)]],
+        [[texture(0U)]],
         uint2 gid [[thread_position_in_grid]])
 {
     if (gid.x >= out.get_width() || gid.y >= out.get_height())
@@ -26,18 +26,18 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
     float r{1.0f}, g{1.0f}, b{1.0f};
     switch (encoding) {
     case sc::graphics::color_encoding::DEFAULT:
-        r = static_cast<float>((packed_color >> 11) & 0x1F) / 31.0f;
-        g = static_cast<float>((packed_color >> 5) & 0x3F) / 63.0f;
+        r = static_cast<float>((packed_color >> 11) & 0x1FU) / 31.0f;
+        g = static_cast<float>((packed_color >> 5) & 0x3FU) / 63.0f;
         b = static_cast<float>(packed_color & 0x1F) / 31.0f;
         break;
     case sc::graphics::color_encoding::WARM:
-        r = static_cast<float>((packed_color >> 10) & 0x3F) / 63.0f;
-        g = static_cast<float>((packed_color >> 5) & 0x1F) / 31.0f;
+        r = static_cast<float>((packed_color >> 10) & 0x3FU) / 63.0f;
+        g = static_cast<float>((packed_color >> 5) & 0x1FU) / 31.0f;
         b = static_cast<float>(packed_color & 0x1F) / 31.0f;
         break;
     case sc::graphics::color_encoding::COOL:
-        r = static_cast<float>((packed_color >> 11) & 0x1F) / 31.0f;
-        g = static_cast<float>((packed_color >> 5) & 0x1F) / 31.0f;
+        r = static_cast<float>((packed_color >> 11) & 0x1FU) / 31.0f;
+        g = static_cast<float>((packed_color >> 5) & 0x1FU) / 31.0f;
         b = static_cast<float>(packed_color & 0x3F) / 63.0f;
         break;
     default:
@@ -48,15 +48,15 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
 }
 
 [[kernel]] void k_draw_sprites(constant sc::graphics::palette* palettes
-        [[buffer(0u)]],
-        constant sc::assets::sprite32* sprites [[buffer(1u)]],
-        constant float* pos_x_ptr [[buffer(2u)]],
-        constant float* pos_y_ptr [[buffer(3u)]],
-        constant float* pos_z_ptr [[buffer(4u)]],
-        constant sc::core::index_t* atlas_indices [[buffer(5u)]],
-        constant sc::core::index_t* draw_order [[buffer(6u)]],
-        constant uint& entity_count [[buffer(7u)]],
-        texture2d<float, access::read_write> out [[texture(0u)]],
+        [[buffer(0U)]],
+        constant sc::assets::sprite32* sprites [[buffer(1U)]],
+        constant float* pos_x_ptr [[buffer(2U)]],
+        constant float* pos_y_ptr [[buffer(3U)]],
+        constant float* pos_z_ptr [[buffer(4U)]],
+        constant sc::core::index_t* atlas_indices [[buffer(5U)]],
+        constant sc::core::index_t* draw_order [[buffer(6U)]],
+        constant uint& entity_count [[buffer(7U)]],
+        texture2d<float, access::read_write> out [[texture(0U)]],
         uint2 gid [[thread_position_in_grid]])
 {
     if (gid.x >= sc::display::kWidth || gid.y >= sc::display::kHeight)
@@ -64,7 +64,7 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
 
     float4 out_color{out.read(gid)};
 
-    for (uint i{0u}; i < entity_count; ++i) {
+    for (uint i{0U}; i < entity_count; ++i) {
         const sc::core::index_t draw_idx{draw_order[i]};
 
         const auto entity_coord{float2(pos_x_ptr[draw_idx],
@@ -72,8 +72,8 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
 
         const auto local_coord{int2(gid) - int2(floor(entity_coord))};
 
-        if (local_coord.x < 0 || static_cast<uint>(local_coord.x) >= 32u ||
-                local_coord.y < 0 || static_cast<uint>(local_coord.y) >= 32u)
+        if (local_coord.x < 0 || static_cast<uint>(local_coord.x) >= 32U ||
+                local_coord.y < 0 || static_cast<uint>(local_coord.y) >= 32U)
             continue;
 
         constant sc::assets::sprite32& sprite{sprites[atlas_indices[draw_idx]]};
@@ -81,7 +81,7 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
                 sprite.pixels[local_coord.y][local_coord.x]};
 
         const auto alpha_raw{(pixel & sc::graphics::kMaskAlpha) >> 4};
-        if (alpha_raw == 0x00)
+        if (alpha_raw == 0x00U)
             continue;
 
         const sc::graphics::packed_color_t packed_color{

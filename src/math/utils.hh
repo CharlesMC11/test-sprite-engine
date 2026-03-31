@@ -20,7 +20,7 @@ namespace sc::math {
     [[nodiscard]] constexpr std::size_t align_up(
             const std::size_t val, const std::size_t alignment) noexcept
     {
-        return (val + alignment - 1u) & ~(alignment - 1u);
+        return (val + alignment - 1UZ) & ~(alignment - 1UZ);
     }
 
 } // namespace sc::math

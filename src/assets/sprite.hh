@@ -33,13 +33,13 @@ namespace sc::assets {
     /**
      * hardware-aware sprite definition.
      */
-    template<unsigned Height = 32u, unsigned Width = Height>
+    template<unsigned Height = 32U, unsigned Width = Height>
     struct alignas(core::kNeonAlignment) sprite final {
         sprites::metadata meta;
         graphics::packed_pixel_t pixels[Height][Width]; // Row-major pixels
     };
 
-    using sprite16 = sprite<16u>;
+    using sprite16 = sprite<16U>;
     using sprite32 = sprite<>;
 
     static_assert(sizeof(sprites::metadata) == core::kNeonAlignment,
