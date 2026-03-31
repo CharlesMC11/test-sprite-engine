@@ -5,12 +5,19 @@
 #define SC_CORE_CORE_HH
 
 #ifdef __METAL_VERSION__
+
 #define SC_CONSTEXPR constant constexpr
+#define SC_SIZE_T uint64_t
+
 #else
+
 #define SC_CONSTEXPR constexpr
+#define SC_SIZE_T std::size_t
+
 #include <cstdint>
 #include <numeric>
 #include <type_traits>
+
 #endif
 
 namespace sc::core {
@@ -20,8 +27,8 @@ namespace sc::core {
 
     using physics_t = uint8_t;
 
-    static SC_CONSTEXPR uint64_t kNeonAlignment{16UL};
-    static SC_CONSTEXPR uint64_t kCacheAlignment{128UL};
+    static SC_CONSTEXPR SC_SIZE_T kNeonAlignment{16UL};
+    static SC_CONSTEXPR SC_SIZE_T kCacheAlignment{128UL};
 
 #ifndef __METAL_VERSION__
 
