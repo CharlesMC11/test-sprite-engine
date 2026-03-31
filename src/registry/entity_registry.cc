@@ -13,11 +13,11 @@ namespace sc {
 
     void entity_registry::update(const float dt) noexcept
     {
-        const auto n{static_cast<core::index_t>(count())};
-        const core::index_t vectorized_lim{n - n % 4u};
+        const std::size_t n{count()};
+        const std::size_t vectorized_lim{n - n % 4UZ};
 
         const float32x4_t v_dt{vdupq_n_f32(dt)};
-        for (core::index_t i{0u}; i < vectorized_lim; i += 4u) {
+        for (std::size_t i{0UZ}; i < vectorized_lim; i += 4UZ) {
             const float32x4_t v_pos_x{vld1q_f32(&pos_x_ptr()[i])};
             const float32x4_t v_pos_y{vld1q_f32(&pos_y_ptr()[i])};
             const float32x4_t v_pos_z{vld1q_f32(&pos_z_ptr()[i])};
@@ -35,7 +35,7 @@ namespace sc {
             vst1q_f32(&new_z_ptr()[i], v_new_z);
         }
 
-        for (core::index_t i{vectorized_lim}; i < n; ++i) {
+        for (std::size_t i{vectorized_lim}; i < n; ++i) {
             new_x_ptr()[i] = pos_x_ptr()[i] + vel_x_ptr()[i] * dt;
             new_y_ptr()[i] = pos_y_ptr()[i] + vel_y_ptr()[i] * dt;
             new_z_ptr()[i] = pos_z_ptr()[i] + vel_z_ptr()[i] * dt;
@@ -44,16 +44,16 @@ namespace sc {
 
     void entity_registry::commit() noexcept
     {
-        const auto n{static_cast<core::index_t>(count())};
-        const core::index_t vectorized_lim{n - n % 4u};
+        const std::size_t n{count()};
+        const std::size_t vectorized_lim{n - n % 4UZ};
 
-        for (core::index_t i{0u}; i < vectorized_lim; i += 4u) {
+        for (std::size_t i{0UZ}; i < vectorized_lim; i += 4UZ) {
             vst1q_f32(&pos_x_ptr()[i], vld1q_f32(&new_x_ptr()[i]));
             vst1q_f32(&pos_y_ptr()[i], vld1q_f32(&new_y_ptr()[i]));
             vst1q_f32(&pos_z_ptr()[i], vld1q_f32(&new_z_ptr()[i]));
         }
 
-        for (core::index_t i{vectorized_lim}; i < n; ++i) {
+        for (std::size_t i{vectorized_lim}; i < n; ++i) {
             pos_x_ptr()[i] = new_x_ptr()[i];
             pos_y_ptr()[i] = new_y_ptr()[i];
             pos_z_ptr()[i] = new_z_ptr()[i];
@@ -84,7 +84,7 @@ namespace sc {
 
     void entity_registry::print() const
     {
-        for (std::size_t i{0u}; i < count(); ++i) {
+        for (std::size_t i{0UZ}; i < count(); ++i) {
             std::cout << std::format(
                     "Entity {} (Sprite Index: {})\n\tpos ({:7.2f}, {:7.2f}, "
                     "{:7.2f})\n\tvec <{:7.2f}, {:7.2f}, {:7.2f}>\n\n",
@@ -107,7 +107,7 @@ namespace sc {
     {
         if (float_buffer_.capacity <= float_buffer_.count) [[unlikely]]
             reserve(std::max(static_cast<std::size_t>(core::kCacheAlignment),
-                    capacity() * 2u));
+                    capacity() * 2UZ));
 
         const auto idx{static_cast<core::index_t>(count())};
 
