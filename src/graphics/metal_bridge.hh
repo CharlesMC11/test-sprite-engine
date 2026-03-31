@@ -7,7 +7,7 @@
 #include "core/mapped_view.hh"
 #include "registry/entity_registry.hh"
 
-namespace sc {
+namespace sc::render {
 
     /**
      * High-level interface for the Metal Compute pipeline.
@@ -15,19 +15,19 @@ namespace sc {
      * Orchestrates the dispatch of kernels to the GPU using `sc::sprite` data
      * as primary input.
      */
-    class render_bridge final {
+    class metal_bridge final {
     public:
         // Constructors
 
-        explicit render_bridge(MTL::Device* device);
+        explicit metal_bridge(MTL::Device* device);
 
-        render_bridge(const render_bridge&) = delete;
-        render_bridge& operator=(const render_bridge&) = delete;
+        metal_bridge(const metal_bridge&) = delete;
+        metal_bridge& operator=(const metal_bridge&) = delete;
 
-        render_bridge(render_bridge&&) = delete;
-        render_bridge& operator=(render_bridge&&) = delete;
+        metal_bridge(metal_bridge&&) = delete;
+        metal_bridge& operator=(metal_bridge&&) = delete;
 
-        ~render_bridge() = default;
+        ~metal_bridge() = default;
 
         // Public methods
 
@@ -86,6 +86,6 @@ namespace sc {
         MTL::ComputeCommandEncoder* encoder_{nullptr};
     };
 
-} // namespace sc
+} // namespace sc::render
 
 #endif // SC_GRAPHICS_RENDER_BRIDGE_HH

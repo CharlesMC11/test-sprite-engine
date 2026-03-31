@@ -2,7 +2,7 @@
 #define MTL_PRIVATE_IMPLEMENTATION
 #define NS_PRIVATE_IMPLEMENTATION
 
-#include "graphics/render_bridge.hh"
+#include "graphics/metal_bridge.hh"
 
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
@@ -14,12 +14,13 @@
 #include "core/mapped_view.hh"
 #include "graphics/display_constants.hh"
 #include "graphics/graphics_types.hh"
+#include "render_constants.hh"
 
-namespace sc {
+namespace sc::render {
 
     // Constructors
 
-    render_bridge::render_bridge(MTL::Device* device)
+    metal_bridge::metal_bridge(MTL::Device* device)
         : device_{NS::TransferPtr(device)},
           queue_{NS::TransferPtr(device_->newCommandQueue())}
     {
@@ -56,7 +57,7 @@ namespace sc {
 
     // Public methods
 
-    void render_bridge::begin_frame(const MTL::Drawable* buffer)
+    void metal_bridge::begin_frame(const MTL::Drawable* buffer)
     {
         command_buffer_ = queue_->commandBuffer();
         encoder_ = command_buffer_->computeCommandEncoder();
@@ -66,7 +67,7 @@ namespace sc {
         encoder_->setTexture(out_texture, 0UZ);
     }
 
-    void render_bridge::end_frame(const MTL::Drawable* buffer)
+    void metal_bridge::end_frame(const MTL::Drawable* buffer)
     {
         encoder_->endEncoding();
         command_buffer_->presentDrawable(buffer);
@@ -76,7 +77,7 @@ namespace sc {
         command_buffer_ = nullptr;
     }
 
-    void render_bridge::clear() const
+    void metal_bridge::clear() const
     {
         encoder_->setComputePipelineState(clear_pso_.get());
 
@@ -86,29 +87,36 @@ namespace sc {
         encoder_->dispatchThreads(grid_size, thread_group_size);
     }
 
-    void render_bridge::draw(const entity_registry& registry) const
+    void metal_bridge::draw(const entity_registry& registry) const
     {
         encoder_->setComputePipelineState(sprite_pso_.get());
 
-        encoder_->setBuffer(sprite32_buffer_.get(), palette_span_offset_, 0UZ);
-        encoder_->setBuffer(sprite32_buffer_.get(), sprite32_span_offset_, 1UZ);
+        encoder_->setBuffer(sprite32_buffer_.get(), palette_span_offset_,
+                BUFFER_INDEX_PALETTES);
+        encoder_->setBuffer(sprite32_buffer_.get(), sprite32_span_offset_,
+                BUFFER_INDEX_SPRITES);
 
         using reg = entity_registry;
 
         encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::X_POSITION), 2UZ);
+                registry.offset(reg::xform_channel::X_POSITION),
+                BUFFER_INDEX_X_POSITIONS);
         encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::Y_POSITION), 3UZ);
+                registry.offset(reg::xform_channel::Y_POSITION),
+                BUFFER_INDEX_Y_POSITIONS);
         encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::Z_POSITION), 4UZ);
+                registry.offset(reg::xform_channel::Z_POSITION),
+                BUFFER_INDEX_Z_POSITIONS);
 
         encoder_->setBuffer(registry.index_buffer(),
-                registry.offset(reg::index_channel::SPRITE32_INDEX), 5UZ);
+                registry.offset(reg::index_channel::SPRITE32_INDEX),
+                BUFFER_INDEX_ATLAS_INDICES);
         encoder_->setBuffer(registry.index_buffer(),
-                registry.offset(reg::index_channel::DRAW_ORDER), 6UZ);
+                registry.offset(reg::index_channel::DRAW_ORDER),
+                BUFFER_INDEX_DRAW_ORDER);
 
-        const auto count{static_cast<unsigned>(registry.count())};
-        encoder_->setBytes(&count, sizeof(count), 7UZ);
+        const auto count{static_cast<std::uint32_t>(registry.count())};
+        encoder_->setBytes(&count, sizeof(count), BUFFER_INDEX_ENTITY_COUNT);
 
         const MTL::Size grid_size{display::kWidth, display::kHeight, 1U};
         const MTL::Size thread_group_size{16U, 16U, 1U};
@@ -118,7 +126,7 @@ namespace sc {
 
     // Mutators
 
-    void render_bridge::set_sprite_atlas(
+    void metal_bridge::set_sprite_atlas(
             const core::mapped_view<assets::atlas>& view)
     {
         const auto meta{view->meta};
@@ -145,4 +153,4 @@ namespace sc {
                 metadata_size + palette_span_size + sprite16_span_size;
     }
 
-} // namespace sc
+} // namespace sc::render

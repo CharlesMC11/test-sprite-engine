@@ -4,6 +4,7 @@
 #include "core/core.hh"
 #include "graphics/display_constants.hh"
 #include "graphics/graphics_types.hh"
+#include "graphics/render_constants.hh"
 
 using namespace metal;
 
@@ -48,14 +49,21 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
 }
 
 [[kernel]] void k_draw_sprites(constant sc::graphics::palette* palettes
-        [[buffer(0U)]],
-        constant sc::assets::sprite32* sprites [[buffer(1U)]],
-        constant float* pos_x_ptr [[buffer(2U)]],
-        constant float* pos_y_ptr [[buffer(3U)]],
-        constant float* pos_z_ptr [[buffer(4U)]],
-        constant sc::core::index_t* atlas_indices [[buffer(5U)]],
-        constant sc::core::index_t* draw_order [[buffer(6U)]],
-        constant uint& entity_count [[buffer(7U)]],
+        [[buffer(sc::render::BUFFER_INDEX_PALETTES)]],
+        constant sc::assets::sprite32* sprites
+        [[buffer(sc::render::BUFFER_INDEX_SPRITES)]],
+        constant float* pos_x_ptr
+        [[buffer(sc::render::BUFFER_INDEX_X_POSITIONS)]],
+        constant float* pos_y_ptr
+        [[buffer(sc::render::BUFFER_INDEX_Y_POSITIONS)]],
+        constant float* pos_z_ptr
+        [[buffer(sc::render::BUFFER_INDEX_Z_POSITIONS)]],
+        constant sc::core::index_t* atlas_indices
+        [[buffer(sc::render::BUFFER_INDEX_ATLAS_INDICES)]],
+        constant sc::core::index_t* draw_order
+        [[buffer(sc::render::BUFFER_INDEX_DRAW_ORDER)]],
+        constant uint& entity_count
+        [[buffer(sc::render::BUFFER_INDEX_ENTITY_COUNT)]],
         texture2d<float, access::read_write> out [[texture(0U)]],
         uint2 gid [[thread_position_in_grid]])
 {

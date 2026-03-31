@@ -13,14 +13,14 @@
 #include "core/input.hh"
 #include "core/mapped_view.hh"
 #include "graphics/display_constants.hh"
-#include "graphics/render_bridge.hh"
+#include "graphics/metal_bridge.hh"
+#include "physics/physics.hh"
 #include "registry/entity_registry.hh"
-#include "simulation/physics.hh"
 
 @implementation SCStage {
     std::unique_ptr<sc::core::mapped_view<sc::assets::atlas>> _view;
     std::unique_ptr<sc::entity_registry> _registry;
-    std::unique_ptr<sc::render_bridge> _bridge;
+    std::unique_ptr<sc::render::metal_bridge> _bridge;
     const sc::assets::atlas* _atlas;
     sc::input::mask _keysPressed;
     float _accumulator;
@@ -52,7 +52,7 @@
         _registry = std::make_unique<sc::entity_registry>(
                 (__bridge MTL::Device*) device);
 
-        _bridge = std::make_unique<sc::render_bridge>(
+        _bridge = std::make_unique<sc::render::metal_bridge>(
                 (__bridge MTL::Device*) device);
         _bridge->set_sprite_atlas(*_view);
 
