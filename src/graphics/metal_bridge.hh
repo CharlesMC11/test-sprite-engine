@@ -73,8 +73,8 @@ namespace sc::render {
     private:
         // Attributes
 
-        NS::SharedPtr<MTL::Device> device_;
-        NS::SharedPtr<MTL::CommandQueue> queue_;
+        NS::SharedPtr<MTL::Device> device_{nullptr};
+        NS::SharedPtr<MTL::CommandQueue> queue_{nullptr};
 
         NS::SharedPtr<MTL::ComputePipelineState> clear_pso_{nullptr};
         NS::SharedPtr<MTL::ComputePipelineState> sprite_pso_{nullptr};

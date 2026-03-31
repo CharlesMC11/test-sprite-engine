@@ -21,11 +21,12 @@ namespace sc::assets {
          */
         struct alignas(core::kNeonAlignment) metadata final {
             geometry::bbox<> bbox;
-            float origin_u, origin_v;
-            graphics::color_encoding color_encoding;
-            uint8_t palette_index;
-            core::physics_t physics_type;
-            uint8_t padding;
+            float origin_u{0.0f};
+            float origin_v{0.0f};
+            graphics::color_encoding color_encoding{0U};
+            uint8_t palette_index{0U};
+            core::physics_t physics_type{0U};
+            uint8_t padding{0U};
         };
 
     } // namespace sprites
@@ -36,7 +37,7 @@ namespace sc::assets {
     template<unsigned Height = 32U, unsigned Width = Height>
     struct alignas(core::kNeonAlignment) sprite final {
         sprites::metadata meta;
-        graphics::packed_pixel_t pixels[Height][Width]; // Row-major pixels
+        graphics::packed_pixel_t pixels[Height][Width]{0U}; // Row-major pixels
     };
 
     using sprite16 = sprite<16U>;

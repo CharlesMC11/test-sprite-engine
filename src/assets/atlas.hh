@@ -64,10 +64,10 @@ namespace sc::assets {
         // Attributes
 
         struct alignas(core::kNeonAlignment) metadata final {
-            const std::uint64_t magic;
-            const std::uint32_t sprite16_count;
-            const std::uint16_t sprite32_count;
-            const std::uint16_t palette_count;
+            const std::uint64_t magic{0ULL};
+            const std::uint32_t sprite16_count{0U};
+            const std::uint16_t sprite32_count{0U};
+            const std::uint16_t palette_count{0U};
         } meta;
 
     private:

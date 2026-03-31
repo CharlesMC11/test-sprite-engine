@@ -29,7 +29,10 @@ namespace sc::geometry {
 
         // Attributes
 
-        T min_u, min_v, max_u, max_v;
+        T min_u{0};
+        T min_v{0};
+        T max_u{0};
+        T max_v{0};
     };
 
     // Operators

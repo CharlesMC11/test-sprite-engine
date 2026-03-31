@@ -49,7 +49,7 @@ namespace sc::core {
     private:
         // Attributes
 
-        const T* buffer_ = nullptr;
+        const T* buffer_{nullptr};
         std::size_t size_{0UZ};
     };
 

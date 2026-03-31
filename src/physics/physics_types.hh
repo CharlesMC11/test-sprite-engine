@@ -35,7 +35,19 @@ namespace sc::physics {
         {
         }
 
-        float left, back, right, front, top, bottom, vx, vy, vz;
+        float left{0.0f};
+        float right{0.0f};
+
+        float front{0.0f};
+        float back{0.0f};
+
+        float top{0.0f};
+        float bottom{0.f};
+
+        float vel_x{0.0f};
+        float vel_y{0.0f};
+        float vel_z{0.0f};
+
         geometry::bbox<float> bbox;
     };
 
