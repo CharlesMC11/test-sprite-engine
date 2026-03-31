@@ -91,9 +91,9 @@ namespace sc::render {
     {
         encoder_->setComputePipelineState(sprite_pso_.get());
 
-        encoder_->setBuffer(sprite32_buffer_.get(), palette_span_offset_,
+        encoder_->setBuffer(atlas_buffer_.get(), palette_span_offset_,
                 BUFFER_INDEX_PALETTES);
-        encoder_->setBuffer(sprite32_buffer_.get(), sprite32_span_offset_,
+        encoder_->setBuffer(atlas_buffer_.get(), sprite32_span_offset_,
                 BUFFER_INDEX_SPRITES);
 
         using reg = entity_registry;
@@ -141,9 +141,9 @@ namespace sc::render {
         const std::size_t total_size{sizeof(atlas) + palette_span_size +
                 sprite16_span_size + sprite32_span_size};
 
-        sprite32_buffer_ = NS::TransferPtr(device_->newBuffer(atlas.data(),
+        atlas_buffer_ = NS::TransferPtr(device_->newBuffer(atlas.data(),
                 total_size, MTL::ResourceStorageModeShared, nullptr));
-        if (!sprite32_buffer_) [[unlikely]] {
+        if (!atlas_buffer_) [[unlikely]] {
             std::cerr << "Metal buffer is empty!\n";
             throw;
         }

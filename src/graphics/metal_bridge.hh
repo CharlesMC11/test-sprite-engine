@@ -79,7 +79,7 @@ namespace sc::render {
         NS::SharedPtr<MTL::ComputePipelineState> clear_pso_{nullptr};
         NS::SharedPtr<MTL::ComputePipelineState> sprite_pso_{nullptr};
 
-        NS::SharedPtr<MTL::Buffer> sprite32_buffer_{nullptr};
+        NS::SharedPtr<MTL::Buffer> atlas_buffer_{nullptr};
         std::size_t palette_span_offset_{0UZ};
         std::size_t sprite32_span_offset_{0UZ};
 
