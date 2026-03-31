@@ -98,7 +98,7 @@ namespace sc::physics {
         return result;
     }
 
-    constexpr void sort_compute(entity_registry& registry) noexcept
+    inline void sort_compute(entity_registry& registry) noexcept
     {
         std::span tmp{registry.physics_order_ptr(), registry.count()};
         std::ranges::sort(tmp.begin(), tmp.end(),
