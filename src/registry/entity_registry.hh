@@ -197,9 +197,11 @@ namespace sc {
 
         mem::channel_pool<float, static_cast<std::size_t>(xform_channel::COUNT)>
                 float_buffer_;
+
         mem::channel_pool<core::index_t,
                 static_cast<std::size_t>(index_channel::COUNT)>
                 index_buffer_;
+
         MTL::Device* device_{nullptr};
     };
 
