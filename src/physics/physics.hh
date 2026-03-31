@@ -5,8 +5,8 @@
 #include "assets/sprite.hh"
 #include "core/core.hh"
 #include "math/bbox.hh"
+#include "physics/physics_types.hh"
 #include "registry/entity_registry.hh"
-#include "simulation/physics_types.hh"
 
 namespace sc::physics {
 
@@ -159,7 +159,7 @@ namespace sc::physics {
     {
         sort_compute(registry);
 
-        for (core::index_t i{0u}; i < registry.count(); ++i) {
+        for (core::index_t i{0U}; i < registry.count(); ++i) {
             const core::index_t idx_a{registry.physics_order_ptr()[i]};
             const auto sprite32_idx_a{static_cast<assets::sprite32_index>(
                     registry.sprite32_index_ptr()[i])};
@@ -196,7 +196,7 @@ namespace sc::physics {
 
             sweep_result hit;
 
-            for (core::index_t j{i + 1u}; j < registry.count(); ++j) {
+            for (core::index_t j{i + 1U}; j < registry.count(); ++j) {
                 const core::index_t index_b{registry.physics_order_ptr()[j]};
                 const auto sprite32_idx_b{static_cast<assets::sprite32_index>(
                         registry.sprite32_index_ptr()[j])};

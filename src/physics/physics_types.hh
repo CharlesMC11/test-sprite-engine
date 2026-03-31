@@ -16,12 +16,12 @@ namespace sc::physics {
      * The type of physics that affects an entity.
      */
     enum class type : core::physics_t {
-        UNDEFINED = 0u,
-        NONE = 1u,
-        ACTOR = 1u << 1u,
-        STATIC = 1u << 2u,
-        SENSOR = 1u << 3u,
-        PROJECTILE = 1u << 4u,
+        UNDEFINED = 0U,
+        NONE = 1U,
+        ACTOR = 1U << 1,
+        STATIC = 1U << 2,
+        SENSOR = 1U << 3,
+        PROJECTILE = 1U << 4,
     };
 
     struct aabb {
