@@ -36,7 +36,7 @@
         self.delegate = self;
         self.drawableSize =
                 CGSizeMake(sc::display::kWidth, sc::display::kHeight);
-        self.preferredFramesPerSecond = sc::display::kTargetFPS;
+        self.preferredFramesPerSecond = (NSInteger) sc::display::kTargetFPS;
 
         self.layer.magnificationFilter = kCAFilterNearest;
 
