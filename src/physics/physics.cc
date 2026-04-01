@@ -12,10 +12,10 @@ namespace sc::physics {
             const aabb& a, const aabb& b, float dt);
 
     static void apply_collision(entity_registry& registry, core::index_t i,
-            float dx, float dy, float dz, const sweep_result& hit);
+            const sweep_result& hit, float dx, float dy, float dz);
 
     static void apply_slide(entity_registry& registry, core::index_t i,
-            float dt, const sweep_result& hit);
+            const sweep_result& hit, float dt);
 
     void resolve_entity_collisions(const assets::atlas& atlas,
             entity_registry& registry, const float dt)
@@ -70,10 +70,9 @@ namespace sc::physics {
 
             sweep_result collision;
 
-            for (int cell_y{a_y_start}; cell_y <= a_y_end; ++cell_y) {
-                for (int cell_x{a_x_start}; cell_x <= a_x_end; ++cell_x) {
-                    core::index_t b_idx{
-                            grid.cell_heads[cell_y * kColCount + cell_x]};
+            for (int cy{a_y_start}; cy <= a_y_end; ++cy) {
+                for (int cx{a_x_start}; cx <= a_x_end; ++cx) {
+                    core::index_t b_idx{grid.cell_heads[cy * kColCount + cx]};
 
                     while (b_idx != core::kInvalidIndex) {
                         if (a_idx == b_idx) {
@@ -106,10 +105,9 @@ namespace sc::physics {
                 }
             }
 
-            apply_collision(registry, a_idx, a_dx, a_dy, a_dz, collision);
-            if (collision.time < 1.0f) {
-                apply_slide(registry, a_idx, dt, collision);
-            }
+            apply_collision(registry, a_idx, collision, a_dx, a_dy, a_dz);
+            if (collision.time < 1.0f)
+                apply_slide(registry, a_idx, collision, dt);
         }
     }
 
@@ -124,9 +122,9 @@ namespace sc::physics {
 
         float entry_tx, exit_tx;
         if (std::abs(vel_x) < core::kEpsilon) {
-            if (a.right < b.left || a.left > b.right) {
+            if (a.right < b.left || a.left > b.right)
                 return result;
-            }
+
             entry_tx = -core::kInfinity;
             exit_tx = core::kInfinity;
         }
@@ -142,9 +140,9 @@ namespace sc::physics {
 
         float entry_ty, exit_ty;
         if (std::abs(vel_y) < core::kEpsilon) {
-            if (a.front < b.back || a.back > b.front) {
+            if (a.front < b.back || a.back > b.front)
                 return result;
-            }
+
             entry_ty = -core::kInfinity;
             exit_ty = core::kInfinity;
         }
@@ -160,9 +158,9 @@ namespace sc::physics {
 
         float entry_tz, exit_tz;
         if (std::abs(vel_z) < core::kEpsilon) {
-            if (a.bottom > b.top || a.top < b.bottom) {
+            if (a.bottom > b.top || a.top < b.bottom)
                 return result;
-            }
+
             entry_tz = -core::kInfinity;
             exit_tz = core::kInfinity;
         }
@@ -179,9 +177,8 @@ namespace sc::physics {
         const float entry_t{std::max(entry_tx, std::max(entry_ty, entry_tz))};
         if (entry_t > std::min(exit_tx, std::min(exit_ty, exit_tz)) ||
                 entry_t > 1.0f || entry_t < 0.0f ||
-                (exit_tx < 0.0f && exit_ty < 0.0f && entry_tz < 0.0f)) {
+                (exit_tx < 0.0f && exit_ty < 0.0f && entry_tz < 0.0f))
             return result;
-        }
 
         result.time = entry_t;
         if (entry_tx >= entry_ty && entry_tx >= entry_tz) {
@@ -204,8 +201,8 @@ namespace sc::physics {
     }
 
     static void apply_collision(entity_registry& registry,
-            const core::index_t i, const float dx, const float dy,
-            const float dz, const sweep_result& hit)
+            const core::index_t i, const sweep_result& hit, const float dx,
+            const float dy, const float dz)
     {
         const float padded_t{
                 hit.time < 1.0f ? std::max(0.0f, hit.time - 0.1f) : 1.0f};
@@ -216,7 +213,7 @@ namespace sc::physics {
     }
 
     static void apply_slide(entity_registry& registry, const core::index_t i,
-            const float dt, const sweep_result& hit)
+            const sweep_result& hit, const float dt)
     {
         const float remain_t{1.0f - hit.time};
 
