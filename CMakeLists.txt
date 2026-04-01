@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(
-        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform"
         "${CMAKE_CURRENT_SOURCE_DIR}/vendor/metal-cpp")
 
@@ -17,11 +17,12 @@ find_library(METALKIT_LIB MetalKit REQUIRED)
 find_library(QUARTZ_LIB QuartzCore REQUIRED)
 
 add_executable(test-sprite-engine
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/metal_bridge.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/physics/physics.cc"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/registry/entity_registry.cc"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCAppDelegate.mm"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCStage.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/entity_registry.cc"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/render_bridge.cc"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/main.mm"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/main.mm"
 )
 
 target_compile_options(test-sprite-engine PRIVATE
@@ -48,10 +49,10 @@ target_link_libraries(test-sprite-engine
 )
 
 add_custom_command(OUTPUT shader.metallib
-        COMMAND xcrun -sdk macosx metal -c -I "${CMAKE_CURRENT_SOURCE_DIR}/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal" -o shader.air
+        COMMAND xcrun -sdk macosx metal -c -I "${CMAKE_CURRENT_SOURCE_DIR}/src"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/shader.metal" -o shader.air
         COMMAND xcrun -sdk macosx metallib shader.air -o "${CMAKE_CURRENT_SOURCE_DIR}/assets/shader.metallib"
-        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/shader.metal"
+        DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/shader.metal"
 )
 
 add_custom_target(shaders DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/shader.metallib")

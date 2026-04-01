@@ -1,8 +1,5 @@
-/**
- * @file mapped_view.hh
- * @brief RAII wrapper for POSIX memory-mapped files.
- */
-#pragma once
+#ifndef SC_CORE_MAPPED_VIEW_HH
+#define SC_CORE_MAPPED_VIEW_HH
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -11,14 +8,15 @@
 
 #include <cstddef>
 
-#include "core.hh"
+#include "core/core.hh"
 
 namespace sc::core {
 
     /**
-     * @class mapped_view
-     * @brief Manages `mmap`/`munmap` lifecycle for a specific file path.
-     * @tparam T The type to cast the mapped memory to.
+     * RAII wrapper for POSIX memory-mapped files.
+     *
+     * @tparam T
+     * The type to cast the mapped memory to.
      */
     template<mappable T>
     class mapped_view final {
@@ -51,8 +49,8 @@ namespace sc::core {
     private:
         // Attributes
 
-        const T* buffer_ = nullptr;
-        std::size_t size_{0};
+        const T* buffer_{nullptr};
+        std::size_t size_{0UZ};
     };
 
     // Constructors
@@ -71,7 +69,8 @@ namespace sc::core {
         }
         size_ = static_cast<std::size_t>(st.st_size);
 
-        const void* result = mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd, 0);
+        const void* result =
+                mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd, 0UZ);
         if (result == MAP_FAILED) [[unlikely]] {
             close(fd);
             return;
@@ -119,3 +118,5 @@ namespace sc::core {
     }
 
 } // namespace sc::core
+
+#endif // SC_CORE_MAPPED_VIEW_HH

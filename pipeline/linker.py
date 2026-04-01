@@ -206,11 +206,11 @@ class AtlasLinker:
         lines = [
             "#pragma once",
             "",
-            '#include "core.hh"',
+            '#include "core/core.hh"',
             "",
-            "namespace sc::sprites {",
+            "namespace sc::assets {",
             "",
-            f"{indent}enum class {header_path.stem} : core::atlas_index {{",
+            f"{indent}enum class {header_path.stem} : core::index_t {{",
         ]
 
         for name in enumerators:
@@ -221,7 +221,7 @@ class AtlasLinker:
             (
                 f"{indent}}};",
                 "",
-                "} // namespace sc::sprites",
+                "} // namespace sc::assets",
                 "",
             )
         )

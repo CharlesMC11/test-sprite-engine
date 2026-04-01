@@ -1,7 +1,5 @@
-/**
- * @file bbox.hh
- */
-#pragma once
+#ifndef SC_MATH_BBOX_HH
+#define SC_MATH_BBOX_HH
 
 #ifndef __METAL_VERSION__
 #include <cstdint>
@@ -10,9 +8,10 @@
 namespace sc::geometry {
 
     /**
-     * @struct bbox
-     * @brief A bounding box.
-     * @tparam T Integer or float.
+     * A bounding box.
+     *
+     * @tparam T
+     * Integer or float.
      *
      * This struct is compatible with both C++ and Metal.
      */
@@ -30,7 +29,10 @@ namespace sc::geometry {
 
         // Attributes
 
-        T min_u, min_v, max_u, max_v;
+        T min_u{0};
+        T min_v{0};
+        T max_u{0};
+        T max_v{0};
     };
 
     // Operators
@@ -58,3 +60,5 @@ namespace sc::geometry {
     }
 
 } // namespace sc::geometry
+
+#endif // SC_MATH_BBOX_HH

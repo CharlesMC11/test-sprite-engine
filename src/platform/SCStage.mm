@@ -5,69 +5,63 @@
 #include <cstdint>
 #include <memory>
 
-#include "atlas.hh"
-#include "core.hh"
-#include "entity_registry.hh"
-#include "input.hh"
-#include "mapped_view.hh"
-#include "physics.hh"
-#include "render_bridge.hh"
-#include "sprite.hh"
-#include "sprite32_index.hh"
+#include "assets/asset_constants.hh"
+#include "assets/atlas.hh"
+#include "assets/sprite.hh"
+#include "assets/sprite32_index.hh"
+#include "core/core.hh"
+#include "core/input.hh"
+#include "core/mapped_view.hh"
+#include "graphics/display_constants.hh"
+#include "graphics/metal_bridge.hh"
+#include "physics/physics.hh"
+#include "physics/physics_types.hh"
+#include "registry/entity_registry.hh"
 
 @implementation SCStage {
-    std::unique_ptr<sc::core::mapped_view<sc::sprites::atlas>> _view;
-    std::unique_ptr<sc::render_bridge> _bridge;
-    const sc::sprites::atlas* _atlas;
-    sc::entity_registry _registry;
-    sc::core::input_mask _keysPressed;
+    const sc::assets::atlas* _atlas;
+    std::unique_ptr<sc::entity_registry> _registry;
+    std::unique_ptr<sc::render::metal_bridge> _bridge;
     float _accumulator;
+    sc::input::mask _keysPressed;
 }
 
-- (instancetype)initWithFrame:(CGRect)frameRect device:(id<MTLDevice>)device
+- (instancetype)initWithFrame:(CGRect)frameRect
+                       device:(id<MTLDevice>)device
+                  mappedAtlas:(const sc::core::mapped_view<sc::assets::atlas>*)
+                                      mappedAtlas
 {
     self = [super initWithFrame:frameRect device:device];
     if (self) {
         self.delegate = self;
         self.drawableSize =
                 CGSizeMake(sc::display::kWidth, sc::display::kHeight);
-        self.preferredFramesPerSecond = sc::display::kTargetFPS;
+        self.preferredFramesPerSecond = (NSInteger) sc::display::kTargetFPS;
 
         self.layer.magnificationFilter = kCAFilterNearest;
 
-        _view = std::make_unique<sc::core::mapped_view<sc::sprites::atlas>>(
-                sc::assets::kCharacterAtlas);
-        if (!(_view && *_view)) {
-            NSLog(@"FATAL: Could not map sprite bank file.");
-            abort();
-        }
-        if (!sc::sprites::atlas::validate(_view->data(), _view->size())) {
-            NSLog(@"FATAL: sprite bank header validation failed.");
-            abort();
-        }
-        _atlas = _view->data();
+        _atlas = mappedAtlas->data();
 
-        _bridge = std::make_unique<sc::render_bridge>(
+        _registry = std::make_unique<sc::entity_registry>(
                 (__bridge MTL::Device*) device);
-        _bridge->set_sprite_atlas(*_view);
+
+        _bridge = std::make_unique<sc::render::metal_bridge>(
+                (__bridge MTL::Device*) device);
+        _bridge->set_atlas_buffer(*mappedAtlas);
 
         self.framebufferOnly = false;
 
-        constexpr auto id{sc::sprites::sprite32_index::LANCIS};
-        const sc::sprites::metadata& sprite{(*_atlas)[id].meta};
-        _registry.spawn(
-                (sc::display::kWidth - sc::sprites::kWidth - sprite.origin_u) *
-                        0.5f,
-                (sc::display::kHeight - sc::sprites::kHeight -
-                        sprite.origin_v) *
-                        0.5f,
-                0.0f, id);
+        constexpr auto id{sc::assets::sprite32_index::LANCIS};
+        const sc::assets::sprites::metadata& sprite{(*_atlas)[id].meta};
+        _registry->spawn((sc::display::kWidth - 32U - sprite.origin_u) * 0.5f,
+                (sc::display::kHeight - 32U - sprite.origin_v) * 0.5f, 0.0f,
+                id);
 
-        _registry.spawn(0.0f, 0.0f, 0.0f, sc::sprites::sprite32_index::MYARRA);
+        _registry->spawn(0.0f, 0.0f, 0.0f, sc::assets::sprite32_index::MYARRA);
 
-        _registry.spawn(sc::display::kWidth * 0.75f,
+        _registry->spawn(sc::display::kWidth * 0.75f,
                 sc::display::kHeight * 0.75f, 26.0f,
-                sc::sprites::sprite32_index::HEART_OW_F);
+                sc::assets::sprite32_index::HEART_OW_F);
     }
 
     return self;
@@ -86,17 +80,19 @@
 - (void)keyDown:(nonnull NSEvent*)event
 {
     switch (event.keyCode) {
-    case 13:
+    case 13U:
         _keysPressed |= sc::input::mask::UP;
         break;
-    case 1:
+    case 1U:
         _keysPressed |= sc::input::mask::DOWN;
         break;
-    case 0:
+    case 0U:
         _keysPressed |= sc::input::mask::LEFT;
         break;
-    case 2:
+    case 2U:
         _keysPressed |= sc::input::mask::RIGHT;
+        break;
+    default:
         break;
     }
 }
@@ -104,17 +100,19 @@
 - (void)keyUp:(nonnull NSEvent*)event
 {
     switch (event.keyCode) {
-    case 13:
+    case 13U:
         _keysPressed &= ~sc::input::mask::UP;
         break;
-    case 1:
+    case 1U:
         _keysPressed &= ~sc::input::mask::DOWN;
         break;
-    case 0:
+    case 0U:
         _keysPressed &= ~sc::input::mask::LEFT;
         break;
-    case 2:
+    case 2U:
         _keysPressed &= ~sc::input::mask::RIGHT;
+        break;
+    default:
         break;
     }
 }
@@ -125,7 +123,7 @@
 
 - (void)drawInMTKView:(nonnull MTKView*)view
 {
-    float frameTime{1.0f / (float) view.preferredFramesPerSecond};
+    float frameTime{1.0f / sc::display::kTargetFPS};
     if (frameTime > 0.25f)
         frameTime = 0.25f;
 
@@ -133,29 +131,29 @@
 
     float speed{200.0f};
     while (_accumulator >= sc::physics::kFixedTimestep) {
-        _registry.vec_x_ptr()[0] = _registry.vec_y_ptr()[0] = 0;
-        if (_keysPressed & sc::input::mask::UP)
-            _registry.vec_y_ptr()[0] -= speed;
-        if (_keysPressed & sc::input::mask::DOWN)
-            _registry.vec_y_ptr()[0] += speed;
-        if (_keysPressed & sc::input::mask::LEFT)
-            _registry.vec_x_ptr()[0] -= speed;
-        if (_keysPressed & sc::input::mask::RIGHT)
-            _registry.vec_x_ptr()[0] += speed;
+        _registry->vel_x_ptr()[0UZ] = _registry->vel_y_ptr()[0UZ] = 0.0f;
+        if (sc::core::any(_keysPressed & sc::input::mask::UP))
+            _registry->vel_y_ptr()[0UZ] -= speed;
+        if (sc::core::any(_keysPressed & sc::input::mask::DOWN))
+            _registry->vel_y_ptr()[0UZ] += speed;
+        if (sc::core::any(_keysPressed & sc::input::mask::LEFT))
+            _registry->vel_x_ptr()[0UZ] -= speed;
+        if (sc::core::any(_keysPressed & sc::input::mask::RIGHT))
+            _registry->vel_x_ptr()[0UZ] += speed;
 
-        _registry.update(sc::physics::kFixedTimestep);
         sc::physics::resolve_entity_collisions(
-                *_atlas, _registry, sc::physics::kFixedTimestep);
-        _registry.commit();
+                *_atlas, *_registry, sc::physics::kFixedTimestep);
+        _registry->commit();
 
         _accumulator -= sc::physics::kFixedTimestep;
     }
 
-    _registry.sort_draw();
+    _registry->needs_sort = true;
+    _registry->sort_draw();
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
     _bridge->begin_frame(drawable);
     _bridge->clear();
-    _bridge->draw(_registry);
+    _bridge->draw(*_registry);
     _bridge->end_frame(drawable);
 }
 
