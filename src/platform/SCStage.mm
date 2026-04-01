@@ -15,18 +15,21 @@
 #include "graphics/display_constants.hh"
 #include "graphics/metal_bridge.hh"
 #include "physics/physics.hh"
+#include "physics/physics_types.hh"
 #include "registry/entity_registry.hh"
 
 @implementation SCStage {
-    std::unique_ptr<sc::core::mapped_view<sc::assets::atlas>> _view;
+    const sc::assets::atlas* _atlas;
     std::unique_ptr<sc::entity_registry> _registry;
     std::unique_ptr<sc::render::metal_bridge> _bridge;
-    const sc::assets::atlas* _atlas;
-    sc::input::mask _keysPressed;
     float _accumulator;
+    sc::input::mask _keysPressed;
 }
 
-- (instancetype)initWithFrame:(CGRect)frameRect device:(id<MTLDevice>)device
+- (instancetype)initWithFrame:(CGRect)frameRect
+                       device:(id<MTLDevice>)device
+                  mappedAtlas:(const sc::core::mapped_view<sc::assets::atlas>*)
+                                      mappedAtlas
 {
     self = [super initWithFrame:frameRect device:device];
     if (self) {
@@ -37,24 +40,14 @@
 
         self.layer.magnificationFilter = kCAFilterNearest;
 
-        _view = std::make_unique<sc::core::mapped_view<sc::assets::atlas>>(
-                sc::assets::kAtlas);
-        if (!(_view && *_view)) {
-            NSLog(@"FATAL: Could not map sprite bank file.");
-            abort();
-        }
-        if (!sc::assets::atlas::validate(_view->data(), _view->size())) {
-            NSLog(@"FATAL: sprite bank header validation failed.");
-            abort();
-        }
-        _atlas = _view->data();
+        _atlas = mappedAtlas->data();
 
         _registry = std::make_unique<sc::entity_registry>(
                 (__bridge MTL::Device*) device);
 
         _bridge = std::make_unique<sc::render::metal_bridge>(
                 (__bridge MTL::Device*) device);
-        _bridge->set_atlas_buffer(*_view);
+        _bridge->set_atlas_buffer(*mappedAtlas);
 
         self.framebufferOnly = false;
 
