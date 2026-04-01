@@ -1,6 +1,7 @@
 #ifndef SC_SIMULATION_PHYSICS_TYPES_HH
 #define SC_SIMULATION_PHYSICS_TYPES_HH
 
+#include "assets/sprite.hh"
 #include "core/core.hh"
 #include "math/bbox.hh"
 #include "registry/entity_registry.hh"

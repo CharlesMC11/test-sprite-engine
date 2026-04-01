@@ -3,11 +3,12 @@
 
 #include "assets/atlas.hh"
 #include "registry/entity_registry.hh"
+#include "spatial_grid.hh"
 
 namespace sc::physics {
 
-    void resolve_entity_collisions(
-            const assets::atlas& atlas, entity_registry& registry, float dt);
+    void resolve_entity_collisions(entity_registry& registry,
+            const spatial_grid& grid, const assets::atlas& atlas, float dt);
 
 } // namespace sc::physics
 

@@ -17,12 +17,36 @@ find_library(METALKIT_LIB MetalKit REQUIRED)
 find_library(QUARTZ_LIB QuartzCore REQUIRED)
 
 add_executable(test-sprite-engine
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/metal_bridge.cc"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/physics/physics.cc"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/registry/entity_registry.cc"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCAppDelegate.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCStage.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/main.mm"
+        src/assets/asset_constants.hh
+        src/assets/atlas.hh
+        src/assets/palette_index.hh
+        src/assets/sprite.hh
+        src/assets/sprite16_index.hh
+        src/assets/sprite32_index.hh
+        src/core/core.hh
+        src/core/input.hh
+        src/core/mapped_view.hh
+        src/core/memory.hh
+        src/graphics/display_constants.hh
+        src/graphics/graphics_types.hh
+        src/graphics/metal_bridge.hh
+        src/graphics/metal_bridge.cc
+        src/graphics/render_constants.hh
+        src/math/bbox.hh
+        src/math/utils.hh
+        src/platform/SCAppDelegate.hh
+        src/platform/SCAppDelegate.mm
+        src/platform/SCStage.hh
+        src/platform/SCStage.mm
+        src/platform/main.mm
+        src/registry/entity_registry.hh
+        src/registry/entity_registry.cc
+        src/simulation/physics.hh
+        src/simulation/physics.cc
+        src/simulation/physics_types.hh
+        src/simulation/spatial_grid.hh
+        src/simulation/world.hh
+        src/simulation/world.cc
 )
 
 target_compile_options(test-sprite-engine PRIVATE

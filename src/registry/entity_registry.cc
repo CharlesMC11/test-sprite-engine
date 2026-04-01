@@ -62,7 +62,7 @@ namespace sc {
 
     void entity_registry::sort_draw() noexcept
     {
-        if (needs_sort) {
+        if (draw_order_needs_sort) {
             std::span tmp{draw_order_ptr(), count()};
 
             const float* __restrict y_ptr{pos_y_ptr()};
@@ -78,7 +78,7 @@ namespace sc {
                                 : z_ptr[a] < z_ptr[b];
                     });
 
-            needs_sort = false;
+            draw_order_needs_sort = false;
         }
     }
 
@@ -98,14 +98,14 @@ namespace sc {
 
     void entity_registry::reserve(const std::size_t n)
     {
-        float_buffer_.grow(device_, n);
+        xform_buffer_.grow(device_, n);
         index_buffer_.grow(device_, n);
     }
 
     void entity_registry::spawn(const float start_x, const float start_y,
             const float start_z, const assets::sprite32_index i)
     {
-        if (float_buffer_.capacity <= float_buffer_.count) [[unlikely]]
+        if (xform_buffer_.capacity <= xform_buffer_.count) [[unlikely]]
             reserve(std::max(static_cast<std::size_t>(core::kCacheAlignment),
                     capacity() * 2UZ));
 
@@ -118,11 +118,11 @@ namespace sc {
         vel_x_ptr()[idx] = vel_y_ptr()[idx] = vel_z_ptr()[idx] = 0.0f;
 
         sprite32_index_ptr()[idx] = static_cast<core::index_t>(i);
-        physics_order_ptr()[idx] = draw_order_ptr()[idx] = idx;
+        draw_order_ptr()[idx] = idx;
 
-        ++float_buffer_.count;
+        ++xform_buffer_.count;
         ++index_buffer_.count;
-        needs_sort = true;
+        draw_order_needs_sort = true;
     }
 
 } // namespace sc

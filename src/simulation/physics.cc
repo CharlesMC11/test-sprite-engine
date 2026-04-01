@@ -1,10 +1,10 @@
-#include "physics/physics.hh"
+#include "simulation/physics.hh"
 
 #include <cmath>
 
 #include "core/core.hh"
-#include "physics/physics_types.hh"
-#include "physics/spatial_grid.hh"
+#include "simulation/physics_types.hh"
+#include "simulation/spatial_grid.hh"
 
 namespace sc::physics {
 
@@ -17,13 +17,10 @@ namespace sc::physics {
     static void apply_slide(entity_registry& registry, core::index_t i,
             const sweep_result& hit, float dt);
 
-    void resolve_entity_collisions(const assets::atlas& atlas,
-            entity_registry& registry, const float dt)
+    void resolve_entity_collisions(entity_registry& registry,
+            const spatial_grid& grid, const assets::atlas& atlas,
+            const float dt)
     {
-        // FIXME: Move out of here when things get more complex?
-        static spatial_grid grid;
-        grid.update(registry);
-
         for (core::index_t a_idx{0U}; a_idx < registry.count(); ++a_idx) {
             const assets::sprites::metadata& a_meta{
                     atlas.sprite32_span()[registry.sprite32_index_ptr()[a_idx]]
@@ -42,7 +39,7 @@ namespace sc::physics {
             }
 
             if (std::abs(registry.vel_y_ptr()[a_idx]) > core::kEpsilon)
-                registry.needs_sort = true;
+                registry.draw_order_needs_sort = true;
 
             const float a_dx{registry.vel_x_ptr()[a_idx] * dt};
             const float a_dy{registry.vel_y_ptr()[a_idx] * dt};
