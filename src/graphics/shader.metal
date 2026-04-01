@@ -85,8 +85,9 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
             continue;
 
         constant sc::assets::sprite32& sprite{sprites[atlas_indices[draw_idx]]};
-        const sc::graphics::packed_pixel_t pixel{
-                sprite.pixels[local_coord.y][local_coord.x]};
+        const sc::graphics::packed_pixel_t pixel{sprite.pixels[local_coord.y *
+                        sc::assets::sprites::kDefaultSize +
+                local_coord.x]};
 
         const auto alpha_raw{(pixel & sc::graphics::kMaskAlpha) >> 4};
         if (alpha_raw == 0x00U)

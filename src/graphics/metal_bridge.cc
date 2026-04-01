@@ -129,7 +129,7 @@ namespace sc::render {
     void metal_bridge::set_atlas_buffer(
             const core::mapped_view<assets::atlas>& atlas)
     {
-        const auto meta{atlas->meta};
+        const assets::atlas::metadata meta{atlas->meta};
 
         constexpr std::size_t metadata_size{sizeof(meta)};
         const std::size_t palette_span_size{
@@ -144,7 +144,7 @@ namespace sc::render {
         atlas_buffer_ = NS::TransferPtr(device_->newBuffer(atlas.data(),
                 total_size, MTL::ResourceStorageModeShared, nullptr));
         if (!atlas_buffer_) [[unlikely]] {
-            std::cerr << "Metal buffer is empty!\n";
+            std::cerr << "FATAL: Metal buffer is empty!\n";
             throw;
         }
 

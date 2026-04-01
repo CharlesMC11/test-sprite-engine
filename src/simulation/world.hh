@@ -25,11 +25,11 @@ namespace sc {
         void update(input::mask input, const MTL::Drawable* drawable);
 
     private:
-        physics::spatial_grid spatial_grid_;
+        physics::spatial_grid grid_;
         render::metal_bridge bridge_;
         entity_registry registry_;
         core::mapped_view<assets::atlas> atlas_;
-        float accumulator{0.0f};
+        float ftime_accumulator_{0.0f};
     };
 
 } // namespace sc

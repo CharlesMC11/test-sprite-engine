@@ -10,7 +10,7 @@
 namespace sc {
 
     [[nodiscard]] world::world(MTL::Device* device)
-        : spatial_grid_{}, bridge_{render::metal_bridge{device}},
+        : grid_{}, bridge_{render::metal_bridge{device}},
           registry_{entity_registry{device}},
           atlas_{core::mapped_view<assets::atlas>{assets::kAtlas}}
     {
@@ -42,11 +42,11 @@ namespace sc {
         if (frame_time > 0.25f)
             frame_time = 0.25f;
 
-        accumulator += frame_time;
+        ftime_accumulator_ += frame_time;
 
-        while (accumulator >= physics::kFixedTimestep) {
+        while (ftime_accumulator_ >= physics::kFixedTimestep) {
             constexpr float speed{200.0f};
-            spatial_grid_.update(registry_);
+            grid_.update(registry_);
 
             registry_.vel_x_ptr()[0UZ] = registry_.vel_y_ptr()[0UZ] = 0.0f;
             if (core::any(input & input::mask::UP))
@@ -58,11 +58,11 @@ namespace sc {
             if (core::any(input & input::mask::RIGHT))
                 registry_.vel_x_ptr()[0UZ] += speed;
 
-            physics::resolve_entity_collisions(registry_, spatial_grid_,
-                    *atlas_.data(), physics::kFixedTimestep);
+            physics::resolve_entity_collisions(
+                    registry_, grid_, *atlas_.data(), physics::kFixedTimestep);
 
             registry_.commit();
-            accumulator -= physics::kFixedTimestep;
+            ftime_accumulator_ -= physics::kFixedTimestep;
         }
 
         registry_.draw_order_needs_sort = true;
