@@ -39,7 +39,7 @@
     }
 
 #define SC_REGISTER_XFORM_CHANNEL_ACCESSOR(name, ENUM_VAL)                     \
-    SC_REGISTER_ACCESSOR(name, xform_channel, float, ENUM_VAL, float_buffer_)
+    SC_REGISTER_ACCESSOR(name, xform_channel, float, ENUM_VAL, xform_buffer_)
 
 #define SC_REGISTER_INDEX_CHANNEL_ACCESSOR(name, ENUM_VAL)                     \
     SC_REGISTER_ACCESSOR(                                                      \
@@ -70,7 +70,6 @@ namespace sc {
 
         enum class index_channel : std::uint8_t {
             SPRITE32_INDEX,
-            PHYSICS_ORDER,
             DRAW_ORDER,
             NEXT_IN_CELL,
             COUNT
@@ -162,7 +161,6 @@ namespace sc {
         SC_REGISTER_XFORM_CHANNEL_ACCESSOR(new_z, Z_TARGET_POSITION)
 
         SC_REGISTER_INDEX_CHANNEL_ACCESSOR(sprite32_index, SPRITE32_INDEX)
-        SC_REGISTER_INDEX_CHANNEL_ACCESSOR(physics_order, PHYSICS_ORDER)
         SC_REGISTER_INDEX_CHANNEL_ACCESSOR(draw_order, DRAW_ORDER)
         SC_REGISTER_INDEX_CHANNEL_ACCESSOR(next_in_cell, NEXT_IN_CELL)
 
@@ -177,7 +175,7 @@ namespace sc {
 
         // Attributes
 
-        bool needs_sort{false};
+        bool draw_order_needs_sort{false};
 
     private:
         // Type aliases
@@ -196,7 +194,7 @@ namespace sc {
         // Attributes
 
         mem::channel_pool<float, static_cast<std::size_t>(xform_channel::COUNT)>
-                float_buffer_;
+                xform_buffer_;
 
         mem::channel_pool<core::index_t,
                 static_cast<std::size_t>(index_channel::COUNT)>
@@ -218,19 +216,19 @@ namespace sc {
 
     [[nodiscard]] constexpr std::size_t entity_registry::count() const noexcept
     {
-        return float_buffer_.count;
+        return xform_buffer_.count;
     }
 
     [[nodiscard]] constexpr std::size_t
     entity_registry::capacity() const noexcept
     {
-        return float_buffer_.capacity;
+        return xform_buffer_.capacity;
     }
 
     [[nodiscard]] constexpr std::size_t entity_registry::offset(
             xform_channel channel) const noexcept
     {
-        return float_buffer_.subarray_offset(static_cast<std::size_t>(channel));
+        return xform_buffer_.subarray_offset(static_cast<std::size_t>(channel));
     }
 
     [[nodiscard]] constexpr std::size_t entity_registry::offset(
@@ -242,7 +240,7 @@ namespace sc {
     [[nodiscard]] constexpr auto entity_registry::xform_buffer() const noexcept
             -> const MTL::Buffer* __restrict
     {
-        return float_buffer_.buffer.get();
+        return xform_buffer_.buffer.get();
     }
 
     [[nodiscard]] constexpr auto entity_registry::index_buffer() const noexcept
