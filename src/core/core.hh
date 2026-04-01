@@ -114,7 +114,7 @@ constexpr T& operator^=(T& lhs, const T rhs) noexcept
 
 #define SC_ENABLE_ENUM_BITWISE_OPS(EnumType)                                   \
     template<>                                                                 \
-    constexpr bool sc::core::enable_bitwise_ops_v<EnumType> = true;
+    inline constexpr bool sc::core::enable_bitwise_ops_v<EnumType> = true;
 
 #endif // __METAL_VERSION__
 

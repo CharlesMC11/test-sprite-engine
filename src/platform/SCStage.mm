@@ -141,9 +141,8 @@
         if (sc::core::any(_keysPressed & sc::input::mask::RIGHT))
             _registry->vel_x_ptr()[0UZ] += speed;
 
-        _registry->update(sc::physics::kFixedTimestep);
-        // sc::physics::resolve_entity_collisions(
-        //        *_atlas, *_registry, sc::physics::kFixedTimestep);
+        sc::physics::resolve_entity_collisions(
+                *_atlas, *_registry, sc::physics::kFixedTimestep);
         _registry->commit();
 
         _accumulator -= sc::physics::kFixedTimestep;
