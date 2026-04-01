@@ -1,15 +1,13 @@
 cmake_minimum_required(VERSION 4.1)
-project(test-sprite-engine C CXX OBJCXX)
+project(test-sprite-engine CXX OBJCXX)
 
-set(CMAKE_C_STANDARD 23)
-set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(
-        "${CMAKE_CURRENT_SOURCE_DIR}/src"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform"
-        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/metal-cpp")
+        src/
+        vendor/metal-cpp
+)
 
 find_library(APPKIT_LIB AppKit REQUIRED)
 find_library(METAL_LIB Metal REQUIRED)
@@ -32,6 +30,7 @@ add_executable(test-sprite-engine
         src/graphics/metal_bridge.hh
         src/graphics/metal_bridge.cc
         src/graphics/render_constants.hh
+        src/graphics/shader.metal
         src/math/bbox.hh
         src/math/utils.hh
         src/platform/SCAppDelegate.hh
