@@ -58,7 +58,7 @@ namespace sc::mem {
          * @param new_capacity
          * The new capacity size.
          */
-        void grow(MTL::Device* device, std::size_t new_capacity);
+        void grow(MTL::Device* device, std::size_t new_capacity) noexcept;
 
         // Accessors
 
@@ -101,7 +101,7 @@ namespace sc::mem {
 
     template<typename T, std::size_t N>
     void channel_pool<T, N>::grow(
-            MTL::Device* device, const std::size_t new_capacity)
+            MTL::Device* device, const std::size_t new_capacity) noexcept
     {
         const std::size_t aligned_new_capacity{
                 math::align_up(new_capacity, core::kCacheAlignment)};

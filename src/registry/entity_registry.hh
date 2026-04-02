@@ -141,7 +141,7 @@ namespace sc {
          * @param n
          * The number of entities to reserve space for.
          */
-        void reserve(std::size_t n);
+        void reserve(std::size_t n) noexcept;
 
         /**
          * Add a new entity to the layout.
@@ -158,8 +158,9 @@ namespace sc {
          * @param z
          * The starting aerial position.
          */
-        void spawn(core::index_t i, float x, float y, float z);
-        void spawn(assets::sprite32_index i, float x, float y, float z);
+        void spawn(core::index_t i, float x, float y, float z) noexcept;
+        void spawn(
+                assets::sprite32_index i, float x, float y, float z) noexcept;
 
         // Accessors
 

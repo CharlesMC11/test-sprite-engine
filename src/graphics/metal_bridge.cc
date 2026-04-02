@@ -7,7 +7,7 @@
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
 
-#include <iostream>
+#include <stdexcept>
 
 #include "assets/asset_constants.hh"
 #include "assets/atlas.hh"
@@ -36,20 +36,18 @@ namespace sc::render {
 
         clear_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
-        if (!clear_pso_) [[unlikely]] {
-            std::cerr << error->localizedDescription() << '\n';
-            throw;
-        }
+        if (!clear_pso_) [[unlikely]]
+            throw std::runtime_error{
+                    error->localizedDescription()->utf8String()};
 
         fn_name = NS::String::string("k_draw_sprites", NS::UTF8StringEncoding);
         function = library->newFunction(fn_name);
 
         sprite_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
-        if (!sprite_pso_) [[unlikely]] {
-            std::cerr << error->localizedDescription() << '\n';
-            throw;
-        }
+        if (!sprite_pso_) [[unlikely]]
+            throw std::runtime_error{
+                    error->localizedDescription()->utf8String()};
 
         function->release();
         library->release();
@@ -140,10 +138,8 @@ namespace sc::render {
 
         atlas_buffer_ = NS::TransferPtr(device_->newBuffer(atlas.data(),
                 total_size, MTL::ResourceStorageModeShared, nullptr));
-        if (!atlas_buffer_) [[unlikely]] {
-            std::cerr << "FATAL: Metal buffer is empty!\n";
-            throw;
-        }
+        if (!atlas_buffer_) [[unlikely]]
+            throw std::runtime_error{"Could not allocate a Metal buffer."};
 
         palette_span_offset_ = metadata_size;
         sprite32_span_offset_ =
