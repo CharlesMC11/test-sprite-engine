@@ -117,85 +117,88 @@ namespace sc::physics {
     {
         sweep_result result;
 
-        const float vel_x{(a.vel_x - b.vel_x) * dt};
-        const float vel_y{(a.vel_y - b.vel_y) * dt};
-        const float vel_z{(a.vel_z - b.vel_z) * dt};
+        const float x_vel{(a.x_vel - b.x_vel) * dt};
+        const float y_vel{(a.y_vel - b.y_vel) * dt};
+        const float z_vel{(a.z_vel - b.z_vel) * dt};
 
-        float entry_tx, exit_tx;
-        if (std::abs(vel_x) < core::kEpsilon) {
+        float x_entry_time, x_exit_time;
+        if (std::abs(x_vel) < core::kEpsilon) {
             if (a.right < b.left || a.left > b.right)
                 return result;
 
-            entry_tx = -core::kInfinity;
-            exit_tx = core::kInfinity;
+            x_entry_time = -core::kInfinity;
+            x_exit_time = core::kInfinity;
         }
         else {
-            const float in_x{
-                    vel_x > 0.0f ? b.left - a.right : b.right - a.left};
-            const float out_x{
-                    vel_x > 0.0f ? b.right - a.left : b.left - a.right};
+            const float x_entry_pos{
+                    x_vel > 0.0f ? b.left - a.right : b.right - a.left};
+            const float x_exit_pos{
+                    x_vel > 0.0f ? b.right - a.left : b.left - a.right};
 
-            entry_tx = in_x / vel_x;
-            exit_tx = out_x / vel_x;
+            x_entry_time = x_entry_pos / x_vel;
+            x_exit_time = x_exit_pos / x_vel;
         }
 
-        float entry_ty, exit_ty;
-        if (std::abs(vel_y) < core::kEpsilon) {
+        float y_entry_time, y_exit_time;
+        if (std::abs(y_vel) < core::kEpsilon) {
             if (a.front < b.back || a.back > b.front)
                 return result;
 
-            entry_ty = -core::kInfinity;
-            exit_ty = core::kInfinity;
+            y_entry_time = -core::kInfinity;
+            y_exit_time = core::kInfinity;
         }
         else {
-            const float in_y{
-                    vel_y > 0.0f ? b.back - a.front : b.front - a.back};
-            const float out_y{
-                    vel_y > 0.0f ? b.front - a.back : b.back - a.front};
+            const float y_entry_pos{
+                    y_vel > 0.0f ? b.back - a.front : b.front - a.back};
+            const float y_exit_pos{
+                    y_vel > 0.0f ? b.front - a.back : b.back - a.front};
 
-            entry_ty = in_y / vel_y;
-            exit_ty = out_y / vel_y;
+            y_entry_time = y_entry_pos / y_vel;
+            y_exit_time = y_exit_pos / y_vel;
         }
 
-        float entry_tz, exit_tz;
-        if (std::abs(vel_z) < core::kEpsilon) {
+        float z_entry_time, z_exit_time;
+        if (std::abs(z_vel) < core::kEpsilon) {
             if (a.bottom > b.top || a.top < b.bottom)
                 return result;
 
-            entry_tz = -core::kInfinity;
-            exit_tz = core::kInfinity;
+            z_entry_time = -core::kInfinity;
+            z_exit_time = core::kInfinity;
         }
         else {
-            const float in_z{
-                    vel_z > 0.0f ? b.bottom - a.top : b.top - a.bottom};
-            const float out_z{
-                    vel_z > 0.0f ? b.top - a.bottom : b.bottom - a.top};
+            const float z_entry_pos{
+                    z_vel > 0.0f ? b.bottom - a.top : b.top - a.bottom};
+            const float z_exit_pos{
+                    z_vel > 0.0f ? b.top - a.bottom : b.bottom - a.top};
 
-            entry_tz = in_z / vel_z;
-            exit_tz = out_z / vel_z;
+            z_entry_time = z_entry_pos / z_vel;
+            z_exit_time = z_exit_pos / z_vel;
         }
 
-        const float entry_t{std::max(entry_tx, std::max(entry_ty, entry_tz))};
-        if (entry_t > std::min(exit_tx, std::min(exit_ty, exit_tz)) ||
-                entry_t > 1.0f || entry_t < 0.0f ||
-                (exit_tx < 0.0f && exit_ty < 0.0f && entry_tz < 0.0f))
+        const float entry_time{
+                std::max(x_entry_time, std::max(y_entry_time, z_entry_time))};
+        if (entry_time > std::min(x_exit_time,
+                                 std::min(y_exit_time, z_exit_time)) ||
+                entry_time > 1.0f || entry_time < 0.0f ||
+                (x_exit_time < 0.0f && y_exit_time < 0.0f &&
+                        z_entry_time < 0.0f))
             return result;
 
-        result.time = entry_t;
-        if (entry_tx >= entry_ty && entry_tx >= entry_tz) {
-            result.normal_x = vel_x > 0.0f ? -1.0f : 1.0f;
+        result.time = entry_time;
+        if (x_entry_time >= y_entry_time && x_entry_time >= z_entry_time) {
+            result.normal_x = x_vel > 0.0f ? -1.0f : 1.0f;
             result.normal_y = 0.0f;
             result.normal_z = 0.0f;
         }
-        else if (entry_ty >= entry_tx && entry_ty >= entry_tz) {
+        else if (y_entry_time >= x_entry_time && y_entry_time >= z_entry_time) {
             result.normal_x = 0.0f;
-            result.normal_y = vel_y > 0.0f ? -1.0f : 1.0f;
+            result.normal_y = y_vel > 0.0f ? -1.0f : 1.0f;
             result.normal_z = 0.0f;
         }
         else {
             result.normal_x = 0.0f;
             result.normal_y = 0.0f;
-            result.normal_z = vel_z > 0.0f ? 1.0f : -1.0f;
+            result.normal_z = z_vel > 0.0f ? 1.0f : -1.0f;
         }
 
         return result;
@@ -205,8 +208,7 @@ namespace sc::physics {
             const core::index_t i, const sweep_result hit, const float dx,
             const float dy, const float dz)
     {
-        const float padded_t{
-                hit.time < 1.0f ? std::max(0.0f, hit.time - 0.1f) : 1.0f};
+        const float padded_t{std::max(0.0f, hit.time - 0.1f)};
 
         registry.new_x_pos_ptr()[i] = registry.x_pos_ptr()[i] + dx * padded_t;
         registry.new_y_pos_ptr()[i] = registry.y_pos_ptr()[i] + dy * padded_t;

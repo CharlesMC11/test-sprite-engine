@@ -48,9 +48,9 @@ namespace sc::physics {
         float top{0.0f};
         float bottom{0.f};
 
-        float vel_x{0.0f};
-        float vel_y{0.0f};
-        float vel_z{0.0f};
+        float x_vel{0.0f};
+        float y_vel{0.0f};
+        float z_vel{0.0f};
 
         geometry::bbox<float> bbox;
     };
@@ -77,9 +77,10 @@ namespace sc::physics {
     [[nodiscard]] constexpr aabb::aabb(const float pos_x, const float pos_y,
             const float pos_z, const float vel_x, const float vel_y,
             const float vel_z, const geometry::bbox<float> bbox) noexcept
+        : left{pos_x + bbox.min_u}, right{pos_x + bbox.max_u + 1.0f},
           front{pos_y + kYCollisionDistance}, back{pos_y - kYCollisionDistance},
-          top{pos_z + bbox.height()}, bottom{pos_z}, vel_x{vel_x}, vel_y{vel_y},
-          vel_z{vel_z}, bbox{bbox}
+          top{pos_z + bbox.height()}, bottom{pos_z}, x_vel{vel_x}, y_vel{vel_y},
+          z_vel{vel_z}, bbox{bbox}
     {
     }
 
