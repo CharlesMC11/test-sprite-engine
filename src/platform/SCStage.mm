@@ -46,16 +46,20 @@
 {
     switch (event.keyCode) {
     case 13U:
-        _keysPressed |= sc::input::mask::UP;
+    case 126U:
+        _keysPressed |= sc::input::mask::up;
         break;
     case 1U:
-        _keysPressed |= sc::input::mask::DOWN;
+    case 125U:
+        _keysPressed |= sc::input::mask::down;
         break;
     case 0U:
-        _keysPressed |= sc::input::mask::LEFT;
+    case 123U:
+        _keysPressed |= sc::input::mask::left;
         break;
     case 2U:
-        _keysPressed |= sc::input::mask::RIGHT;
+    case 124U:
+        _keysPressed |= sc::input::mask::right;
         break;
     default:
         break;
@@ -66,16 +70,20 @@
 {
     switch (event.keyCode) {
     case 13U:
-        _keysPressed &= ~sc::input::mask::UP;
+    case 126U:
+        _keysPressed &= ~sc::input::mask::up;
         break;
     case 1U:
-        _keysPressed &= ~sc::input::mask::DOWN;
+    case 125U:
+        _keysPressed &= ~sc::input::mask::down;
         break;
     case 0U:
-        _keysPressed &= ~sc::input::mask::LEFT;
+    case 123U:
+        _keysPressed &= ~sc::input::mask::left;
         break;
     case 2U:
-        _keysPressed &= ~sc::input::mask::RIGHT;
+    case 124U:
+        _keysPressed &= ~sc::input::mask::right;
         break;
     default:
         break;

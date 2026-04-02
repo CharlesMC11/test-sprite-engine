@@ -45,13 +45,13 @@ namespace sc {
             registry_.x_vel_ptr()[0UZ] = registry_.y_vel_ptr()[0UZ] = 0.0f;
 
             constexpr float vel{200.0f};
-            if (core::any(input & input::mask::UP))
+            if (core::any(input & input::mask::up))
                 registry_.y_vel_ptr()[0UZ] -= vel;
-            if (core::any(input & input::mask::DOWN))
+            if (core::any(input & input::mask::down))
                 registry_.y_vel_ptr()[0UZ] += vel;
-            if (core::any(input & input::mask::LEFT))
+            if (core::any(input & input::mask::left))
                 registry_.x_vel_ptr()[0UZ] -= vel;
-            if (core::any(input & input::mask::RIGHT))
+            if (core::any(input & input::mask::right))
                 registry_.x_vel_ptr()[0UZ] += vel;
 
             registry_.update(physics::kFixedTimestep);
