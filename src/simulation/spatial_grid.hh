@@ -36,12 +36,14 @@ namespace sc::physics {
         clear();
 
         core::index_t* __restrict next_ptr{registry.next_in_cell_ptr()};
-        for (std::size_t i{0UZ}; i < registry.count(); ++i) {
+
+        const auto entity_count{static_cast<core::index_t>(registry.count())};
+        for (core::index_t i{0U}; i < entity_count; ++i) {
             const core::index_t cell_idx{
                     hash(registry.x_pos_ptr()[i], registry.y_pos_ptr()[i])};
 
             next_ptr[i] = cell_heads[cell_idx];
-            cell_heads[cell_idx] = static_cast<core::index_t>(i);
+            cell_heads[cell_idx] = i;
         }
     }
 
@@ -50,14 +52,14 @@ namespace sc::physics {
     [[nodiscard]] constexpr core::index_t spatial_grid::hash(
             const float x, const float y) noexcept
     {
-        const auto ix{static_cast<core::index_t>(std::clamp(x, 0.0f,
+        const auto cx{static_cast<core::index_t>(std::clamp(x, 0.0f,
                               static_cast<float>(display::kWidth) - 1.0f)) /
                 kCellSize};
-        const auto iy{static_cast<core::index_t>(std::clamp(y, 0.0f,
+        const auto cy{static_cast<core::index_t>(std::clamp(y, 0.0f,
                               static_cast<float>(display::kHeight) - 1.0f)) /
                 kCellSize};
 
-        return iy * kColCount + ix;
+        return cy * static_cast<core::index_t>(kColCount) + cx;
     }
 
     inline void spatial_grid::clear() noexcept

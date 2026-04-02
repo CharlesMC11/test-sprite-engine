@@ -21,7 +21,10 @@ namespace sc::physics {
             const spatial_grid& grid, const assets::atlas& atlas,
             const float dt)
     {
-        for (core::index_t a_idx{0U}; a_idx < registry.count(); ++a_idx) {
+        const auto entity_count{static_cast<core::index_t>(registry.count())};
+        constexpr auto col_count{static_cast<core::index_t>(kColCount)};
+
+        for (core::index_t a_idx{0U}; a_idx < entity_count; ++a_idx) {
             const assets::sprites::metadata a_meta{
                     atlas.sprite32_span()[registry.sprite_index_ptr()[a_idx]]
                             .meta};
@@ -60,19 +63,21 @@ namespace sc::physics {
             const auto a_sweep_front{static_cast<int>(
                     std::max(a_aabb.front, a_aabb.front + a_dy))};
 
-            const auto a_x_start{std::max(0, a_sweep_left / kCellSize - 1)};
-            const auto a_x_end{
-                    std::min(kColCount - 1, a_sweep_right / kCellSize + 1)};
+            const auto a_x_start{static_cast<core::index_t>(
+                    std::max(0, a_sweep_left / kCellSize - 1))};
+            const auto a_x_end{static_cast<core::index_t>(
+                    std::min(kColCount - 1, a_sweep_right / kCellSize + 1))};
 
-            const auto a_y_start{std::max(0, a_sweep_back / kCellSize - 1)};
-            const auto a_y_end{
-                    std::min(kRowCount - 1, a_sweep_front / kCellSize + 1)};
+            const auto a_y_start{static_cast<core::index_t>(
+                    std::max(0, a_sweep_back / kCellSize - 1))};
+            const auto a_y_end{static_cast<core::index_t>(
+                    std::min(kRowCount - 1, a_sweep_front / kCellSize + 1))};
 
             sweep_result collision;
 
-            for (int cy{a_y_start}; cy <= a_y_end; ++cy) {
-                for (int cx{a_x_start}; cx <= a_x_end; ++cx) {
-                    core::index_t b_idx{grid.cell_heads[cy * kColCount + cx]};
+            for (core::index_t cy{a_y_start}; cy <= a_y_end; ++cy) {
+                for (core::index_t cx{a_x_start}; cx <= a_x_end; ++cx) {
+                    core::index_t b_idx{grid.cell_heads[cy * col_count + cx]};
 
                     while (b_idx != core::kInvalidIndex) {
                         if (a_idx == b_idx) {

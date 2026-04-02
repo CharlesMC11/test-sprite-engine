@@ -7,6 +7,8 @@
 #include <iostream>
 #include <span>
 
+#include "core/core.hh"
+
 namespace sc {
 
     // Public methods
@@ -35,7 +37,8 @@ namespace sc {
             vst1q_f32(&new_z_pos_ptr()[i], v_new_z);
         }
 
-        for (std::size_t i{vectorized_lim}; i < n; ++i) {
+        for (core::index_t i{static_cast<core::index_t>(vectorized_lim)};
+                i < static_cast<core::index_t>(n); ++i) {
             new_x_pos_ptr()[i] = x_pos_ptr()[i] + x_vel_ptr()[i] * dt;
             new_y_pos_ptr()[i] = y_pos_ptr()[i] + y_vel_ptr()[i] * dt;
             new_z_pos_ptr()[i] = z_pos_ptr()[i] + z_vel_ptr()[i] * dt;
@@ -66,20 +69,20 @@ namespace sc {
 
     // Mutators
 
-    void entity_registry::reserve(const std::size_t n)
+    void entity_registry::reserve(const std::size_t n) noexcept
     {
         xform_buffer_.grow(device_, n);
         index_buffer_.grow(device_, n);
     }
 
-    void entity_registry::spawn(
-            const core::index_t i, const float x, const float y, const float z)
+    void entity_registry::spawn(const core::index_t i, const float x,
+            const float y, const float z) noexcept
     {
         if (xform_buffer_.capacity <= xform_buffer_.count) [[unlikely]]
             reserve(std::max(static_cast<std::size_t>(core::kCacheAlignment),
                     capacity() * 2UZ));
 
-        const std::size_t idx{count()};
+        const auto idx{static_cast<core::index_t>(count())};
 
         x_pos_ptr()[idx] = new_x_pos_ptr()[idx] = x;
         y_pos_ptr()[idx] = new_y_pos_ptr()[idx] = y;
@@ -88,7 +91,7 @@ namespace sc {
         x_vel_ptr()[idx] = y_vel_ptr()[idx] = z_vel_ptr()[idx] = 0.0f;
 
         sprite_index_ptr()[idx] = i;
-        draw_order_ptr()[idx] = static_cast<core::index_t>(idx);
+        draw_order_ptr()[idx] = idx;
 
         ++xform_buffer_.count;
         ++index_buffer_.count;
@@ -96,7 +99,7 @@ namespace sc {
     }
 
     void entity_registry::spawn(const assets::sprite32_index i, const float x,
-            const float y, const float z)
+            const float y, const float z) noexcept
     {
         spawn(static_cast<core::index_t>(i), x, y, z);
     }
