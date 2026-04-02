@@ -12,10 +12,10 @@ namespace sc::physics {
             const aabb& a, const aabb& b, float dt);
 
     static void apply_collision(entity_registry& registry, core::index_t i,
-            const sweep_result& hit, float dx, float dy, float dz);
+            sweep_result hit, float dx, float dy, float dz);
 
     static void apply_slide(entity_registry& registry, core::index_t i,
-            const sweep_result& hit, float dt);
+            sweep_result hit, float dt);
 
     void resolve_entity_collisions(entity_registry& registry,
             const spatial_grid& grid, const assets::atlas& atlas,
@@ -24,6 +24,7 @@ namespace sc::physics {
         for (core::index_t a_idx{0U}; a_idx < registry.count(); ++a_idx) {
             const assets::sprites::metadata& a_meta{
                     atlas.sprite32_span()[registry.sprite32_index_ptr()[a_idx]]
+            const assets::sprites::metadata a_meta{
                             .meta};
 
             if (!core::any(
@@ -198,7 +199,7 @@ namespace sc::physics {
     }
 
     static void apply_collision(entity_registry& registry,
-            const core::index_t i, const sweep_result& hit, const float dx,
+            const core::index_t i, const sweep_result hit, const float dx,
             const float dy, const float dz)
     {
         const float padded_t{
