@@ -9,8 +9,8 @@
 
 namespace sc::display {
 
-    static SC_CONSTEXPR unsigned kWidth{240U};
-    static SC_CONSTEXPR unsigned kHeight{160U};
+    static SC_CONSTEXPR uint32_t kWidth{240U};
+    static SC_CONSTEXPR uint32_t kHeight{160U};
 
     static SC_CONSTEXPR float kDefaultR{0.50f};
     static SC_CONSTEXPR float kDefaultG{0.50f};
