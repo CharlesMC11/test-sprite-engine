@@ -3,11 +3,12 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <ostream>
 
 #include "graphics/display_constants.hh"
 #include "registry/entity_registry.hh"
 
-namespace sc ::physics {
+namespace sc::physics {
 
     static constexpr int kCellSize{16U};
     static constexpr int kColCount{display::kWidth / kCellSize};
@@ -66,5 +67,7 @@ namespace sc ::physics {
     }
 
 } // namespace sc::physics
+
+std::ostream& operator<<(std::ostream&, const sc::physics::spatial_grid&);
 
 #endif // SC_PHYSICS_SPATIAL_GRID_HH

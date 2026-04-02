@@ -105,7 +105,7 @@ namespace sc {
 
 std::ostream& operator<<(std::ostream& out, const sc::entity_registry& registry)
 {
-    for (std::size_t i{0UZ}; i < registry.count(); ++i) {
+    for (sc::core::index_t i{0U}; i < registry.count(); ++i) {
         out << std::format(
                 "Entity {} (Sprite Index: {})\n\tpos ({:7.2f}, {:7.2f}, "
                 "{:7.2f})\n\tvec <{:7.2f}, {:7.2f}, {:7.2f}>\n\n",

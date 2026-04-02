@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include <cstddef>
+#include <ostream>
 
 #include "core/core.hh"
 
@@ -37,7 +38,11 @@ namespace sc::core {
         // Operators
 
         [[nodiscard]] explicit constexpr operator bool() const noexcept;
+
         [[nodiscard]] constexpr auto operator->() const noexcept
+                -> const T* __restrict;
+
+        [[nodiscard]] constexpr auto operator*() const noexcept
                 -> const T* __restrict;
 
         // Accessors
@@ -102,6 +107,13 @@ namespace sc::core {
         return buffer_;
     }
 
+    template<mappable T>
+    [[nodiscard]] constexpr auto mapped_view<T>::operator*() const noexcept
+            -> const T* __restrict
+    {
+        return buffer_;
+    }
+
     // Accessors
 
     template<mappable T>
@@ -118,5 +130,13 @@ namespace sc::core {
     }
 
 } // namespace sc::core
+
+template<sc::core::mappable T>
+std::ostream& operator<<(std::ostream& out, const sc::core::mapped_view<T>& map)
+{
+    out << std::format("Mapped View: {} B | ", map.size()) << *map.data();
+
+    return out;
+}
 
 #endif // SC_CORE_MAPPED_VIEW_HH

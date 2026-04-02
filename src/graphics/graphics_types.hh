@@ -1,6 +1,12 @@
 #ifndef SC_GRAPHICS_VISUAL_TYPES_HH
 #define SC_GRAPHICS_VISUAL_TYPES_HH
 
+#ifndef __METAL_VERSION__
+
+#include <ostream>
+
+#endif //__METAL_VERSION__
+
 #include "core/core.hh"
 
 namespace sc::graphics {
@@ -32,5 +38,11 @@ namespace sc::graphics {
     };
 
 } // namespace sc::graphics
+
+#ifndef __METAL_VERSION__
+
+std::ostream& operator<<(std::ostream&, const sc::graphics::palette&);
+
+#endif // __METAL_VERSION__
 
 #endif // SC_GRAPHICS_VISUAL_TYPES_HH

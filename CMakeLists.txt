@@ -17,8 +17,10 @@ find_library(QUARTZ_LIB QuartzCore REQUIRED)
 add_executable(test-sprite-engine
         src/assets/asset_constants.hh
         src/assets/atlas.hh
+        src/assets/atlas.cc
         src/assets/palette_index.hh
         src/assets/sprite.hh
+        src/assets/sprite.cc
         src/assets/sprite16_index.hh
         src/assets/sprite32_index.hh
         src/core/core.hh
@@ -27,6 +29,7 @@ add_executable(test-sprite-engine
         src/core/memory.hh
         src/graphics/display_constants.hh
         src/graphics/graphics_types.hh
+        src/graphics/graphics_types.cc
         src/graphics/metal_bridge.hh
         src/graphics/metal_bridge.cc
         src/graphics/render_constants.hh
@@ -44,6 +47,7 @@ add_executable(test-sprite-engine
         src/simulation/physics.cc
         src/simulation/physics_types.hh
         src/simulation/spatial_grid.hh
+        src/simulation/spatial_grid.cc
         src/simulation/world.hh
         src/simulation/world.cc
 )

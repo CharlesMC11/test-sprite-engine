@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <ostream>
 #include <span>
 
 #include "assets/palette_index.hh"
@@ -150,5 +151,7 @@ namespace sc::assets {
     }
 
 } // namespace sc::assets
+
+std::ostream& operator<<(std::ostream&, const sc::assets::atlas&);
 
 #endif // SC_ASSETS_ATLAS_HH

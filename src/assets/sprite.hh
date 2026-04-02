@@ -3,6 +3,8 @@
 
 #ifndef __METAL_VERSION__
 #include <cstdint>
+#include <format>
+#include <ostream>
 #endif
 
 #include "core/core.hh"
@@ -51,5 +53,42 @@ namespace sc::assets {
     static_assert(sizeof(sprite<>) == 1'040, "Sprite32 must be 1,040 B.");
 
 } // namespace sc::assets
+
+#ifndef __METAL_VERSION__
+
+std::ostream& operator<<(std::ostream&, sc::assets::sprites::metadata);
+
+template<unsigned Height, unsigned Width>
+std::ostream& operator<<(
+        std::ostream& out, const sc::assets::sprite<Height, Width>& sprite)
+{
+    out << sprite.meta;
+
+    constexpr auto c{"+ "};
+
+    for (std::size_t i{0UZ}; i < Width + 2UZ; ++i)
+        out << c;
+    out << '\n';
+
+    for (std::size_t y{0UZ}; y < Height; ++y) {
+        out << c;
+        for (std::size_t x{0UZ}; x < Width; ++x) {
+            const auto p{sprite.pixels[y * Width + x]};
+
+            out << ((p & sc::graphics::kMaskAlpha) > 0x00U
+                            ? std::format("{:X} ",
+                                      p & sc::graphics::kMaskPaletteIndex)
+                            : "  ");
+        }
+        out << c << '\n';
+    }
+    for (std::size_t i{0U}; i < Width + 2UZ; ++i)
+        out << c;
+    out << '\n';
+
+    return out;
+}
+
+#endif //__METAL_VERSION__
 
 #endif // SC_ASSETS_SPRITE_HH
