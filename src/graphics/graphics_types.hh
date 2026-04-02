@@ -19,9 +19,9 @@ namespace sc::graphics {
      * Distribution of color channels across a 16-bit packed integer.
      */
     enum class color_encoding : uint8_t {
-        DEFAULT, // R5G6B5
-        WARM, // R6G5B5
-        COOL // R5G5B6
+        neutral, // R5G6B5
+        warm, // R6G5B5
+        cool // R5G5B6
     };
 
     /**

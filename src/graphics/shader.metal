@@ -26,17 +26,17 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
 {
     float r{1.0f}, g{1.0f}, b{1.0f};
     switch (encoding) {
-    case sc::graphics::color_encoding::DEFAULT:
+    case neutral:
         r = static_cast<float>((packed_color >> 11) & 0x1FU) / 31.0f;
         g = static_cast<float>((packed_color >> 5) & 0x3FU) / 63.0f;
         b = static_cast<float>(packed_color & 0x1F) / 31.0f;
         break;
-    case sc::graphics::color_encoding::WARM:
+    case warm:
         r = static_cast<float>((packed_color >> 10) & 0x3FU) / 63.0f;
         g = static_cast<float>((packed_color >> 5) & 0x1FU) / 31.0f;
         b = static_cast<float>(packed_color & 0x1F) / 31.0f;
         break;
-    case sc::graphics::color_encoding::COOL:
+    case cool:
         r = static_cast<float>((packed_color >> 11) & 0x1FU) / 31.0f;
         g = static_cast<float>((packed_color >> 5) & 0x1FU) / 31.0f;
         b = static_cast<float>(packed_color & 0x3F) / 63.0f;
