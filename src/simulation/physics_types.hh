@@ -31,11 +31,11 @@ namespace sc::physics {
 
         [[nodiscard]] static constexpr aabb from_registry(
                 const entity_registry& registry, core::index_t i,
-                const assets::sprites::metadata& meta) noexcept;
+                assets::sprites::metadata meta) noexcept;
 
         [[nodiscard]] explicit constexpr aabb(float pos_x, float pos_y,
                 float pos_z, float vel_x, float vel_y, float vel_z,
-                const geometry::bbox<float>& bbox) noexcept;
+                geometry::bbox<float> bbox) noexcept;
 
         // Attributes
 
@@ -66,7 +66,7 @@ namespace sc::physics {
 
     [[nodiscard]] constexpr aabb aabb::from_registry(
             const entity_registry& registry, const core::index_t i,
-            const assets::sprites::metadata& meta) noexcept
+            const assets::sprites::metadata meta) noexcept
     {
         return aabb{registry.x_pos_ptr()[i], registry.y_pos_ptr()[i],
                 registry.z_pos_ptr()[i], registry.x_vel_ptr()[i],
@@ -76,8 +76,7 @@ namespace sc::physics {
 
     [[nodiscard]] constexpr aabb::aabb(const float pos_x, const float pos_y,
             const float pos_z, const float vel_x, const float vel_y,
-            const float vel_z, const geometry::bbox<float>& bbox) noexcept
-        : left{pos_x + bbox.min_u}, right{pos_x + bbox.max_u},
+            const float vel_z, const geometry::bbox<float> bbox) noexcept
           front{pos_y + kYCollisionDistance}, back{pos_y - kYCollisionDistance},
           top{pos_z + bbox.height()}, bottom{pos_z}, vel_x{vel_x}, vel_y{vel_y},
           vel_z{vel_z}, bbox{bbox}

@@ -80,7 +80,7 @@ namespace sc::physics {
                             continue;
                         }
 
-                        const assets::sprites::metadata& b_meta{
+                        const assets::sprites::metadata b_meta{
                                 atlas.sprite32_span()
                                         [registry.sprite_index_ptr()[b_idx]]
                                                 .meta};
@@ -214,7 +214,7 @@ namespace sc::physics {
     }
 
     static void apply_slide(entity_registry& registry, const core::index_t i,
-            const sweep_result& hit, const float dt)
+            const sweep_result hit, const float dt)
     {
         const float remain_t{1.0f - hit.time};
 
