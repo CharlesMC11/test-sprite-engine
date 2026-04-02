@@ -24,7 +24,11 @@ using namespace metal;
 inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
         const sc::graphics::color_encoding encoding)
 {
-    float r{1.0f}, g{1.0f}, b{1.0f};
+    float r{1.0f};
+    float g{1.0f};
+    float b{1.0f};
+
+    using enum sc::graphics::color_encoding;
     switch (encoding) {
     case neutral:
         r = static_cast<float>((packed_color >> 11) & 0x1FU) / 31.0f;
