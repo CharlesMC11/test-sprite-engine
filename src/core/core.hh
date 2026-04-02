@@ -44,7 +44,7 @@ namespace sc::core {
             std::is_standard_layout_v<T> && !std::is_polymorphic_v<T>;
 
     template<typename T>
-    constexpr bool enable_bitwise_ops_v = false;
+    constexpr bool enable_bitwise_ops_v{false};
 
     template<typename T>
     concept bitwise_enum =
