@@ -25,15 +25,15 @@ namespace sc {
 
         bridge_.set_atlas_buffer(atlas_);
 
-        constexpr auto id{assets::sprite32_index::LANCIS};
-        const assets::sprites::metadata& sprite{atlas_->operator[](id).meta};
-        registry_.spawn((display::kWidth - 32U - sprite.origin_u) * 0.5f,
-                (display::kHeight - 32U - sprite.origin_v) * 0.5f, 0.0f, id);
+        constexpr auto idx{assets::sprite32_index::LANCIS};
+        const assets::sprites::metadata sprite{atlas_->operator[](idx).meta};
+        registry_.spawn(idx, (display::kWidth - 32U - sprite.origin_u) * 0.5f,
+                (display::kHeight - 32U - sprite.origin_v) * 0.5f, 0.0f);
 
-        registry_.spawn(0.0f, 0.0f, 0.0f, assets::sprite32_index::MYARRA);
+        registry_.spawn(assets::sprite32_index::MYARRA, 0.0f, 0.0f, 0.0f);
 
-        registry_.spawn(display::kWidth * 0.75f, display::kHeight * 0.75f,
-                26.0f, assets::sprite32_index::HEART_OW_F);
+        registry_.spawn(assets::sprite32_index::HEART_OW_F,
+                display::kWidth * 0.75f, display::kHeight * 0.75f, 25.0f);
     }
 
     void world::update(const input::mask input, const MTL::Drawable* drawable)
