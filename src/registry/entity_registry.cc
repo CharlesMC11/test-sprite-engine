@@ -82,18 +82,6 @@ namespace sc {
         }
     }
 
-    void entity_registry::print() const
-    {
-        for (std::size_t i{0UZ}; i < count(); ++i) {
-            std::cout << std::format(
-                    "Entity {} (Sprite Index: {})\n\tpos ({:7.2f}, {:7.2f}, "
-                    "{:7.2f})\n\tvec <{:7.2f}, {:7.2f}, {:7.2f}>\n\n",
-                    i, static_cast<core::index_t>(sprite32_index_ptr()[i]),
-                    pos_x_ptr()[i], pos_y_ptr()[i], pos_z_ptr()[i],
-                    vel_x_ptr()[i], vel_y_ptr()[i], vel_z_ptr()[i]);
-        }
-    }
-
     // Mutators
 
     void entity_registry::reserve(const std::size_t n)
@@ -126,3 +114,18 @@ namespace sc {
     }
 
 } // namespace sc
+
+std::ostream& operator<<(std::ostream& out, const sc::entity_registry& registry)
+{
+    for (std::size_t i{0UZ}; i < registry.count(); ++i) {
+        out << std::format(
+                "Entity {} (Sprite Index: {})\n\tpos ({:7.2f}, {:7.2f}, "
+                "{:7.2f})\n\tvec <{:7.2f}, {:7.2f}, {:7.2f}>\n\n",
+                i, registry.sprite_index_ptr()[i], registry.x_pos_ptr()[i],
+                registry.y_pos_ptr()[i], registry.z_pos_ptr()[i],
+                registry.x_vel_ptr()[i], registry.y_vel_ptr()[i],
+                registry.z_vel_ptr()[i]);
+    }
+
+    return out;
+}

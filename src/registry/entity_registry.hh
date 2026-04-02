@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <ostream>
 
 #include "assets/sprite32_index.hh"
 #include "core/core.hh"
@@ -106,11 +107,6 @@ namespace sc {
          * Sort the draw order based on screen coordinates.
          */
         void sort_draw() noexcept;
-
-        /**
-         * Print the entries in the registry.
-         */
-        void print() const;
 
         // Mutators
 
@@ -262,6 +258,10 @@ namespace sc {
 
 } // namespace sc
 
+std::ostream& operator<<(
+        std::ostream& out, const sc::entity_registry& registry);
+
+#undef SC_REGISTER_SWAPPABLE_ACCESSOR
 #undef SC_REGISTER_INDEX_CHANNEL_ACCESSOR
 #undef SC_REGISTER_XFORM_CHANNEL_ACCESSOR
 #undef SC_REGISTER_ACCESSOR
