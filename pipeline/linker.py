@@ -5,10 +5,10 @@ Assembles multiple sprite files into a single memory–mappable atlas binary.
 
 The binary layout contains:
 - Header (16 bytes):
-    - Magic (8 bytes): "SC AT v3" (spaces added).
-    - Palette count (4 bytes): uint32 sprite count.
-    - Sprite count (4 bytes): uint32 sprite count.
-- Data (n bytes): Contiguous array of sprite structures.
+    - Magic (8 bytes): "SC AT v3" (spaces added)
+    - Palette count (4 bytes): uint32 sprite count
+    - Sprite count (4 bytes): uint32 sprite count
+- Data (n bytes): Contiguous array of sprite structures
 """
 
 import struct
@@ -19,6 +19,7 @@ from typing import Final
 
 from pipeline import (
     ATLAS_METADATA_LAYOUT,
+    PALETTE_INDEX_OFFSET,
     SPRITE_DIMENSIONS_SIZE_BYTES,
     SPRITE_MINIMUM_FILE_SIZE_BYTES,
     SPRITE_PALETTE_SIZE_BYTES,
@@ -33,7 +34,7 @@ class AtlasLinker:
 
     # Type annotations
 
-    _palette_blobs: list[bytearray]
+    _palette_blobs: list[bytes]
     _palette_names: list[str]
 
     _sprite8_blobs: list[bytearray]
@@ -121,7 +122,9 @@ class AtlasLinker:
                 self._palette_blobs.append(palette_blob)
                 self._palette_names.append(f"{path.stem}_palette")
 
-            sprite_blob[13] = self._palette_blobs.index(palette_blob)
+            sprite_blob[PALETTE_INDEX_OFFSET] = self._palette_blobs.index(
+                palette_blob
+            )
 
             if height == 8 and width == 8:
                 blob_dst = self._sprite8_blobs

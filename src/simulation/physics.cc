@@ -53,25 +53,25 @@ namespace sc::physics {
 
             const auto a_aabb{aabb::from_registry(registry, a_idx, a_meta)};
 
-            const auto a_sweep_left{static_cast<int>(
-                    std::min(a_aabb.left, a_aabb.left + a_dx))};
-            const auto a_sweep_right{static_cast<int>(
-                    std::max(a_aabb.right, a_aabb.right + a_dx))};
+            const auto a_sweep_west{static_cast<int>(
+                    std::min(a_aabb.west, a_aabb.west + a_dx))};
+            const auto a_sweep_east{static_cast<int>(
+                    std::max(a_aabb.east, a_aabb.east + a_dx))};
 
-            const auto a_sweep_back{static_cast<int>(
-                    std::min(a_aabb.back, a_aabb.back + a_dy))};
-            const auto a_sweep_front{static_cast<int>(
-                    std::max(a_aabb.front, a_aabb.front + a_dy))};
+            const auto a_sweep_north{static_cast<int>(
+                    std::min(a_aabb.north, a_aabb.north + a_dy))};
+            const auto a_sweep_south{static_cast<int>(
+                    std::max(a_aabb.south, a_aabb.south + a_dy))};
 
             const auto a_x_start{static_cast<core::index_t>(
-                    std::max(0, a_sweep_left / kCellSize - 1))};
+                    std::max(0, a_sweep_west / kCellSize - 1))};
             const auto a_x_end{static_cast<core::index_t>(
-                    std::min(kColCount - 1, a_sweep_right / kCellSize + 1))};
+                    std::min(kColCount - 1, a_sweep_east / kCellSize + 1))};
 
             const auto a_y_start{static_cast<core::index_t>(
-                    std::max(0, a_sweep_back / kCellSize - 1))};
+                    std::max(0, a_sweep_north / kCellSize - 1))};
             const auto a_y_end{static_cast<core::index_t>(
-                    std::min(kRowCount - 1, a_sweep_front / kCellSize + 1))};
+                    std::min(kRowCount - 1, a_sweep_south / kCellSize + 1))};
 
             sweep_result collision;
 
@@ -128,7 +128,7 @@ namespace sc::physics {
 
         float x_entry_time, x_exit_time;
         if (std::abs(x_vel) < core::kEpsilon) {
-            if (a.right < b.left || a.left > b.right)
+            if (a.east < b.west || a.west > b.east)
                 return result;
 
             x_entry_time = -core::kInfinity;
@@ -136,9 +136,9 @@ namespace sc::physics {
         }
         else {
             const float x_entry_pos{
-                    x_vel > 0.0f ? b.left - a.right : b.right - a.left};
+                    x_vel > 0.0f ? b.west - a.east : b.east - a.west};
             const float x_exit_pos{
-                    x_vel > 0.0f ? b.right - a.left : b.left - a.right};
+                    x_vel > 0.0f ? b.east - a.west : b.west - a.east};
 
             x_entry_time = x_entry_pos / x_vel;
             x_exit_time = x_exit_pos / x_vel;
@@ -146,7 +146,7 @@ namespace sc::physics {
 
         float y_entry_time, y_exit_time;
         if (std::abs(y_vel) < core::kEpsilon) {
-            if (a.front < b.back || a.back > b.front)
+            if (a.south < b.north || a.north > b.south)
                 return result;
 
             y_entry_time = -core::kInfinity;
@@ -154,9 +154,9 @@ namespace sc::physics {
         }
         else {
             const float y_entry_pos{
-                    y_vel > 0.0f ? b.back - a.front : b.front - a.back};
+                    y_vel > 0.0f ? b.north - a.south : b.south - a.north};
             const float y_exit_pos{
-                    y_vel > 0.0f ? b.front - a.back : b.back - a.front};
+                    y_vel > 0.0f ? b.south - a.north : b.north - a.south};
 
             y_entry_time = y_entry_pos / y_vel;
             y_exit_time = y_exit_pos / y_vel;
@@ -164,7 +164,7 @@ namespace sc::physics {
 
         float z_entry_time, z_exit_time;
         if (std::abs(z_vel) < core::kEpsilon) {
-            if (a.bottom > b.top || a.top < b.bottom)
+            if (a.nadir > b.zenith || a.zenith < b.nadir)
                 return result;
 
             z_entry_time = -core::kInfinity;
@@ -172,9 +172,9 @@ namespace sc::physics {
         }
         else {
             const float z_entry_pos{
-                    z_vel > 0.0f ? b.bottom - a.top : b.top - a.bottom};
+                    z_vel > 0.0f ? b.nadir - a.zenith : b.zenith - a.nadir};
             const float z_exit_pos{
-                    z_vel > 0.0f ? b.top - a.bottom : b.bottom - a.top};
+                    z_vel > 0.0f ? b.zenith - a.nadir : b.nadir - a.zenith};
 
             z_entry_time = z_entry_pos / z_vel;
             z_exit_time = z_exit_pos / z_vel;
@@ -213,7 +213,7 @@ namespace sc::physics {
             const core::index_t i, const sweep_result hit, const float dx,
             const float dy, const float dz)
     {
-        const float padded_t{std::max(0.0f, hit.time - 0.1f)};
+        const float padded_t{std::max(0.0f, hit.time - 0.01f)};
 
         registry.new_x_pos_ptr()[i] = registry.x_pos_ptr()[i] + dx * padded_t;
         registry.new_y_pos_ptr()[i] = registry.y_pos_ptr()[i] + dy * padded_t;

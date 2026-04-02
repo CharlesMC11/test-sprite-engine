@@ -24,8 +24,8 @@ namespace sc {
 
         constexpr auto idx{assets::sprite32_index::LANCIS};
         const assets::sprites::metadata sprite{atlas_->operator[](idx).meta};
-        registry_.spawn(idx, (display::kWidth - 32U - sprite.origin_u) * 0.5f,
-                (display::kHeight - 32U - sprite.origin_v) * 0.5f, 0.0f);
+        registry_.spawn(idx, (display::kWidth - 32U - sprite.u_anchor) * 0.5f,
+                (display::kHeight - 32U - sprite.v_anchor) * 0.5f, 0.0f);
 
         registry_.spawn(assets::sprite32_index::MYARRA, 0.0f, 0.0f, 0.0f);
 

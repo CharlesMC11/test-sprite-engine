@@ -24,7 +24,7 @@ def unpack_16bit_to_color(
 
     packed_color = np.frombuffer(raw_buffer, dtype=np.uint16)
 
-    if encoding == ColorEncoding.DEFAULT:
+    if encoding == ColorEncoding.NEUTRAL:
         r = ((packed_color >> 11) & 0x1F) * SCALE_5BIT_TO_8
         g = ((packed_color >> 5) & 0x3F) * SCALE_6BIT_TO_8
         b = (packed_color & 0x1F) * SCALE_5BIT_TO_8

@@ -33,26 +33,26 @@ namespace sc::physics {
                 const entity_registry& registry, core::index_t i,
                 assets::sprites::metadata meta) noexcept;
 
-        [[nodiscard]] explicit constexpr aabb(float pos_x, float pos_y,
-                float pos_z, float vel_x, float vel_y, float vel_z,
-                geometry::bbox<float> bbox) noexcept;
+        [[nodiscard]] explicit constexpr aabb(float x_pos, float y_pos,
+                float z_pos, geometry::bbox<float> bbox, float depth,
+                float x_vel, float y_vel, float z_vel) noexcept;
 
         // Attributes
 
-        float left{0.0f};
-        float right{0.0f};
+        geometry::bbox<float> bbox;
 
-        float front{0.0f};
-        float back{0.0f};
+        float west{0.0f};
+        float east{0.0f};
 
-        float top{0.0f};
-        float bottom{0.f};
+        float north{0.0f};
+        float south{0.0f};
+
+        float nadir{0.f};
+        float zenith{0.0f};
 
         float x_vel{0.0f};
         float y_vel{0.0f};
         float z_vel{0.0f};
-
-        geometry::bbox<float> bbox;
     };
 
     struct alignas(core::kNeonAlignment) sweep_result final {
@@ -69,18 +69,20 @@ namespace sc::physics {
             const assets::sprites::metadata meta) noexcept
     {
         return aabb{registry.x_pos_ptr()[i], registry.y_pos_ptr()[i],
-                registry.z_pos_ptr()[i], registry.x_vel_ptr()[i],
-                registry.y_vel_ptr()[i], registry.z_vel_ptr()[i],
-                static_cast<geometry::bbox<float>>(meta.bbox)};
+                registry.z_pos_ptr()[i],
+                static_cast<geometry::bbox<float>>(meta.bbox),
+                static_cast<float>(meta.depth) / 2.0f, registry.x_vel_ptr()[i],
+                registry.y_vel_ptr()[i], registry.z_vel_ptr()[i]};
     }
 
-    [[nodiscard]] constexpr aabb::aabb(const float pos_x, const float pos_y,
-            const float pos_z, const float vel_x, const float vel_y,
-            const float vel_z, const geometry::bbox<float> bbox) noexcept
-        : left{pos_x + bbox.min_u}, right{pos_x + bbox.max_u + 1.0f},
-          front{pos_y + kYCollisionDistance}, back{pos_y - kYCollisionDistance},
-          top{pos_z + bbox.height()}, bottom{pos_z}, x_vel{vel_x}, y_vel{vel_y},
-          z_vel{vel_z}, bbox{bbox}
+    [[nodiscard]] constexpr aabb::aabb(const float x_pos, const float y_pos,
+            const float z_pos, const geometry::bbox<float> bbox,
+            const float depth, const float x_vel, const float y_vel,
+            const float z_vel) noexcept
+        : bbox{bbox}, west{x_pos + bbox.u_min}, east{x_pos + bbox.u_max},
+          north{y_pos - depth}, south{y_pos + depth}, nadir{z_pos},
+          zenith{z_pos + bbox.height()}, x_vel{x_vel}, y_vel{y_vel},
+          z_vel{z_vel}
     {
     }
 

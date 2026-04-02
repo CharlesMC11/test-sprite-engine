@@ -21,24 +21,31 @@ SPRITE_MINIMUM_FILE_SIZE_BYTES: Final[int] = (
 )
 """The minimum file size of a sprite file in bytes."""
 
-SPRITE_METADATA_LAYOUT: Final[str] = "<BBBBffBBBB"
+SPRITE_METADATA_LAYOUT: Final[str] = "<BBBBffBBBs"
 """The layout of a 16-byte sprite metadata. 
 
-- min u, min v, max u, max v (4)
-- origin u, origin v (8)
-- color encoding (1)
-- palette index (1)
-- physics type (1)
-- padding (1)
+- bbox (4 bytes)
+    - u_min, u_max (2 bytes)
+    - v_min, v_max (2 bytes)
+- anchor (8 bytes)
+    - u_anchor (4 bytes)
+    - v_anchor (4 bytes)
+- depth (1 byte)
+- physics_type (1 byte)
+- color_encoding (1 byte)
+- palette_index (1 byte)
 """
+
+PALETTE_INDEX_OFFSET: Final[int] = 15
+"""Byte offset of `palette_index` in the sprite metadata."""
 
 ATLAS_METADATA_LAYOUT: Final[str] = "<8sLHH"
 """The layout of a 16-byte atlas metadata.
 
-- magic (8)
-- sprite16 count (4)
-- sprite32 count (2)
-- palette count (2)
+- magic (8 bytes)
+- sprite16_count (4 bytes)
+- sprite32_count (2 bytes)
+- palette_count (2 bytes)
 """
 
 
@@ -46,7 +53,7 @@ class ResourceLayoutError(Exception): ...
 
 
 class ColorEncoding(IntEnum):
-    DEFAULT = 0  # R5G6B5
+    NEUTRAL = 0  # R5G6B5
     WARM = enum.auto()  # R6G5B5
     COOL = enum.auto()  # R5G5B6
 
