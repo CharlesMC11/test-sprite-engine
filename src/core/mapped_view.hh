@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <ostream>
+#include <stdexcept>
 
 #include "core/core.hh"
 
@@ -24,8 +25,7 @@ namespace sc::core {
     public:
         // Constructors
 
-        [[nodiscard]] explicit constexpr mapped_view(
-                const char path[]) noexcept;
+        [[nodiscard]] explicit constexpr mapped_view(const char path[]);
 
         mapped_view(const mapped_view&) = delete;
         mapped_view& operator=(const mapped_view&) = delete;
@@ -61,16 +61,18 @@ namespace sc::core {
     // Constructors
 
     template<mappable T>
-    constexpr mapped_view<T>::mapped_view(const char path[]) noexcept
+    constexpr mapped_view<T>::mapped_view(const char path[])
     {
+        const std::runtime_error no_read{"Could not read the atlas."};
+
         const int fd{open(path, O_RDONLY)};
         if (fd < 0) [[unlikely]]
-            return;
+            throw no_read;
 
         struct stat st;
         if (fstat(fd, &st) < 0) [[unlikely]] {
             close(fd);
-            return;
+            throw no_read;
         }
         size_ = static_cast<std::size_t>(st.st_size);
 
@@ -78,7 +80,7 @@ namespace sc::core {
                 mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd, 0UZ);
         if (result == MAP_FAILED) [[unlikely]] {
             close(fd);
-            return;
+            throw std::runtime_error{"Could not map the atlas."};
         }
 
         buffer_ = static_cast<const T*>(result);

@@ -1,6 +1,6 @@
 #include "world.hh"
 
-#include <iostream>
+#include <stdexcept>
 
 #include "assets/asset_constants.hh"
 #include "graphics/display_constants.hh"
@@ -14,14 +14,11 @@ namespace sc {
           registry_{entity_registry{device}},
           atlas_{core::mapped_view<assets::atlas>{assets::kAtlas}}
     {
-        if (!(atlas_ && atlas_.data())) {
-            std::cerr << "FATAL: Could not load the atlas file!\n";
-            throw;
-        }
-        if (!assets::atlas::validate(atlas_.data(), atlas_.size())) {
-            std::cerr << "FATAL: Atlas has an invalid header or size!\n";
-            throw;
-        }
+        if (!(atlas_ && atlas_.data()))
+            throw std::runtime_error{"Could not load the atlas."};
+
+        if (!assets::atlas::validate(atlas_.data(), atlas_.size()))
+            throw std::runtime_error{"Atlas has an invalid structure."};
 
         bridge_.set_atlas_buffer(atlas_);
 
