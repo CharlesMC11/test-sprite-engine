@@ -14,6 +14,7 @@
 #define SC_CONSTEXPR constexpr
 #define SC_SIZE_T std::size_t
 
+#include <bit>
 #include <cstdint>
 #include <numeric>
 #include <type_traits>
@@ -115,6 +116,9 @@ constexpr T& operator^=(T& lhs, const T rhs) noexcept
 #define SC_ENABLE_ENUM_BITWISE_OPS(EnumType)                                   \
     template<>                                                                 \
     inline constexpr bool sc::core::enable_bitwise_ops_v<EnumType>{true};
+
+static_assert(std::has_single_bit(sc::core::kNeonAlignment));
+static_assert(std::has_single_bit(sc::core::kCacheAlignment));
 
 #endif // __METAL_VERSION__
 
