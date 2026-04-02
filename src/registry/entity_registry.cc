@@ -18,45 +18,27 @@ namespace sc {
 
         const float32x4_t v_dt{vdupq_n_f32(dt)};
         for (std::size_t i{0UZ}; i < vectorized_lim; i += 4UZ) {
-            const float32x4_t v_pos_x{vld1q_f32(&pos_x_ptr()[i])};
-            const float32x4_t v_pos_y{vld1q_f32(&pos_y_ptr()[i])};
-            const float32x4_t v_pos_z{vld1q_f32(&pos_z_ptr()[i])};
+            const float32x4_t v_pos_x{vld1q_f32(&x_pos_ptr()[i])};
+            const float32x4_t v_pos_y{vld1q_f32(&y_pos_ptr()[i])};
+            const float32x4_t v_pos_z{vld1q_f32(&z_pos_ptr()[i])};
 
-            const float32x4_t v_vel_x{vld1q_f32(&vel_x_ptr()[i])};
-            const float32x4_t v_vel_y{vld1q_f32(&vel_y_ptr()[i])};
-            const float32x4_t v_vel_z{vld1q_f32(&vel_z_ptr()[i])};
+            const float32x4_t v_vel_x{vld1q_f32(&x_vel_ptr()[i])};
+            const float32x4_t v_vel_y{vld1q_f32(&y_vel_ptr()[i])};
+            const float32x4_t v_vel_z{vld1q_f32(&z_vel_ptr()[i])};
 
             const float32x4_t v_new_x{vfmaq_f32(v_pos_x, v_vel_x, v_dt)};
             const float32x4_t v_new_y{vfmaq_f32(v_pos_y, v_vel_y, v_dt)};
             const float32x4_t v_new_z{vfmaq_f32(v_pos_z, v_vel_z, v_dt)};
 
-            vst1q_f32(&new_x_ptr()[i], v_new_x);
-            vst1q_f32(&new_y_ptr()[i], v_new_y);
-            vst1q_f32(&new_z_ptr()[i], v_new_z);
+            vst1q_f32(&new_x_pos_ptr()[i], v_new_x);
+            vst1q_f32(&new_y_pos_ptr()[i], v_new_y);
+            vst1q_f32(&new_z_pos_ptr()[i], v_new_z);
         }
 
         for (std::size_t i{vectorized_lim}; i < n; ++i) {
-            new_x_ptr()[i] = pos_x_ptr()[i] + vel_x_ptr()[i] * dt;
-            new_y_ptr()[i] = pos_y_ptr()[i] + vel_y_ptr()[i] * dt;
-            new_z_ptr()[i] = pos_z_ptr()[i] + vel_z_ptr()[i] * dt;
-        }
-    }
-
-    void entity_registry::commit() noexcept
-    {
-        const std::size_t n{count()};
-        const std::size_t vectorized_lim{n - n % 4UZ};
-
-        for (std::size_t i{0UZ}; i < vectorized_lim; i += 4UZ) {
-            vst1q_f32(&pos_x_ptr()[i], vld1q_f32(&new_x_ptr()[i]));
-            vst1q_f32(&pos_y_ptr()[i], vld1q_f32(&new_y_ptr()[i]));
-            vst1q_f32(&pos_z_ptr()[i], vld1q_f32(&new_z_ptr()[i]));
-        }
-
-        for (std::size_t i{vectorized_lim}; i < n; ++i) {
-            pos_x_ptr()[i] = new_x_ptr()[i];
-            pos_y_ptr()[i] = new_y_ptr()[i];
-            pos_z_ptr()[i] = new_z_ptr()[i];
+            new_x_pos_ptr()[i] = x_pos_ptr()[i] + x_vel_ptr()[i] * dt;
+            new_y_pos_ptr()[i] = y_pos_ptr()[i] + y_vel_ptr()[i] * dt;
+            new_z_pos_ptr()[i] = z_pos_ptr()[i] + z_vel_ptr()[i] * dt;
         }
     }
 
@@ -65,8 +47,8 @@ namespace sc {
         if (draw_order_needs_sort) {
             std::span tmp{draw_order_ptr(), count()};
 
-            const float* __restrict y_ptr{pos_y_ptr()};
-            const float* __restrict z_ptr{pos_z_ptr()};
+            const float* __restrict y_ptr{y_pos_ptr()};
+            const float* __restrict z_ptr{z_pos_ptr()};
 
             std::ranges::sort(tmp.begin(), tmp.end(),
                     [y_ptr, z_ptr](const core::index_t a,
@@ -90,27 +72,33 @@ namespace sc {
         index_buffer_.grow(device_, n);
     }
 
-    void entity_registry::spawn(const float start_x, const float start_y,
-            const float start_z, const assets::sprite32_index i)
+    void entity_registry::spawn(
+            const core::index_t i, const float x, const float y, const float z)
     {
         if (xform_buffer_.capacity <= xform_buffer_.count) [[unlikely]]
             reserve(std::max(static_cast<std::size_t>(core::kCacheAlignment),
                     capacity() * 2UZ));
 
-        const auto idx{static_cast<core::index_t>(count())};
+        const std::size_t idx{count()};
 
-        pos_x_ptr()[idx] = new_x_ptr()[idx] = start_x;
-        pos_y_ptr()[idx] = new_y_ptr()[idx] = start_y;
-        pos_z_ptr()[idx] = new_z_ptr()[idx] = start_z;
+        x_pos_ptr()[idx] = new_x_pos_ptr()[idx] = x;
+        y_pos_ptr()[idx] = new_y_pos_ptr()[idx] = y;
+        z_pos_ptr()[idx] = new_z_pos_ptr()[idx] = z;
 
-        vel_x_ptr()[idx] = vel_y_ptr()[idx] = vel_z_ptr()[idx] = 0.0f;
+        x_vel_ptr()[idx] = y_vel_ptr()[idx] = z_vel_ptr()[idx] = 0.0f;
 
-        sprite32_index_ptr()[idx] = static_cast<core::index_t>(i);
-        draw_order_ptr()[idx] = idx;
+        sprite_index_ptr()[idx] = i;
+        draw_order_ptr()[idx] = static_cast<core::index_t>(idx);
 
         ++xform_buffer_.count;
         ++index_buffer_.count;
         draw_order_needs_sort = true;
+    }
+
+    void entity_registry::spawn(const assets::sprite32_index i, const float x,
+            const float y, const float z)
+    {
+        spawn(static_cast<core::index_t>(i), x, y, z);
     }
 
 } // namespace sc

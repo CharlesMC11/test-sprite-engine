@@ -22,9 +22,8 @@ namespace sc::physics {
             const float dt)
     {
         for (core::index_t a_idx{0U}; a_idx < registry.count(); ++a_idx) {
-            const assets::sprites::metadata& a_meta{
-                    atlas.sprite32_span()[registry.sprite32_index_ptr()[a_idx]]
             const assets::sprites::metadata a_meta{
+                    atlas.sprite32_span()[registry.sprite_index_ptr()[a_idx]]
                             .meta};
 
             if (!core::any(
