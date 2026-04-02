@@ -79,6 +79,10 @@ namespace sc::mem {
         NS::SharedPtr<MTL::Buffer> buffer{nullptr};
         std::size_t count{0UZ};
         std::size_t capacity{0UZ};
+
+    private:
+        [[nodiscard]] constexpr auto data() const noexcept
+                -> std::byte* __restrict;
     };
 
     // Operators
@@ -90,8 +94,7 @@ namespace sc::mem {
         if (!buffer) [[unlikely]]
             return nullptr;
 
-        auto* base{static_cast<std::byte*>(buffer->contents())};
-        return reinterpret_cast<T*>(base + subarray_offset(i));
+        return reinterpret_cast<T*>(data() + subarray_offset(i));
     }
 
     // Mutators
@@ -110,7 +113,7 @@ namespace sc::mem {
                 new_total_bytes, MTL::ResourceStorageModeShared))};
 
         if (buffer) [[likely]] {
-            const auto* src{static_cast<const std::byte*>(buffer->contents())};
+            const auto* src{data()};
             auto* dst{static_cast<std::byte*>(new_buffer->contents())};
 
             for (std::size_t i{0UZ}; i < N; ++i) {
@@ -130,6 +133,15 @@ namespace sc::mem {
             const std::size_t i) const noexcept -> std::size_t
     {
         return sizeof(T) * capacity * i;
+    }
+
+    // Private helpers
+
+    template<typename T, std::size_t N>
+    [[nodiscard]] constexpr auto channel_pool<T, N>::data() const noexcept
+            -> std::byte* __restrict
+    {
+        return static_cast<std::byte*>(buffer->contents());
     }
 
 } // namespace sc::mem
