@@ -37,7 +37,7 @@ namespace sc ::physics {
         core::index_t* __restrict next_ptr{registry.next_in_cell_ptr()};
         for (std::size_t i{0UZ}; i < registry.count(); ++i) {
             const core::index_t cell_idx{
-                    hash(registry.pos_x_ptr()[i], registry.pos_y_ptr()[i])};
+                    hash(registry.x_pos_ptr()[i], registry.y_pos_ptr()[i])};
 
             next_ptr[i] = cell_heads[cell_idx];
             cell_heads[cell_idx] = static_cast<core::index_t>(i);

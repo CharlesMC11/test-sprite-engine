@@ -68,9 +68,9 @@ namespace sc::physics {
             const entity_registry& registry, const core::index_t i,
             const assets::sprites::metadata& meta) noexcept
     {
-        return aabb{registry.pos_x_ptr()[i], registry.pos_y_ptr()[i],
-                registry.pos_z_ptr()[i], registry.vel_x_ptr()[i],
-                registry.vel_y_ptr()[i], registry.vel_z_ptr()[i],
+        return aabb{registry.x_pos_ptr()[i], registry.y_pos_ptr()[i],
+                registry.z_pos_ptr()[i], registry.x_vel_ptr()[i],
+                registry.y_vel_ptr()[i], registry.z_vel_ptr()[i],
                 static_cast<geometry::bbox<float>>(meta.bbox)};
     }
 

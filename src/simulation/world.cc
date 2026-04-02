@@ -45,19 +45,20 @@ namespace sc {
         ftime_accumulator_ += frame_time;
 
         while (ftime_accumulator_ >= physics::kFixedTimestep) {
-            constexpr float speed{200.0f};
-            grid_.update(registry_);
+            registry_.x_vel_ptr()[0UZ] = registry_.y_vel_ptr()[0UZ] = 0.0f;
 
-            registry_.vel_x_ptr()[0UZ] = registry_.vel_y_ptr()[0UZ] = 0.0f;
+            constexpr float vel{200.0f};
             if (core::any(input & input::mask::UP))
-                registry_.vel_y_ptr()[0UZ] -= speed;
+                registry_.y_vel_ptr()[0UZ] -= vel;
             if (core::any(input & input::mask::DOWN))
-                registry_.vel_y_ptr()[0UZ] += speed;
+                registry_.y_vel_ptr()[0UZ] += vel;
             if (core::any(input & input::mask::LEFT))
-                registry_.vel_x_ptr()[0UZ] -= speed;
+                registry_.x_vel_ptr()[0UZ] -= vel;
             if (core::any(input & input::mask::RIGHT))
-                registry_.vel_x_ptr()[0UZ] += speed;
+                registry_.x_vel_ptr()[0UZ] += vel;
 
+            registry_.update(physics::kFixedTimestep);
+            grid_.update(registry_);
             physics::resolve_entity_collisions(
                     registry_, grid_, *atlas_.data(), physics::kFixedTimestep);
 
@@ -65,7 +66,6 @@ namespace sc {
             ftime_accumulator_ -= physics::kFixedTimestep;
         }
 
-        registry_.draw_order_needs_sort = true;
         registry_.sort_draw();
 
         bridge_.begin_frame(drawable);

@@ -96,24 +96,21 @@ namespace sc::render {
         encoder_->setBuffer(atlas_buffer_.get(), sprite32_span_offset_,
                 BUFFER_INDEX_SPRITES);
 
-        using reg = entity_registry;
+        using xform = entity_registry::xform_channel;
+        encoder_->setBuffer(registry.xform_buffer(),
+                registry.offset(xform::x_pos), BUFFER_INDEX_X_POSITIONS);
+        encoder_->setBuffer(registry.xform_buffer(),
+                registry.offset(xform::y_pos), BUFFER_INDEX_Y_POSITIONS);
+        encoder_->setBuffer(registry.xform_buffer(),
+                registry.offset(xform::z_pos), BUFFER_INDEX_Z_POSITIONS);
 
-        encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::X_POSITION),
-                BUFFER_INDEX_X_POSITIONS);
-        encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::Y_POSITION),
-                BUFFER_INDEX_Y_POSITIONS);
-        encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::Z_POSITION),
-                BUFFER_INDEX_Z_POSITIONS);
+        using index = entity_registry::index_channel;
 
         encoder_->setBuffer(registry.index_buffer(),
-                registry.offset(reg::index_channel::SPRITE32_INDEX),
+                registry.offset(index::sprite_index),
                 BUFFER_INDEX_ATLAS_INDICES);
         encoder_->setBuffer(registry.index_buffer(),
-                registry.offset(reg::index_channel::DRAW_ORDER),
-                BUFFER_INDEX_DRAW_ORDER);
+                registry.offset(index::draw_order), BUFFER_INDEX_DRAW_ORDER);
 
         const auto count{static_cast<std::uint32_t>(registry.count())};
         encoder_->setBytes(&count, sizeof(count), BUFFER_INDEX_ENTITY_COUNT);

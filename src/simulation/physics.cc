@@ -30,20 +30,23 @@ namespace sc::physics {
                         static_cast<type>(a_meta.physics_type) & type::ACTOR))
                 continue;
 
-            if (std::abs(registry.vel_x_ptr()[a_idx]) < core::kEpsilon &&
-                    std::abs(registry.vel_y_ptr()[a_idx]) < core::kEpsilon) {
-                registry.new_x_ptr()[a_idx] = registry.pos_x_ptr()[a_idx];
-                registry.new_y_ptr()[a_idx] = registry.pos_y_ptr()[a_idx];
-                registry.new_z_ptr()[a_idx] = registry.pos_z_ptr()[a_idx];
+            if (std::abs(registry.x_vel_ptr()[a_idx]) < core::kEpsilon &&
+                    std::abs(registry.y_vel_ptr()[a_idx]) < core::kEpsilon) {
+                registry.new_x_pos_ptr()[a_idx] = registry.x_pos_ptr()[a_idx];
+                registry.new_y_pos_ptr()[a_idx] = registry.y_pos_ptr()[a_idx];
+                registry.new_z_pos_ptr()[a_idx] = registry.z_pos_ptr()[a_idx];
                 continue;
             }
 
-            if (std::abs(registry.vel_y_ptr()[a_idx]) > core::kEpsilon)
+            if (std::abs(registry.y_vel_ptr()[a_idx]) > core::kEpsilon)
                 registry.draw_order_needs_sort = true;
 
-            const float a_dx{registry.vel_x_ptr()[a_idx] * dt};
-            const float a_dy{registry.vel_y_ptr()[a_idx] * dt};
-            const float a_dz{registry.vel_z_ptr()[a_idx] * dt};
+            const float a_dx{registry.new_x_pos_ptr()[a_idx] -
+                    registry.x_pos_ptr()[a_idx]};
+            const float a_dy{registry.new_y_pos_ptr()[a_idx] -
+                    registry.y_pos_ptr()[a_idx]};
+            const float a_dz{registry.new_z_pos_ptr()[a_idx] -
+                    registry.z_pos_ptr()[a_idx]};
 
             const auto a_aabb{aabb::from_registry(registry, a_idx, a_meta)};
 
@@ -79,7 +82,7 @@ namespace sc::physics {
 
                         const assets::sprites::metadata& b_meta{
                                 atlas.sprite32_span()
-                                        [registry.sprite32_index_ptr()[b_idx]]
+                                        [registry.sprite_index_ptr()[b_idx]]
                                                 .meta};
 
                         if (core::any(static_cast<type>(b_meta.physics_type) &
@@ -102,9 +105,10 @@ namespace sc::physics {
                 }
             }
 
-            apply_collision(registry, a_idx, collision, a_dx, a_dy, a_dz);
-            if (collision.time < 1.0f)
+            if (collision.time < 1.0f) {
+                apply_collision(registry, a_idx, collision, a_dx, a_dy, a_dz);
                 apply_slide(registry, a_idx, collision, dt);
+            }
         }
     }
 
@@ -204,9 +208,9 @@ namespace sc::physics {
         const float padded_t{
                 hit.time < 1.0f ? std::max(0.0f, hit.time - 0.1f) : 1.0f};
 
-        registry.new_x_ptr()[i] = registry.pos_x_ptr()[i] + dx * padded_t;
-        registry.new_y_ptr()[i] = registry.pos_y_ptr()[i] + dy * padded_t;
-        registry.new_z_ptr()[i] = registry.pos_z_ptr()[i] + dz * padded_t;
+        registry.new_x_pos_ptr()[i] = registry.x_pos_ptr()[i] + dx * padded_t;
+        registry.new_y_pos_ptr()[i] = registry.y_pos_ptr()[i] + dy * padded_t;
+        registry.new_z_pos_ptr()[i] = registry.z_pos_ptr()[i] + dz * padded_t;
     }
 
     static void apply_slide(entity_registry& registry, const core::index_t i,
@@ -214,21 +218,21 @@ namespace sc::physics {
     {
         const float remain_t{1.0f - hit.time};
 
-        const float dot{registry.vel_x_ptr()[i] * hit.normal_x +
-                registry.vel_y_ptr()[i] * hit.normal_y +
-                registry.vel_z_ptr()[i] * hit.normal_z};
+        const float dot{registry.x_vel_ptr()[i] * hit.normal_x +
+                registry.y_vel_ptr()[i] * hit.normal_y +
+                registry.z_vel_ptr()[i] * hit.normal_z};
 
-        const float slide_x{registry.vel_x_ptr()[i] - dot * hit.normal_x};
-        const float slide_y{registry.vel_y_ptr()[i] - dot * hit.normal_y};
-        const float slide_z{registry.vel_z_ptr()[i] - dot * hit.normal_z};
+        const float slide_x{registry.x_vel_ptr()[i] - dot * hit.normal_x};
+        const float slide_y{registry.y_vel_ptr()[i] - dot * hit.normal_y};
+        const float slide_z{registry.z_vel_ptr()[i] - dot * hit.normal_z};
 
-        registry.new_x_ptr()[i] += slide_x * dt * remain_t;
-        registry.new_y_ptr()[i] += slide_y * dt * remain_t;
-        registry.new_z_ptr()[i] += slide_z * dt * remain_t;
+        registry.new_x_pos_ptr()[i] += slide_x * dt * remain_t;
+        registry.new_y_pos_ptr()[i] += slide_y * dt * remain_t;
+        registry.new_z_pos_ptr()[i] += slide_z * dt * remain_t;
 
-        registry.vel_x_ptr()[i] = slide_x;
-        registry.vel_y_ptr()[i] = slide_y;
-        registry.vel_z_ptr()[i] = slide_z;
+        registry.x_vel_ptr()[i] = slide_x;
+        registry.y_vel_ptr()[i] = slide_y;
+        registry.z_vel_ptr()[i] = slide_z;
     }
 
 } // namespace sc::physics
