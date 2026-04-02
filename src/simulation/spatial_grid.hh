@@ -2,7 +2,7 @@
 #define SC_PHYSICS_SPATIAL_GRID_HH
 
 #include <algorithm>
-#include <cstdint>
+#include <cstddef>
 
 #include "graphics/display_constants.hh"
 #include "registry/entity_registry.hh"
