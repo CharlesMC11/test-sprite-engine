@@ -84,7 +84,7 @@ namespace sc {
         entity_registry& operator=(const entity_registry&) = delete;
 
         entity_registry(entity_registry&&) = delete;
-        entity_registry& operator=(entity_registry&&) noexcept = delete;
+        entity_registry& operator=(entity_registry&&) = delete;
 
         ~entity_registry() = default;
 
