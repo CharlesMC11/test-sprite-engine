@@ -21,7 +21,7 @@ SPRITE_MINIMUM_FILE_SIZE_BYTES: Final[int] = (
 )
 """The minimum file size of a sprite file in bytes."""
 
-SPRITE_METADATA_LAYOUT: Final[str] = "<BBBBffBBBs"
+SPRITE_METADATA_LAYOUT: Final[str] = "<BBBBffBBBB"
 """The layout of a 16-byte sprite metadata. 
 
 - bbox (4 bytes)

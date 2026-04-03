@@ -4,11 +4,15 @@ Atlas Linker.
 Assembles multiple sprite files into a single memory–mappable atlas binary.
 
 The binary layout contains:
-- Header (16 bytes):
-    - Magic (8 bytes): "SC AT v3" (spaces added)
-    - Palette count (4 bytes): uint32 sprite count
-    - Sprite count (4 bytes): uint32 sprite count
-- Data (n bytes): Contiguous array of sprite structures
+- Header (16 bytes): atlas metadata
+    - Magic (8 bytes): 'SC AT v4'
+    - 16×16 sprite count (4 bytes)
+    - 32×32 sprite count (2 bytes)
+    - Palette count (2 bytes)
+- Data (n bytes): contiguous arrays of palette and sprite structures
+    - Color palettes (32 × palette count bytes)
+    - 16×16 sprites (272 × 16×16 sprite count bytes)
+    - 32×32 sprites (1,040 × 32×32 sprite count bytes)
 """
 
 import struct
