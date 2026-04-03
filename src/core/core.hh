@@ -28,8 +28,8 @@ namespace sc::core {
 
     using physics_t = uint8_t;
 
-    static SC_CONSTEXPR SC_SIZE_T kNeonAlignment{16UL};
-    static SC_CONSTEXPR SC_SIZE_T kCacheAlignment{128UL};
+    static SC_CONSTEXPR SC_SIZE_T kNeonAlignment{16UZ};
+    static SC_CONSTEXPR SC_SIZE_T kCacheAlignment{128UZ};
 
 #ifndef __METAL_VERSION__
 

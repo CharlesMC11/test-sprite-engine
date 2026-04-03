@@ -69,15 +69,15 @@ namespace sc::core {
         if (fd < 0) [[unlikely]]
             throw no_read;
 
-        struct stat st;
+        struct stat st{};
         if (fstat(fd, &st) < 0) [[unlikely]] {
             close(fd);
             throw no_read;
         }
         size_ = static_cast<std::size_t>(st.st_size);
 
-        const void* result =
-                mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd, 0UZ);
+        const void* result{
+                mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd, 0UZ)};
         if (result == MAP_FAILED) [[unlikely]] {
             close(fd);
             throw std::runtime_error{"Could not map the atlas."};

@@ -22,7 +22,7 @@ namespace sc::graphics {
     static SC_CONSTEXPR uint32_t kMaskSpecular{0x80U};
 
     /**
-     * Distribution of color channels across a 16-bit packed integer.
+     * Distribution of color bits across a 2-byte packed integer.
      */
     enum class color_encoding : uint8_t {
         neutral, // R5G6B5

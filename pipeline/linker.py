@@ -24,9 +24,9 @@ from typing import Final
 from pipeline import (
     ATLAS_METADATA_LAYOUT,
     PALETTE_INDEX_OFFSET,
+    PALETTE_SIZE_BYTES,
     SPRITE_DIMENSIONS_SIZE_BYTES,
     SPRITE_MINIMUM_FILE_SIZE_BYTES,
-    SPRITE_PALETTE_SIZE_BYTES,
     ResourceLayoutError,
 )
 
@@ -107,7 +107,7 @@ class AtlasLinker:
             or has invalid dimensions.
         """
 
-        pixels_end = SPRITE_PALETTE_SIZE_BYTES + SPRITE_DIMENSIONS_SIZE_BYTES
+        pixels_end = PALETTE_SIZE_BYTES + SPRITE_DIMENSIONS_SIZE_BYTES
         for path in sprite_paths:
             if not path.exists():
                 raise FileNotFoundError(f"Sprite not found: {path}.")

@@ -10,19 +10,24 @@
 
 namespace sc::physics {
 
-    static constexpr int kCellSize{16U};
+    static constexpr int kCellSize{16};
     static constexpr int kColCount{display::kWidth / kCellSize};
     static constexpr int kRowCount{display::kHeight / kCellSize};
     static constexpr auto kTotalCells{
             static_cast<std::size_t>(kColCount) * kRowCount};
 
     struct alignas(core::kCacheAlignment) spatial_grid final {
+        // Public methods
 
         inline void update(entity_registry& registry) noexcept;
+
+        // Attributes
 
         core::index_t cell_heads[kTotalCells];
 
     private:
+        // Private helpers
+
         [[nodiscard]] static constexpr core::index_t hash(
                 float x, float y) noexcept;
 

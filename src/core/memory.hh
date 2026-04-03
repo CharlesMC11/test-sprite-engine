@@ -3,6 +3,7 @@
 
 #include <Metal/Metal.hpp>
 
+#include <cstddef>
 #include <cstring>
 
 #include "core/core.hh"

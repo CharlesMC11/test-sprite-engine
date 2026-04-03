@@ -12,8 +12,6 @@ namespace sc::physics {
     static constexpr float kFixedTimestep{1.0f / 120.0f};
     static constexpr float kMaxVelocity{500.0f};
 
-    static constexpr float kYCollisionDistance{4.0f};
-
     /**
      * The type of physics that affects an entity.
      */

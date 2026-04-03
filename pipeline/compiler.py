@@ -16,11 +16,11 @@ The binary layout contains:
     - Physics type (1 byte)
     - Color encoding (1 byte)
     - Palette index (1 byte), set to 0x3F (ASCII for '?') as a placeholder
-- Pixels (height×width bytes): 8-bit packed values [S][E][AA][IIII]
-- Footer (34 bytes):
+- Pixels (height×width bytes): 1-byte packed values [S][E][AA][IIII]
+- Footer (34 bytes): additional metadata
     - Color palette (32 bytes): 16 2-byte unique colors
-    - Height (1 byte): height in pixels
     - Width (1 byte): width in pixels
+    - Height (1 byte): height in pixels
 """
 
 import struct
@@ -40,6 +40,7 @@ from pipeline import (
     ColorEncoding,
     PhysicsType,
     ResourceLayoutError,
+    ResourceLayoutWarning,
 )
 
 type BGRImage = npt.NDArray[np.uint8]
@@ -50,9 +51,6 @@ type Palette = npt.NDArray[np.uint8]
 
 type PackedColors = npt.NDArray[np.uint16]
 type BakedPixels = npt.NDArray[np.uint8]
-
-
-class ResourceLayoutWarning(UserWarning): ...
 
 
 class SpriteCompiler:
