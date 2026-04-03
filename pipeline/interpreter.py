@@ -6,9 +6,10 @@ import cv2
 import numpy as np
 
 from pipeline import (
-    SPRITE_HEIGHT,
+    SPRITE_DIMENSIONS_SIZE_BYTES,
+    SPRITE_FOOTER_SIZE_BYTES,
     SPRITE_METADATA_LAYOUT,
-    SPRITE_WIDTH,
+    SPRITE_METADATA_SIZE_BYTES,
     ColorEncoding,
 )
 
@@ -48,17 +49,29 @@ def unpack_16bit_to_color(
 def decompile_sprite(filename: str):
     """Decompile the sprite into a previewable image."""
 
-    with open(f"data/{filename}.sprite", "rb") as f:
+    with open(f"assets/{filename}.sprite", "rb") as f:
         buffer = f.read()
 
-    metadata_buf = buffer[:8]
-    palette_buf = buffer[8:40]
-    pixels_buf = buffer[40:1064]
+    metadata_buf = buffer[:SPRITE_METADATA_SIZE_BYTES]
+    pixels_buf = buffer[SPRITE_METADATA_SIZE_BYTES:-SPRITE_FOOTER_SIZE_BYTES]
+    palette_buf = buffer[
+        -SPRITE_FOOTER_SIZE_BYTES:-SPRITE_DIMENSIONS_SIZE_BYTES
+    ]
+    width, height = buffer[-SPRITE_DIMENSIONS_SIZE_BYTES:]
 
-    min_x, min_y, max_x, max_y, anchor_x, anchor_y, encoding = struct.unpack(
-        f"<{SPRITE_METADATA_LAYOUT}", metadata_buf
-    )
-    encoding = ColorEncoding(encoding)
+    (
+        u_min,
+        u_max,
+        v_min,
+        v_max,
+        u_anchor,
+        v_anchor,
+        depth,
+        physics_type,
+        encoding_value,
+        palette_index,
+    ) = struct.unpack(SPRITE_METADATA_LAYOUT, metadata_buf)
+    encoding = ColorEncoding(encoding_value)
 
     unpacked_palette = unpack_16bit_to_color(palette_buf, encoding)
 
@@ -66,10 +79,8 @@ def decompile_sprite(filename: str):
     indices = pixels & 0x0F
     alphas = (pixels >> 4) & 0x03
 
-    image_bgr = unpacked_palette[indices].reshape(
-        (SPRITE_HEIGHT, SPRITE_WIDTH, 3)
-    )
-    alpha_mask = alphas.reshape((SPRITE_HEIGHT, SPRITE_WIDTH)) * SCALE_2BIT_TO_8
+    image_bgr = unpacked_palette[indices].reshape((height, width, 3))
+    alpha_mask = alphas.reshape((height, width)) * SCALE_2BIT_TO_8
     alpha_mask = alpha_mask.astype(np.uint8)
 
     return cv2.merge((image_bgr, alpha_mask))
