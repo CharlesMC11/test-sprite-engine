@@ -120,7 +120,7 @@ class AtlasLinker:
 
             sprite_blob = bytearray(blob[:-pixels_end])
             palette_blob = blob[-pixels_end:-SPRITE_DIMENSIONS_SIZE_BYTES]
-            height, width = blob[-SPRITE_DIMENSIONS_SIZE_BYTES:]
+            width, height = blob[-SPRITE_DIMENSIONS_SIZE_BYTES:]
 
             if palette_blob not in self._palette_blobs:
                 self._palette_blobs.append(palette_blob)
@@ -177,59 +177,56 @@ class AtlasLinker:
             for sprite in self._sprite32_blobs:
                 f.write(sprite)
 
-        if self._palette_blobs:
-            self._generate_enum_header(
-                output_path.with_name(f"palette_index.hh"),
-                self._palette_names,
-            )
-
-        if self._sprite16_blobs:
-            self._generate_enum_header(
-                output_path.with_name(f"sprite16_index.hh"),
-                self._sprite16_names,
-            )
-
-        if self._sprite32_blobs:
-            self._generate_enum_header(
-                output_path.with_name(f"sprite32_index.hh"),
-                self._sprite32_names,
-            )
+        self._generate_enum_header(output_path.with_name("atlas_index.hh"))
 
     # Protected static methods
 
-    @staticmethod
-    def _generate_enum_header(
-        header_path: Path, enumerators: Sequence[str]
-    ) -> None:
+    def _generate_enum_header(self, header_path: Path) -> None:
         """
         Generate a C++ enum that maps a sprite to its atlas index.
 
         :param header_path: The path to save the header to.
-        :param enumerators: The names of the enumerators.
         """
 
         indent = " " * 4
 
+        def enum_name(name: str) -> str:
+            return f"{indent}enum class {name} : core::index_t {{"
+
+        def clean_name(name: str) -> str:
+            return name.replace(" ", "_").replace("-", "_").upper()
+
+        include_guard = f"SC_ASSETS_{header_path.stem.upper()}_HH"
+
         lines = [
-            "#pragma once",
-            "",
-            '#include "core/core.hh"',
-            "",
-            "namespace sc::assets {",
-            "",
-            f"{indent}enum class {header_path.stem} : core::index_t {{",
+            f"#ifndef {include_guard}",
+            f"#define {include_guard}\n",
+            '#include "core/core.hh"\n',
+            "namespace sc::assets {\n",
         ]
 
-        for name in enumerators:
-            clean_name = name.replace(" ", "_").replace("-", "_").upper()
-            lines.append(f"{indent * 2}{clean_name},")
+        if self._palette_blobs:
+            lines.append(enum_name("palette_index"))
+            for name in self._palette_names:
+                lines.append(f"{indent * 2}{clean_name(name)},")
+            lines.append(f"{indent}}};\n")
+
+        if self._sprite16_blobs:
+            lines.append(enum_name("sprite16_index"))
+            for name in self._sprite16_names:
+                lines.append(f"{indent * 2}{clean_name(name)},")
+            lines.append(f"{indent}}};\n")
+
+        if self._sprite32_blobs:
+            lines.append(enum_name("sprite32_index"))
+            for name in self._sprite32_names:
+                lines.append(f"{indent * 2}{clean_name(name)},")
+            lines.append(f"{indent}}};\n")
 
         lines.extend(
             (
-                f"{indent}}};",
-                "",
-                "} // namespace sc::assets",
-                "",
+                "} // namespace sc::assets\n",
+                f"#endif // {include_guard}",
             )
         )
 
