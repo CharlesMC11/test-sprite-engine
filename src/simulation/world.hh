@@ -4,7 +4,6 @@
 #include <Metal/Metal.hpp>
 
 #include "assets/atlas.hh"
-#include "core/core.hh"
 #include "core/input.hh"
 #include "core/mapped_view.hh"
 #include "graphics/metal_bridge.hh"
@@ -13,8 +12,7 @@
 
 namespace sc {
 
-    class alignas(core::kCacheAlignment) world final {
-
+    class world final {
     public:
         // Constructors
 

@@ -26,7 +26,7 @@ namespace sc::physics {
         PROJECTILE = 1U << 4,
     };
 
-    struct alignas(float) aabb final {
+    struct aabb final {
         // Constructors
 
         [[nodiscard]] static constexpr aabb from_registry(

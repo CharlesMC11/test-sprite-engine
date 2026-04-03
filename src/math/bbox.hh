@@ -16,7 +16,7 @@ namespace sc::geometry {
      * This struct is compatible with both C++ and Metal.
      */
     template<typename T = uint8_t>
-    struct alignas(T) bbox final {
+    struct alignas(sizeof(T) * 4UZ) bbox final {
         // Operators
 
         template<typename U>

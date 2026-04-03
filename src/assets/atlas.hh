@@ -6,10 +6,8 @@
 #include <ostream>
 #include <span>
 
-#include "assets/palette_index.hh"
+#include "assets/atlas_index.hh"
 #include "assets/sprite.hh"
-#include "assets/sprite16_index.hh"
-#include "assets/sprite32_index.hh"
 #include "core/core.hh"
 #include "graphics/graphics_types.hh"
 
@@ -22,7 +20,7 @@ namespace sc::assets {
      *
      * This class is designed to memory-mapped by `sc::core::mapped_view`.
      */
-    struct alignas(core::kCacheAlignment) atlas final {
+    struct alignas(core::kNeonAlignment) atlas final {
         // Static methods
 
         [[nodiscard]] static constexpr bool validate(

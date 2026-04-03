@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <ostream>
 
-#include "assets/sprite32_index.hh"
+#include "assets/atlas_index.hh"
 #include "core/core.hh"
 #include "core/memory.hh"
 
@@ -200,6 +200,8 @@ namespace sc {
         bool draw_order_needs_sort{false};
 
     private:
+        bool channels_swapped_{false};
+
         // Type aliases
 
         template<typename T, bool IsConst>
@@ -223,7 +225,6 @@ namespace sc {
                 index_buffer_;
 
         MTL::Device* device_{nullptr};
-        bool channels_swapped_{false};
     };
 
     // Constructors
