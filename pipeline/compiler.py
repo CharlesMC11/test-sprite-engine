@@ -82,12 +82,12 @@ class SpriteCompiler:
     # Magic methods
 
     def __init__(
-            self,
-            source_path: Path,
-            color_encoding: ColorEncoding,
-            anchor: Sequence[float],
-            depth: int,
-            physics_type: PhysicsType,
+        self,
+        source_path: Path,
+        color_encoding: ColorEncoding,
+        anchor: Sequence[float],
+        depth: int,
+        physics_type: PhysicsType,
     ):
         self._source_path = source_path
 
@@ -120,9 +120,9 @@ class SpriteCompiler:
     # Public methods
 
     def ingest_asset(
-            self,
-            emission_mask_path: Path | None,
-            specular_mask_path: Path | None,
+        self,
+        emission_mask_path: Path | None,
+        specular_mask_path: Path | None,
     ) -> None:
         """
         Validate the source asset.
@@ -141,21 +141,21 @@ class SpriteCompiler:
             raise FileNotFoundError(f"Missing image file: {self._source_path}")
 
         if (
-                image := cv2.imread(self._source_path, cv2.IMREAD_UNCHANGED)
+            image := cv2.imread(self._source_path, cv2.IMREAD_UNCHANGED)
         ) is None:
             raise RuntimeError("Could not read source image.")
 
         # Validate dimensions
 
-        h, w = image.shape[:2]
-        if not (is_power_of_2(h) and is_power_of_2(w)):
+        height, width = image.shape[:2]
+        if not (is_power_of_2(height) and is_power_of_2(width)):
             raise ResourceLayoutError(
                 f"Source image '{self._source_path.name}' dimensions must be a "
-                f"power of 2 (8, 16, 32, etc...)! Got {w}×{h}."
+                f"power of 2 (8, 16, 32, etc...)! Got {width}×{height}."
             )
 
-        self._width = w
-        self._height = h
+        self._width = width
+        self._height = height
 
         # Extract alpha bits
 
@@ -164,7 +164,7 @@ class SpriteCompiler:
             self._source_alpha = image[:, :, 3]
         else:
             self._source_bgr = image
-            self._source_alpha = np.full((h, w), 0xFF, dtype=np.uint8)
+            self._source_alpha = np.full((height, width), 0xFF, dtype=np.uint8)
 
         # Get bounding box
 
@@ -205,7 +205,7 @@ class SpriteCompiler:
                 emission_mask_path
             )
         if self._emission_bits is None:
-            self._emission_bits = np.zeros(h * w, dtype=np.uint8)
+            self._emission_bits = np.zeros(height * width, dtype=np.uint8)
 
         # Extract specular bits
 
@@ -214,7 +214,7 @@ class SpriteCompiler:
                 specular_mask_path
             )
         if self._specular_bits is None:
-            self._specular_bits = np.zeros(h * w, dtype=np.uint8)
+            self._specular_bits = np.zeros(height * width, dtype=np.uint8)
 
         # Construct sprite elements
 
@@ -263,7 +263,7 @@ class SpriteCompiler:
         )
 
         combined_buffer = (
-                metadata_bytes + pixel_bytes + palette_bytes + footer_bytes
+            metadata_bytes + pixel_bytes + palette_bytes + footer_bytes
         )
         if len(combined_buffer) != self.sprite_size_bytes:
             raise ResourceLayoutError(
@@ -278,7 +278,7 @@ class SpriteCompiler:
     # Protected methods
 
     def _ingest_grayscale_mask(
-            self, mask_path: Path
+        self, mask_path: Path
     ) -> EmissionMask | SpecularMask:
         """
         Ingest the grayscale mask.
@@ -311,19 +311,19 @@ class SpriteCompiler:
         :returns: The 16 unique colors that were extracted.
         """
 
-        unique_colors, colors_count = np.unique(
+        unique_colors, per_color_pixel_count = np.unique(
             self._pixel_flat_array, axis=0, return_counts=True
         )
 
-        palette_size = len(unique_colors)
-        if palette_size > MAX_PALETTE_SIZE:
+        color_count = len(unique_colors)
+        if color_count > MAX_PALETTE_SIZE:
             warn(
-                f"'{self._source_path.name}' has {palette_size} unique colors. "
+                f"'{self._source_path.name}' has {color_count} unique colors. "
                 f"It will be truncated to {MAX_PALETTE_SIZE}.",
                 ResourceLayoutWarning,
             )
 
-        top_indices = np.argsort(-colors_count)[:MAX_PALETTE_SIZE]
+        top_indices = np.argsort(-per_color_pixel_count)[:MAX_PALETTE_SIZE]
         top_colors = unique_colors[top_indices]
 
         sorted_indices = np.lexsort(
@@ -360,10 +360,10 @@ class SpriteCompiler:
         indices = self._index_colors() & 0x0F
         alphas = (self._source_alpha.flatten(order="C") >> 6) & 0x03
         baked_pixels = (
-                self._specular_bits << 7
-                | self._emission_bits << 6
-                | alphas << 4
-                | indices
+            self._specular_bits << 7
+            | self._emission_bits << 6
+            | alphas << 4
+            | indices
         )
 
         return baked_pixels.astype(np.uint8)
@@ -401,7 +401,7 @@ def calculate_bounding_box(mask: AlphaMask) -> tuple[int, int, int, int]:
 
 
 def pack_colors_to_16bit(
-        image_bgr: BGRImage, encoding: ColorEncoding
+    image_bgr: BGRImage, encoding: ColorEncoding
 ) -> PackedColors:
     """
     Pack the 8-bit BGR channels into 16-bit integers.
