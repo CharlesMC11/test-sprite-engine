@@ -77,6 +77,10 @@ class SpriteMetadata:
     color_encoding: ColorEncoding
     palette_index: int = 0x3F
 
+    MAGIC: ClassVar[Final[bytes]] = b"SC SP v5"
+
+    MAGIC_SIZE_BYTES: ClassVar[Final[int]] = len(MAGIC)
+
     LAYOUT: ClassVar[Final[str]] = "<BBBBffBBBB"
     """The layout of a 16-byte sprite metadata.
 
@@ -124,6 +128,6 @@ class SpriteMetadata:
 
 
 SPRITE_MINIMUM_FILE_SIZE_BYTES: Final[int] = (
-    SpriteMetadata.EXPECTED_SIZE_BYTES + FOOTER_SIZE_BYTES
+    SpriteMetadata.MAGIC_SIZE_BYTES + SpriteMetadata.EXPECTED_SIZE_BYTES + FOOTER_SIZE_BYTES
 )
 """The minimum file size of a sprite file in bytes."""

@@ -102,7 +102,9 @@ class AtlasLinker:
         Ingest and validate sprite binaries.
 
         :param sprite_paths: Sequence of paths to baked sprite files.
+
         :raises FileNotFoundError: If a path does not exist.
+        :raises ValueError: If the sprite contains invalid magic bytes.
         :raises ResourceLayoutError: If a sprite is less than or equal to 54 bytes in size
             or has invalid dimensions.
         """
@@ -112,6 +114,9 @@ class AtlasLinker:
                 raise FileNotFoundError(f"Sprite not found: {path}.")
 
             blob = path.read_bytes()
+            if blob[:SpriteMetadata.MAGIC_SIZE_BYTES] != SpriteMetadata.MAGIC:
+                raise ValueError("Invalid magic bytes in file.")
+
             if len(blob) <= SPRITE_MINIMUM_FILE_SIZE_BYTES:
                 raise ResourceLayoutError(
                     f"'{path.name}' must be bigger than {SPRITE_MINIMUM_FILE_SIZE_BYTES} bytes."

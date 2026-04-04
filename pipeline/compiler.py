@@ -2,20 +2,22 @@
 Sprite Compiler.
 
 Bakes a source (BGR/RGBA) image and optional emission & specular masks
-into a specialized binary format of at least 54 bytes.
+into a specialized binary format of at least 58 bytes.
 
 The binary layout contains:
-- Header (16 bytes): sprite metadata
-    - Bounding box (4 bytes)
-        - u_min, u_max (2 bytes)
-        - v_min, v_max (2 bytes)
-    - Anchor (8 bytes)
-        - u_anchor (4 bytes)
-        - v_anchor (4 bytes)
-    - Depth (1 byte)
-    - Physics type (1 byte)
-    - Color encoding (1 byte)
-    - Palette index (1 byte), set to 0x3F (ASCII for '?') as a placeholder
+- Header (24 bytes):
+    - Magic (8 bytes): 'SC SP v5'
+    - Sprite metadata (16 bytes)
+        - Bounding box (4 bytes)
+            - u_min, u_max (2 bytes)
+            - v_min, v_max (2 bytes)
+        - Anchor (8 bytes)
+            - u_anchor (4 bytes)
+            - v_anchor (4 bytes)
+        - Depth (1 byte)
+        - Physics type (1 byte)
+        - Color encoding (1 byte)
+        - Palette index (1 byte), set to 0x3F (ASCII for '?') as a placeholder
 - Pixels (height×width bytes): 1-byte packed values [S][E][AA][IIII]
 - Footer (34 bytes): additional metadata
     - Color palette (32 bytes): 16 2-byte unique colors
@@ -281,13 +283,13 @@ def compile_asset(output_path: Path, components: SpriteComponents) -> None:
     """
 
     meta = components.metadata
-    header_bytes = meta.to_bytes()
+    header_bytes = meta.MAGIC + meta.to_bytes()
 
     pixels, palette = _bake_pixels(components, output_path.name)
     pixel_bytes = pixels.tobytes(order="C")
     padding_needed = (
-        NEON_ALIGNMENT - len(pixel_bytes) % NEON_ALIGNMENT
-    ) % NEON_ALIGNMENT
+                         NEON_ALIGNMENT - len(pixel_bytes) % NEON_ALIGNMENT
+                     ) % NEON_ALIGNMENT
     pixel_bytes += b"\x00" * padding_needed
 
     palette_bytes = bytearray()
