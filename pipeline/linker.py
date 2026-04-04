@@ -23,11 +23,11 @@ from typing import Final
 
 from pipeline import (
     ATLAS_METADATA_LAYOUT,
-    PALETTE_INDEX_OFFSET,
-    PALETTE_SIZE_BYTES,
+    FOOTER_SIZE_BYTES,
     SPRITE_DIMENSIONS_SIZE_BYTES,
     SPRITE_MINIMUM_FILE_SIZE_BYTES,
     ResourceLayoutError,
+    SpriteMetadata,
 )
 
 ATLAS_MAGIC: Final[bytes] = b"SC AT v4"
@@ -107,7 +107,6 @@ class AtlasLinker:
             or has invalid dimensions.
         """
 
-        pixels_end = PALETTE_SIZE_BYTES + SPRITE_DIMENSIONS_SIZE_BYTES
         for path in sprite_paths:
             if not path.exists():
                 raise FileNotFoundError(f"Sprite not found: {path}.")
@@ -118,16 +117,18 @@ class AtlasLinker:
                     f"'{path.name}' must be bigger than {SPRITE_MINIMUM_FILE_SIZE_BYTES} bytes."
                 )
 
-            sprite_blob = bytearray(blob[:-pixels_end])
-            palette_blob = blob[-pixels_end:-SPRITE_DIMENSIONS_SIZE_BYTES]
+            sprite_blob = bytearray(blob[:-FOOTER_SIZE_BYTES])
+            palette_blob = blob[
+                -FOOTER_SIZE_BYTES:-SPRITE_DIMENSIONS_SIZE_BYTES
+            ]
             width, height = blob[-SPRITE_DIMENSIONS_SIZE_BYTES:]
 
             if palette_blob not in self._palette_blobs:
                 self._palette_blobs.append(palette_blob)
                 self._palette_names.append(f"{path.stem}_palette")
 
-            sprite_blob[PALETTE_INDEX_OFFSET] = self._palette_blobs.index(
-                palette_blob
+            sprite_blob[SpriteMetadata.PALETTE_INDEX_OFFSET] = (
+                self._palette_blobs.index(palette_blob)
             )
 
             if height == 8 and width == 8:

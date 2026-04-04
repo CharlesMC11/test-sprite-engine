@@ -158,7 +158,7 @@ def ingest_asset(
     :param color_encoding: The target encoding.
     :param anchor: The anchor points.
     :param depth: The asset’s 'thickness'.
-    :param physics_type: The physics laws this asset obeys.
+    :param physics_type: The laws of physics this asset obeys.
     :param emission_mask_path: Optional path to a grayscale emission mask.
     :param specular_mask_path: Optional path to a grayscale specular mask.
 
@@ -167,13 +167,13 @@ def ingest_asset(
     :raises ResourceLayoutError: If the image dimensions are not a power of 2.
     """
 
+    # Validate source image
+
     if not bgra_image_path.exists():
         raise FileNotFoundError(f"Missing image file: {bgra_image_path}")
 
     if (image := cv2.imread(bgra_image_path, cv2.IMREAD_UNCHANGED)) is None:
         raise RuntimeError("Could not read source image.")
-
-    # Validate dimensions
 
     height, width = image.shape[:2]
     if not (_is_power_of_2(height) and _is_power_of_2(width)):
@@ -191,7 +191,7 @@ def ingest_asset(
         source_bgr = image
         source_alpha = None
 
-    # Get bounding box
+    # Calculate bounding box
 
     if source_alpha is not None:
         u_min, u_max, v_min, v_max = _calculate_bounding_box(source_alpha)
@@ -230,21 +230,23 @@ def ingest_asset(
 
     # Extract emission mask
 
-    source_emission = (
-        _ingest_grayscale_mask(emission_mask_path, width, height)
-        if emission_mask_path
-        else None
-    )
+    if emission_mask_path is not None:
+        source_emission = _ingest_grayscale_mask(
+            emission_mask_path, width, height
+        )
+    else:
+        source_emission = None
 
     # Extract specular mask
 
-    source_specular = (
-        _ingest_grayscale_mask(specular_mask_path, width, height)
-        if specular_mask_path
-        else None
-    )
+    if specular_mask_path is not None:
+        source_specular = _ingest_grayscale_mask(
+            specular_mask_path, width, height
+        )
+    else:
+        source_specular = None
 
-    # Construct sprite pixel_components
+    # Construct components
 
     header = SpriteMetadata(
         u_min,
@@ -282,7 +284,7 @@ def compile_asset(output_path: Path, components: SpriteComponents) -> None:
     header_bytes = meta.to_bytes()
 
     pixels, palette = _bake_pixels(components, output_path.name)
-    pixel_bytes = pixels.tobytes()
+    pixel_bytes = pixels.tobytes(order="C")
     padding_needed = (
         NEON_ALIGNMENT - len(pixel_bytes) % NEON_ALIGNMENT
     ) % NEON_ALIGNMENT
@@ -303,7 +305,8 @@ def compile_asset(output_path: Path, components: SpriteComponents) -> None:
     combined_buffer = header_bytes + pixel_bytes + palette_bytes + footer_bytes
     sprite_size_bytes = (
         SPRITE_MINIMUM_FILE_SIZE_BYTES
-        + components.width * components.height * padding_needed
+        + components.height * components.width
+        + padding_needed
     )
     if len(combined_buffer) != sprite_size_bytes:
         raise ResourceLayoutError(
@@ -397,28 +400,28 @@ def _bake_pixels(
     :returns: The baked pixels.
     """
 
-    width = pixel_components.width
-    height = pixel_components.height
-
     bgr_flat_array = pixel_components.bgr_image.reshape(-1, 3)
     palette = _extract_palette(bgr_flat_array, asset_name)
     index = _index_colors(bgr_flat_array, palette) & 0x0F
+
+    width = pixel_components.width
+    height = pixel_components.height
 
     if pixel_components.alpha_mask is not None:
         flattened_alpha = pixel_components.alpha_mask.flatten(order="C")
         alpha = (flattened_alpha >> 6) & 0x03
     else:
-        alpha = np.full((height, width), 0x03, dtype=np.uint8)
+        alpha = np.full(height * width, 0x03, dtype=np.uint8)
 
     if pixel_components.emission_mask is not None:
         flattened_emission = pixel_components.emission_mask.flatten(order="C")
-        emission = (flattened_emission >> 7) & 0x01
+        emission = (flattened_emission > 0x08) & 0x01
     else:
         emission = np.zeros(height * width, dtype=np.uint8)
 
     if pixel_components.specular_mask is not None:
         flattened_specular = pixel_components.specular_mask.flatten(order="C")
-        specular = (flattened_specular >> 7) & 0x01
+        specular = (flattened_specular > 0x08) & 0x01
     else:
         specular = np.zeros(height * width, dtype=np.uint8)
 

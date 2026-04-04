@@ -2,7 +2,8 @@ import enum
 import struct
 from dataclasses import dataclass
 from enum import IntEnum, IntFlag
-from typing import Final, Self
+from typing import ClassVar, Final, Self
+from warnings import warn
 
 # Core
 
@@ -14,31 +15,10 @@ CACHE_ALIGNMENT: Final[int] = 128
 MAX_PALETTE_SIZE: Final[int] = 16
 """The max number of unique colors in an asset."""
 
-SPRITE_METADATA_LAYOUT: Final[str] = "<BBBBffBBBB"
-"""The layout of a 16-byte sprite metadata.
-
-- bbox
-    - u_min (uint8), u_max (uint8)
-    - v_min (uint8), v_max (uint8)
-- anchor
-    - u_anchor (float32)
-    - v_anchor (float32)
-- depth (uint8)
-- physics_type (uint8)
-- color_encoding (uint8)
-- palette_index (uint8)
-"""
-
-SPRITE_METADATA_SIZE_BYTES: Final[int] = 16
-"""The total size of the sprite metadata in bytes."""
-
-PALETTE_INDEX_OFFSET: Final[int] = SPRITE_METADATA_SIZE_BYTES - 1
-"""Byte offset of `palette_index` in the sprite metadata."""
-
 PACKED_COLOR_SIZE_BYTES: Final[int] = 2
 """The size of a packed color in bytes."""
 
-PALETTE_SIZE_BYTES: Final[int] = MAX_PALETTE_SIZE * 2
+PALETTE_SIZE_BYTES: Final[int] = PACKED_COLOR_SIZE_BYTES * MAX_PALETTE_SIZE
 """The total size of all 2-byte colors in bytes."""
 
 SPRITE_DIMENSIONS_SIZE_BYTES: Final[int] = 2
@@ -48,11 +28,6 @@ FOOTER_SIZE_BYTES: Final[int] = (
     PALETTE_SIZE_BYTES + SPRITE_DIMENSIONS_SIZE_BYTES
 )
 """ The total size of the sprite footer in bytes."""
-
-SPRITE_MINIMUM_FILE_SIZE_BYTES: Final[int] = (
-    SPRITE_METADATA_SIZE_BYTES + FOOTER_SIZE_BYTES
-)
-"""The minimum file size of a sprite file in bytes."""
 
 ATLAS_METADATA_LAYOUT: Final[str] = "<8sLHH"
 """The layout of a 16-byte atlas metadata.
@@ -79,6 +54,8 @@ class ColorEncoding(IntEnum):
 
 
 class PhysicsType(IntFlag):
+    """The laws of physics an entity obeys."""
+
     UNDEFINED = 0
     NONE = enum.auto()
     ACTOR = enum.auto()
@@ -100,13 +77,39 @@ class SpriteMetadata:
     color_encoding: ColorEncoding
     palette_index: int = 0x3F
 
+    LAYOUT: ClassVar[Final[str]] = "<BBBBffBBBB"
+    """The layout of a 16-byte sprite metadata.
+
+    - bbox
+        - u_min (uint8), u_max (uint8)
+        - v_min (uint8), v_max (uint8)
+    - anchor
+        - u_anchor (float32)
+        - v_anchor (float32)
+    - depth (uint8)
+    - physics_type (uint8)
+    - color_encoding (uint8)
+    - palette_index (uint8)
+    """
+
+    EXPECTED_SIZE_BYTES: ClassVar[Final[int]] = 16
+
+    PALETTE_INDEX_OFFSET: ClassVar[Final[int]] = EXPECTED_SIZE_BYTES - 1
+
     @classmethod
-    def from_bytes(cls, data: bytes) -> Self:
-        return cls(*struct.unpack(SPRITE_METADATA_LAYOUT, data))
+    def from_bytes(cls, buffer: bytes) -> Self:
+        n = cls.EXPECTED_SIZE_BYTES
+        if len(buffer) > n:
+            warn(
+                f"Buffer is larger than {n}! Using only the first {n} bytes.",
+                ResourceLayoutWarning,
+            )
+
+        return cls(*struct.unpack(cls.LAYOUT, buffer[:n]))
 
     def to_bytes(self) -> bytes:
         return struct.pack(
-            SPRITE_METADATA_LAYOUT,
+            self.LAYOUT,
             self.u_min,
             self.u_max,
             self.v_min,
@@ -118,3 +121,9 @@ class SpriteMetadata:
             self.color_encoding,
             self.palette_index,
         )
+
+
+SPRITE_MINIMUM_FILE_SIZE_BYTES: Final[int] = (
+    SpriteMetadata.EXPECTED_SIZE_BYTES + FOOTER_SIZE_BYTES
+)
+"""The minimum file size of a sprite file in bytes."""

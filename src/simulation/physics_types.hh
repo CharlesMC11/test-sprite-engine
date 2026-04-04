@@ -13,7 +13,7 @@ namespace sc::physics {
     static constexpr float kMaxVelocity{500.0f};
 
     /**
-     * The type of physics that affects an entity.
+     * The laws of physics an entity obeys.
      */
     enum class type : core::physics_t {
         UNDEFINED = 0U,
