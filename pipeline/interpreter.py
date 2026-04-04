@@ -6,8 +6,8 @@ import cv2
 import numpy as np
 
 from pipeline import (
+    FOOTER_SIZE_BYTES,
     SPRITE_DIMENSIONS_SIZE_BYTES,
-    SPRITE_FOOTER_SIZE_BYTES,
     SPRITE_METADATA_LAYOUT,
     SPRITE_METADATA_SIZE_BYTES,
     ColorEncoding,
@@ -53,10 +53,8 @@ def decompile_sprite(filename: str):
         buffer = f.read()
 
     metadata_buf = buffer[:SPRITE_METADATA_SIZE_BYTES]
-    pixels_buf = buffer[SPRITE_METADATA_SIZE_BYTES:-SPRITE_FOOTER_SIZE_BYTES]
-    palette_buf = buffer[
-        -SPRITE_FOOTER_SIZE_BYTES:-SPRITE_DIMENSIONS_SIZE_BYTES
-    ]
+    pixels_buf = buffer[SPRITE_METADATA_SIZE_BYTES:-FOOTER_SIZE_BYTES]
+    palette_buf = buffer[-FOOTER_SIZE_BYTES:-SPRITE_DIMENSIONS_SIZE_BYTES]
     width, height = buffer[-SPRITE_DIMENSIONS_SIZE_BYTES:]
 
     (
