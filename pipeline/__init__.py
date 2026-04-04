@@ -1,6 +1,8 @@
 import enum
+import struct
+from dataclasses import dataclass
 from enum import IntEnum, IntFlag
-from typing import Final
+from typing import Final, Self
 
 # Core
 
@@ -42,13 +44,13 @@ PALETTE_SIZE_BYTES: Final[int] = MAX_PALETTE_SIZE * 2
 SPRITE_DIMENSIONS_SIZE_BYTES: Final[int] = 2
 """The total size of the sprite dimensions in bytes."""
 
-SPRITE_FOOTER_SIZE_BYTES: Final[int] = (
+FOOTER_SIZE_BYTES: Final[int] = (
     PALETTE_SIZE_BYTES + SPRITE_DIMENSIONS_SIZE_BYTES
 )
 """ The total size of the sprite footer in bytes."""
 
 SPRITE_MINIMUM_FILE_SIZE_BYTES: Final[int] = (
-    SPRITE_METADATA_SIZE_BYTES + SPRITE_FOOTER_SIZE_BYTES
+    SPRITE_METADATA_SIZE_BYTES + FOOTER_SIZE_BYTES
 )
 """The minimum file size of a sprite file in bytes."""
 
@@ -83,3 +85,36 @@ class PhysicsType(IntFlag):
     STATIC = enum.auto()
     SENSOR = enum.auto()
     PROJECTILE = enum.auto()
+
+
+@dataclass(frozen=True, slots=True)
+class SpriteMetadata:
+    u_min: int
+    u_max: int
+    v_min: int
+    v_max: int
+    u_anchor: float
+    v_anchor: float
+    depth: int
+    physics_type: PhysicsType
+    color_encoding: ColorEncoding
+    palette_index: int = 0x3F
+
+    @classmethod
+    def from_bytes(cls, data: bytes) -> Self:
+        return cls(*struct.unpack(SPRITE_METADATA_LAYOUT, data))
+
+    def to_bytes(self) -> bytes:
+        return struct.pack(
+            SPRITE_METADATA_LAYOUT,
+            self.u_min,
+            self.u_max,
+            self.v_min,
+            self.v_max,
+            self.u_anchor,
+            self.v_anchor,
+            self.depth,
+            self.physics_type,
+            self.color_encoding,
+            self.palette_index,
+        )
