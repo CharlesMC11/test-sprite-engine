@@ -24,19 +24,23 @@ using namespace metal;
 inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
         const sc::graphics::color_encoding encoding)
 {
-    float r{1.0f}, g{1.0f}, b{1.0f};
+    float r{1.0f};
+    float g{1.0f};
+    float b{1.0f};
+
+    using enum sc::graphics::color_encoding;
     switch (encoding) {
-    case sc::graphics::color_encoding::DEFAULT:
+    case neutral:
         r = static_cast<float>((packed_color >> 11) & 0x1FU) / 31.0f;
         g = static_cast<float>((packed_color >> 5) & 0x3FU) / 63.0f;
         b = static_cast<float>(packed_color & 0x1F) / 31.0f;
         break;
-    case sc::graphics::color_encoding::WARM:
+    case warm:
         r = static_cast<float>((packed_color >> 10) & 0x3FU) / 63.0f;
         g = static_cast<float>((packed_color >> 5) & 0x1FU) / 31.0f;
         b = static_cast<float>(packed_color & 0x1F) / 31.0f;
         break;
-    case sc::graphics::color_encoding::COOL:
+    case cool:
         r = static_cast<float>((packed_color >> 11) & 0x1FU) / 31.0f;
         g = static_cast<float>((packed_color >> 5) & 0x1FU) / 31.0f;
         b = static_cast<float>(packed_color & 0x3F) / 63.0f;
@@ -85,8 +89,9 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
             continue;
 
         constant sc::assets::sprite32& sprite{sprites[atlas_indices[draw_idx]]};
-        const sc::graphics::packed_pixel_t pixel{
-                sprite.pixels[local_coord.y][local_coord.x]};
+        const sc::graphics::packed_pixel_t pixel{sprite.pixels[local_coord.y *
+                        sc::assets::sprites::kDefaultSize +
+                local_coord.x]};
 
         const auto alpha_raw{(pixel & sc::graphics::kMaskAlpha) >> 4};
         if (alpha_raw == 0x00U)

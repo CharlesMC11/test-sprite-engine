@@ -3,25 +3,24 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <ostream>
 #include <span>
 
-#include "assets/palette_index.hh"
+#include "assets/asset_ids.hh"
 #include "assets/sprite.hh"
-#include "assets/sprite16_index.hh"
-#include "assets/sprite32_index.hh"
 #include "core/core.hh"
 #include "graphics/graphics_types.hh"
 
 namespace sc::assets {
 
-    static constexpr std::uint64_t kAtlasMagicBytes{0x3476205441204353ULL};
+    static constexpr std::uint64_t kAtlasMagicBytes{0x3676205441204353ULL};
 
     /**
      * A contiguous collection of sprites.
      *
      * This class is designed to memory-mapped by `sc::core::mapped_view`.
      */
-    struct alignas(core::kCacheAlignment) atlas final {
+    struct alignas(core::kNeonAlignment) atlas final {
         // Static methods
 
         [[nodiscard]] static constexpr bool validate(
@@ -41,13 +40,13 @@ namespace sc::assets {
 
         // Operators
 
-        [[nodiscard]] constexpr auto operator[](palette_index i) const noexcept
+        [[nodiscard]] constexpr auto operator[](palette_id i) const noexcept
                 -> const graphics::palette&;
 
-        [[nodiscard]] constexpr auto operator[](sprite16_index i) const noexcept
+        [[nodiscard]] constexpr auto operator[](sprite16_id i) const noexcept
                 -> const sprite16&;
 
-        [[nodiscard]] constexpr auto operator[](sprite32_index i) const noexcept
+        [[nodiscard]] constexpr auto operator[](sprite32_id i) const noexcept
                 -> const sprite32&;
 
         // Accessors
@@ -80,12 +79,12 @@ namespace sc::assets {
     [[nodiscard]] constexpr bool atlas::validate(
             const void* ptr, const std::size_t mapped_size) noexcept
     {
-        if (!ptr || mapped_size < sizeof(atlas))
+        if (!ptr || mapped_size < sizeof(atlas)) [[unlikely]]
             return false;
 
         const auto [magic, sprite16_count, sprite32_count, palette_count]{
                 static_cast<const atlas*>(ptr)->meta};
-        if (magic != kAtlasMagicBytes)
+        if (magic != kAtlasMagicBytes) [[unlikely]]
             return false;
 
         const std::size_t expected_size{sizeof(metadata) +
@@ -98,19 +97,19 @@ namespace sc::assets {
     // Operators
 
     [[nodiscard]] constexpr auto atlas::operator[](
-            const palette_index i) const noexcept -> const graphics::palette&
+            const palette_id i) const noexcept -> const graphics::palette&
     {
         return palette_span()[static_cast<std::size_t>(i)];
     }
 
     [[nodiscard]] constexpr auto atlas::operator[](
-            const sprite16_index i) const noexcept -> const sprite16&
+            const sprite16_id i) const noexcept -> const sprite16&
     {
         return sprite16_span()[static_cast<std::size_t>(i)];
     }
 
     [[nodiscard]] constexpr auto atlas::operator[](
-            const sprite32_index i) const noexcept -> const sprite32&
+            const sprite32_id i) const noexcept -> const sprite32&
     {
         return sprite32_span()[static_cast<std::size_t>(i)];
     }
@@ -150,5 +149,7 @@ namespace sc::assets {
     }
 
 } // namespace sc::assets
+
+std::ostream& operator<<(std::ostream&, const sc::assets::atlas&);
 
 #endif // SC_ASSETS_ATLAS_HH

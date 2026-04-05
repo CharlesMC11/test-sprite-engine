@@ -1,15 +1,13 @@
 cmake_minimum_required(VERSION 4.1)
-project(test-sprite-engine C CXX OBJCXX)
+project(test-sprite-engine CXX OBJCXX)
 
-set(CMAKE_C_STANDARD 23)
-set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(
-        "${CMAKE_CURRENT_SOURCE_DIR}/src"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform"
-        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/metal-cpp")
+        src/
+        vendor/metal-cpp
+)
 
 find_library(APPKIT_LIB AppKit REQUIRED)
 find_library(METAL_LIB Metal REQUIRED)
@@ -17,12 +15,39 @@ find_library(METALKIT_LIB MetalKit REQUIRED)
 find_library(QUARTZ_LIB QuartzCore REQUIRED)
 
 add_executable(test-sprite-engine
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/metal_bridge.cc"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/physics/physics.cc"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/registry/entity_registry.cc"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCAppDelegate.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/SCStage.mm"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/platform/main.mm"
+        src/assets/asset_constants.hh
+        src/assets/asset_ids.hh
+        src/assets/atlas.hh
+        src/assets/atlas.cc
+        src/assets/sprite.hh
+        src/assets/sprite.cc
+        src/core/core.hh
+        src/core/input.hh
+        src/core/mapped_view.hh
+        src/core/memory.hh
+        src/graphics/display_constants.hh
+        src/graphics/graphics_types.hh
+        src/graphics/graphics_types.cc
+        src/graphics/metal_bridge.hh
+        src/graphics/metal_bridge.cc
+        src/graphics/render_constants.hh
+        src/graphics/shader.metal
+        src/math/bbox.hh
+        src/math/utils.hh
+        src/platform/SCAppDelegate.hh
+        src/platform/SCAppDelegate.mm
+        src/platform/SCStage.hh
+        src/platform/SCStage.mm
+        src/platform/main.mm
+        src/registry/entity_registry.hh
+        src/registry/entity_registry.cc
+        src/simulation/physics.hh
+        src/simulation/physics.cc
+        src/simulation/physics_types.hh
+        src/simulation/spatial_grid.hh
+        src/simulation/spatial_grid.cc
+        src/simulation/world.hh
+        src/simulation/world.cc
 )
 
 target_compile_options(test-sprite-engine PRIVATE

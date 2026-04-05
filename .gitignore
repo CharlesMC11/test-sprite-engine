@@ -5,7 +5,7 @@
 # Python-generated files
 __pycache__/
 *.py[oc]
-build/
+build*/
 dist/
 wheels/
 *.egg-info
@@ -28,4 +28,4 @@ vendor/
 *.png
 *.atlas
 *.sprite
-*_index.hh
+*_ids.hh

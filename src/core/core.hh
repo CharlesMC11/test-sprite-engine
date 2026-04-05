@@ -14,6 +14,7 @@
 #define SC_CONSTEXPR constexpr
 #define SC_SIZE_T std::size_t
 
+#include <bit>
 #include <cstdint>
 #include <numeric>
 #include <type_traits>
@@ -27,8 +28,8 @@ namespace sc::core {
 
     using physics_t = uint8_t;
 
-    static SC_CONSTEXPR SC_SIZE_T kNeonAlignment{16UL};
-    static SC_CONSTEXPR SC_SIZE_T kCacheAlignment{128UL};
+    static SC_CONSTEXPR SC_SIZE_T kNeonAlignment{16UZ};
+    static SC_CONSTEXPR SC_SIZE_T kCacheAlignment{128UZ};
 
 #ifndef __METAL_VERSION__
 
@@ -43,7 +44,7 @@ namespace sc::core {
             std::is_standard_layout_v<T> && !std::is_polymorphic_v<T>;
 
     template<typename T>
-    constexpr bool enable_bitwise_ops_v = false;
+    constexpr bool enable_bitwise_ops_v{false};
 
     template<typename T>
     concept bitwise_enum =
@@ -114,7 +115,10 @@ constexpr T& operator^=(T& lhs, const T rhs) noexcept
 
 #define SC_ENABLE_ENUM_BITWISE_OPS(EnumType)                                   \
     template<>                                                                 \
-    inline constexpr bool sc::core::enable_bitwise_ops_v<EnumType> = true;
+    inline constexpr bool sc::core::enable_bitwise_ops_v<EnumType>{true};
+
+static_assert(std::has_single_bit(sc::core::kNeonAlignment));
+static_assert(std::has_single_bit(sc::core::kCacheAlignment));
 
 #endif // __METAL_VERSION__
 

@@ -2,25 +2,32 @@
 #define SC_PHYSICS_SPATIAL_GRID_HH
 
 #include <algorithm>
-#include <cstdint>
+#include <cstddef>
+#include <ostream>
 
 #include "graphics/display_constants.hh"
 #include "registry/entity_registry.hh"
 
-namespace sc ::physics {
+namespace sc::physics {
 
-    static constexpr int kCellSize{16U};
+    static constexpr int kCellSize{16};
     static constexpr int kColCount{display::kWidth / kCellSize};
     static constexpr int kRowCount{display::kHeight / kCellSize};
-    static constexpr std::size_t kTotalCells{kColCount * kRowCount};
+    static constexpr auto kTotalCells{
+            static_cast<std::size_t>(kColCount) * kRowCount};
 
     struct alignas(core::kCacheAlignment) spatial_grid final {
+        // Public methods
 
         inline void update(entity_registry& registry) noexcept;
+
+        // Attributes
 
         core::index_t cell_heads[kTotalCells];
 
     private:
+        // Private helpers
+
         [[nodiscard]] static constexpr core::index_t hash(
                 float x, float y) noexcept;
 
@@ -34,12 +41,14 @@ namespace sc ::physics {
         clear();
 
         core::index_t* __restrict next_ptr{registry.next_in_cell_ptr()};
-        for (std::size_t i{0UZ}; i < registry.count(); ++i) {
+
+        const auto entity_count{static_cast<core::index_t>(registry.count())};
+        for (core::index_t i{0U}; i < entity_count; ++i) {
             const core::index_t cell_idx{
-                    hash(registry.pos_x_ptr()[i], registry.pos_y_ptr()[i])};
+                    hash(registry.x_pos_ptr()[i], registry.y_pos_ptr()[i])};
 
             next_ptr[i] = cell_heads[cell_idx];
-            cell_heads[cell_idx] = static_cast<core::index_t>(i);
+            cell_heads[cell_idx] = i;
         }
     }
 
@@ -48,14 +57,14 @@ namespace sc ::physics {
     [[nodiscard]] constexpr core::index_t spatial_grid::hash(
             const float x, const float y) noexcept
     {
-        const auto ix{static_cast<core::index_t>(std::clamp(x, 0.0f,
+        const auto cx{static_cast<core::index_t>(std::clamp(x, 0.0f,
                               static_cast<float>(display::kWidth) - 1.0f)) /
                 kCellSize};
-        const auto iy{static_cast<core::index_t>(std::clamp(y, 0.0f,
+        const auto cy{static_cast<core::index_t>(std::clamp(y, 0.0f,
                               static_cast<float>(display::kHeight) - 1.0f)) /
                 kCellSize};
 
-        return iy * kColCount + ix;
+        return cy * static_cast<core::index_t>(kColCount) + cx;
     }
 
     inline void spatial_grid::clear() noexcept
@@ -65,5 +74,7 @@ namespace sc ::physics {
     }
 
 } // namespace sc::physics
+
+std::ostream& operator<<(std::ostream&, const sc::physics::spatial_grid&);
 
 #endif // SC_PHYSICS_SPATIAL_GRID_HH

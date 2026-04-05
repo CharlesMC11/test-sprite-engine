@@ -2,34 +2,18 @@
 
 #import <MetalKit/MetalKit.h>
 
-#include <cstdint>
-#include <memory>
-
-#include "assets/asset_constants.hh"
-#include "assets/atlas.hh"
-#include "assets/sprite.hh"
-#include "assets/sprite32_index.hh"
-#include "core/core.hh"
 #include "core/input.hh"
-#include "core/mapped_view.hh"
-#include "graphics/display_constants.hh"
-#include "graphics/metal_bridge.hh"
-#include "physics/physics.hh"
-#include "physics/physics_types.hh"
-#include "registry/entity_registry.hh"
+#include "simulation/world.hh"
 
 @implementation SCStage {
-    const sc::assets::atlas* _atlas;
-    std::unique_ptr<sc::entity_registry> _registry;
-    std::unique_ptr<sc::render::metal_bridge> _bridge;
+    sc::world* _world;
     float _accumulator;
     sc::input::mask _keysPressed;
 }
 
 - (instancetype)initWithFrame:(CGRect)frameRect
                        device:(id<MTLDevice>)device
-                  mappedAtlas:(const sc::core::mapped_view<sc::assets::atlas>*)
-                                      mappedAtlas
+                        world:(sc::world*)world
 {
     self = [super initWithFrame:frameRect device:device];
     if (self) {
@@ -40,28 +24,9 @@
 
         self.layer.magnificationFilter = kCAFilterNearest;
 
-        _atlas = mappedAtlas->data();
-
-        _registry = std::make_unique<sc::entity_registry>(
-                (__bridge MTL::Device*) device);
-
-        _bridge = std::make_unique<sc::render::metal_bridge>(
-                (__bridge MTL::Device*) device);
-        _bridge->set_atlas_buffer(*mappedAtlas);
-
         self.framebufferOnly = false;
 
-        constexpr auto id{sc::assets::sprite32_index::LANCIS};
-        const sc::assets::sprites::metadata& sprite{(*_atlas)[id].meta};
-        _registry->spawn((sc::display::kWidth - 32U - sprite.origin_u) * 0.5f,
-                (sc::display::kHeight - 32U - sprite.origin_v) * 0.5f, 0.0f,
-                id);
-
-        _registry->spawn(0.0f, 0.0f, 0.0f, sc::assets::sprite32_index::MYARRA);
-
-        _registry->spawn(sc::display::kWidth * 0.75f,
-                sc::display::kHeight * 0.75f, 26.0f,
-                sc::assets::sprite32_index::HEART_OW_F);
+        _world = world;
     }
 
     return self;
@@ -81,16 +46,20 @@
 {
     switch (event.keyCode) {
     case 13U:
-        _keysPressed |= sc::input::mask::UP;
+    case 126U:
+        _keysPressed |= sc::input::mask::up;
         break;
     case 1U:
-        _keysPressed |= sc::input::mask::DOWN;
+    case 125U:
+        _keysPressed |= sc::input::mask::down;
         break;
     case 0U:
-        _keysPressed |= sc::input::mask::LEFT;
+    case 123U:
+        _keysPressed |= sc::input::mask::left;
         break;
     case 2U:
-        _keysPressed |= sc::input::mask::RIGHT;
+    case 124U:
+        _keysPressed |= sc::input::mask::right;
         break;
     default:
         break;
@@ -101,16 +70,20 @@
 {
     switch (event.keyCode) {
     case 13U:
-        _keysPressed &= ~sc::input::mask::UP;
+    case 126U:
+        _keysPressed &= ~sc::input::mask::up;
         break;
     case 1U:
-        _keysPressed &= ~sc::input::mask::DOWN;
+    case 125U:
+        _keysPressed &= ~sc::input::mask::down;
         break;
     case 0U:
-        _keysPressed &= ~sc::input::mask::LEFT;
+    case 123U:
+        _keysPressed &= ~sc::input::mask::left;
         break;
     case 2U:
-        _keysPressed &= ~sc::input::mask::RIGHT;
+    case 124U:
+        _keysPressed &= ~sc::input::mask::right;
         break;
     default:
         break;
@@ -123,38 +96,8 @@
 
 - (void)drawInMTKView:(nonnull MTKView*)view
 {
-    float frameTime{1.0f / sc::display::kTargetFPS};
-    if (frameTime > 0.25f)
-        frameTime = 0.25f;
-
-    _accumulator += frameTime;
-
-    float speed{200.0f};
-    while (_accumulator >= sc::physics::kFixedTimestep) {
-        _registry->vel_x_ptr()[0UZ] = _registry->vel_y_ptr()[0UZ] = 0.0f;
-        if (sc::core::any(_keysPressed & sc::input::mask::UP))
-            _registry->vel_y_ptr()[0UZ] -= speed;
-        if (sc::core::any(_keysPressed & sc::input::mask::DOWN))
-            _registry->vel_y_ptr()[0UZ] += speed;
-        if (sc::core::any(_keysPressed & sc::input::mask::LEFT))
-            _registry->vel_x_ptr()[0UZ] -= speed;
-        if (sc::core::any(_keysPressed & sc::input::mask::RIGHT))
-            _registry->vel_x_ptr()[0UZ] += speed;
-
-        sc::physics::resolve_entity_collisions(
-                *_atlas, *_registry, sc::physics::kFixedTimestep);
-        _registry->commit();
-
-        _accumulator -= sc::physics::kFixedTimestep;
-    }
-
-    _registry->needs_sort = true;
-    _registry->sort_draw();
     const auto* drawable = (__bridge MTL::Drawable*) view.currentDrawable;
-    _bridge->begin_frame(drawable);
-    _bridge->clear();
-    _bridge->draw(*_registry);
-    _bridge->end_frame(drawable);
+    _world->update(_keysPressed, drawable);
 }
 
 @end

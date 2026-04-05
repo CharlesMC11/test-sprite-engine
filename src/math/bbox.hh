@@ -2,7 +2,9 @@
 #define SC_MATH_BBOX_HH
 
 #ifndef __METAL_VERSION__
+
 #include <cstdint>
+
 #endif
 
 namespace sc::geometry {
@@ -16,7 +18,7 @@ namespace sc::geometry {
      * This struct is compatible with both C++ and Metal.
      */
     template<typename T = uint8_t>
-    struct alignas(T) bbox final {
+    struct alignas(sizeof(T) * 4UZ) bbox final {
         // Operators
 
         template<typename U>
@@ -29,10 +31,11 @@ namespace sc::geometry {
 
         // Attributes
 
-        T min_u{0};
-        T min_v{0};
-        T max_u{0};
-        T max_v{0};
+        T u_min{0};
+        T u_max{0};
+
+        T v_min{0};
+        T v_max{0};
     };
 
     // Operators
@@ -41,8 +44,8 @@ namespace sc::geometry {
     template<typename U>
     [[nodiscard]] constexpr bbox<T>::operator bbox<U>() const
     {
-        return {static_cast<U>(min_u), static_cast<U>(min_v),
-                static_cast<U>(max_u), static_cast<U>(max_v)};
+        return {static_cast<U>(u_min), static_cast<U>(u_max),
+                static_cast<U>(v_min), static_cast<U>(v_max)};
     }
 
     // Accessors
@@ -50,13 +53,13 @@ namespace sc::geometry {
     template<typename T>
     [[nodiscard]] constexpr T bbox<T>::width() const
     {
-        return max_u - min_u;
+        return u_max - u_min;
     }
 
     template<typename T>
     [[nodiscard]] constexpr T bbox<T>::height() const
     {
-        return max_v - min_v;
+        return v_max - v_min;
     }
 
 } // namespace sc::geometry

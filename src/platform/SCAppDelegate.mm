@@ -1,6 +1,7 @@
 #import "SCAppDelegate.hh"
 
 #import <Cocoa/Cocoa.h>
+#import <Metal/MTLDevice.h>
 #import <MetalKit/MetalKit.h>
 
 #include <memory>
@@ -10,9 +11,10 @@
 #include "assets/atlas.hh"
 #include "core/mapped_view.hh"
 #include "graphics/display_constants.hh"
+#include "simulation/world.hh"
 
 @implementation SCAppDelegate {
-    std::unique_ptr<sc::core::mapped_view<sc::assets::atlas>> _mappedAtlas;
+    std::unique_ptr<sc::world> _world;
 }
 
 - (void)applicationDidFinishLaunching:(nonnull NSNotification*)notification
@@ -34,21 +36,11 @@
 
     id<MTLDevice> device{MTLCreateSystemDefaultDevice()};
 
-    _mappedAtlas = std::make_unique<sc::core::mapped_view<sc::assets::atlas>>(
-            sc::assets::kAtlas);
-    if (!(_mappedAtlas && *_mappedAtlas)) {
-        NSLog(@"FATAL: Could not map atlas file!");
-        abort();
-    }
-    if (!sc::assets::atlas::validate(
-                _mappedAtlas->data(), _mappedAtlas->size())) {
-        NSLog(@"FATAL: Atlas has an invalid header!");
-        abort();
-    }
+    _world = std::make_unique<sc::world>((__bridge MTL::Device*) device);
 
     self.view = [[SCStage alloc] initWithFrame:frame
                                         device:device
-                                   mappedAtlas:_mappedAtlas.get()];
+                                         world:_world.get()];
 
     self.window.contentView = self.view;
     [self.window makeKeyAndOrderFront:nil];

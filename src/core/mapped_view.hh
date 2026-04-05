@@ -7,6 +7,8 @@
 #include <unistd.h>
 
 #include <cstddef>
+#include <ostream>
+#include <stdexcept>
 
 #include "core/core.hh"
 
@@ -23,8 +25,7 @@ namespace sc::core {
     public:
         // Constructors
 
-        [[nodiscard]] explicit constexpr mapped_view(
-                const char path[]) noexcept;
+        [[nodiscard]] explicit constexpr mapped_view(const char path[]);
 
         mapped_view(const mapped_view&) = delete;
         mapped_view& operator=(const mapped_view&) = delete;
@@ -37,7 +38,11 @@ namespace sc::core {
         // Operators
 
         [[nodiscard]] explicit constexpr operator bool() const noexcept;
+
         [[nodiscard]] constexpr auto operator->() const noexcept
+                -> const T* __restrict;
+
+        [[nodiscard]] constexpr auto operator*() const noexcept
                 -> const T* __restrict;
 
         // Accessors
@@ -56,24 +61,26 @@ namespace sc::core {
     // Constructors
 
     template<mappable T>
-    constexpr mapped_view<T>::mapped_view(const char path[]) noexcept
+    constexpr mapped_view<T>::mapped_view(const char path[])
     {
+        const std::runtime_error no_read{"Could not read the atlas."};
+
         const int fd{open(path, O_RDONLY)};
         if (fd < 0) [[unlikely]]
-            return;
+            throw no_read;
 
-        struct stat st;
+        struct stat st{};
         if (fstat(fd, &st) < 0) [[unlikely]] {
             close(fd);
-            return;
+            throw no_read;
         }
         size_ = static_cast<std::size_t>(st.st_size);
 
-        const void* result =
-                mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd, 0UZ);
+        const void* result{
+                mmap(nullptr, size_, PROT_READ, MAP_SHARED, fd, 0UZ)};
         if (result == MAP_FAILED) [[unlikely]] {
             close(fd);
-            return;
+            throw std::runtime_error{"Could not map the atlas."};
         }
 
         buffer_ = static_cast<const T*>(result);
@@ -102,6 +109,13 @@ namespace sc::core {
         return buffer_;
     }
 
+    template<mappable T>
+    [[nodiscard]] constexpr auto mapped_view<T>::operator*() const noexcept
+            -> const T* __restrict
+    {
+        return buffer_;
+    }
+
     // Accessors
 
     template<mappable T>
@@ -118,5 +132,13 @@ namespace sc::core {
     }
 
 } // namespace sc::core
+
+template<sc::core::mappable T>
+std::ostream& operator<<(std::ostream& out, const sc::core::mapped_view<T>& map)
+{
+    out << std::format("Mapped View: {} B | ", map.size()) << *map.data();
+
+    return out;
+}
 
 #endif // SC_CORE_MAPPED_VIEW_HH

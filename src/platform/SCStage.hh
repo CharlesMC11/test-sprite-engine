@@ -3,15 +3,13 @@
 
 #import <MetalKit/MetalKit.h>
 
-#include "assets/atlas.hh"
-#include "core/mapped_view.hh"
+#include "simulation/world.hh"
 
 @interface SCStage : MTKView <MTKViewDelegate>
 
 - (instancetype)initWithFrame:(CGRect)frameRect
                        device:(id<MTLDevice>)device
-                  mappedAtlas:(const sc::core::mapped_view<sc::assets::atlas>*)
-                                      atlas;
+                        world:(sc::world*)world;
 
 @end
 

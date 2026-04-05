@@ -1,6 +1,12 @@
 #ifndef SC_GRAPHICS_VISUAL_TYPES_HH
 #define SC_GRAPHICS_VISUAL_TYPES_HH
 
+#ifndef __METAL_VERSION__
+
+#include <ostream>
+
+#endif //__METAL_VERSION__
+
 #include "core/core.hh"
 
 namespace sc::graphics {
@@ -16,12 +22,12 @@ namespace sc::graphics {
     static SC_CONSTEXPR uint32_t kMaskSpecular{0x80U};
 
     /**
-     * Distribution of color channels across a 16-bit packed integer.
+     * Distribution of color bits across a 2-byte packed integer.
      */
     enum class color_encoding : uint8_t {
-        DEFAULT, // R5G6B5
-        WARM, // R6G5B5
-        COOL // R5G5B6
+        neutral, // R5G6B5
+        warm, // R6G5B5
+        cool // R5G5B6
     };
 
     /**
@@ -32,5 +38,11 @@ namespace sc::graphics {
     };
 
 } // namespace sc::graphics
+
+#ifndef __METAL_VERSION__
+
+std::ostream& operator<<(std::ostream&, const sc::graphics::palette&);
+
+#endif // __METAL_VERSION__
 
 #endif // SC_GRAPHICS_VISUAL_TYPES_HH

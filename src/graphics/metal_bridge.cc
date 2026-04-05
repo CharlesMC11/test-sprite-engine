@@ -7,7 +7,7 @@
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
 
-#include <iostream>
+#include <stdexcept>
 
 #include "assets/asset_constants.hh"
 #include "assets/atlas.hh"
@@ -36,20 +36,18 @@ namespace sc::render {
 
         clear_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
-        if (!clear_pso_) [[unlikely]] {
-            std::cerr << error->localizedDescription() << '\n';
-            throw;
-        }
+        if (!clear_pso_) [[unlikely]]
+            throw std::runtime_error{
+                    error->localizedDescription()->utf8String()};
 
         fn_name = NS::String::string("k_draw_sprites", NS::UTF8StringEncoding);
         function = library->newFunction(fn_name);
 
         sprite_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
-        if (!sprite_pso_) [[unlikely]] {
-            std::cerr << error->localizedDescription() << '\n';
-            throw;
-        }
+        if (!sprite_pso_) [[unlikely]]
+            throw std::runtime_error{
+                    error->localizedDescription()->utf8String()};
 
         function->release();
         library->release();
@@ -96,24 +94,21 @@ namespace sc::render {
         encoder_->setBuffer(atlas_buffer_.get(), sprite32_span_offset_,
                 BUFFER_INDEX_SPRITES);
 
-        using reg = entity_registry;
+        using xform = entity_registry::xform_channel;
+        encoder_->setBuffer(registry.xform_buffer(),
+                registry.offset(xform::x_pos), BUFFER_INDEX_X_POSITIONS);
+        encoder_->setBuffer(registry.xform_buffer(),
+                registry.offset(xform::y_pos), BUFFER_INDEX_Y_POSITIONS);
+        encoder_->setBuffer(registry.xform_buffer(),
+                registry.offset(xform::z_pos), BUFFER_INDEX_Z_POSITIONS);
 
-        encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::X_POSITION),
-                BUFFER_INDEX_X_POSITIONS);
-        encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::Y_POSITION),
-                BUFFER_INDEX_Y_POSITIONS);
-        encoder_->setBuffer(registry.xform_buffer(),
-                registry.offset(reg::xform_channel::Z_POSITION),
-                BUFFER_INDEX_Z_POSITIONS);
+        using index = entity_registry::index_channel;
 
         encoder_->setBuffer(registry.index_buffer(),
-                registry.offset(reg::index_channel::SPRITE32_INDEX),
+                registry.offset(index::sprite_index),
                 BUFFER_INDEX_ATLAS_INDICES);
         encoder_->setBuffer(registry.index_buffer(),
-                registry.offset(reg::index_channel::DRAW_ORDER),
-                BUFFER_INDEX_DRAW_ORDER);
+                registry.offset(index::draw_order), BUFFER_INDEX_DRAW_ORDER);
 
         const auto count{static_cast<std::uint32_t>(registry.count())};
         encoder_->setBytes(&count, sizeof(count), BUFFER_INDEX_ENTITY_COUNT);
@@ -129,7 +124,7 @@ namespace sc::render {
     void metal_bridge::set_atlas_buffer(
             const core::mapped_view<assets::atlas>& atlas)
     {
-        const auto meta{atlas->meta};
+        const assets::atlas::metadata meta{atlas->meta};
 
         constexpr std::size_t metadata_size{sizeof(meta)};
         const std::size_t palette_span_size{
@@ -143,10 +138,8 @@ namespace sc::render {
 
         atlas_buffer_ = NS::TransferPtr(device_->newBuffer(atlas.data(),
                 total_size, MTL::ResourceStorageModeShared, nullptr));
-        if (!atlas_buffer_) [[unlikely]] {
-            std::cerr << "Metal buffer is empty!\n";
-            throw;
-        }
+        if (!atlas_buffer_) [[unlikely]]
+            throw std::runtime_error{"Could not allocate a Metal buffer."};
 
         palette_span_offset_ = metadata_size;
         sprite32_span_offset_ =
