@@ -98,7 +98,7 @@ namespace sc {
         draw_order_needs_sort = true;
     }
 
-    void entity_registry::spawn(const assets::sprite32_index i, const float x,
+    void entity_registry::spawn(const assets::sprite32_id i, const float x,
             const float y, const float z) noexcept
     {
         spawn(static_cast<core::index_t>(i), x, y, z);

@@ -1,12 +1,12 @@
 """
-Sprite Compiler.
+Asset Compiler.
 
 Bakes a source (BGR/RGBA) image and optional emission & specular masks
 into a specialized binary format of at least 58 bytes.
 
 The binary layout contains:
 - Header (24 bytes):
-    - Magic (8 bytes): 'SC SP v5'
+    - Magic (8 bytes)
     - Sprite metadata (16 bytes)
         - Bounding box (4 bytes)
             - u_min, u_max (2 bytes)
@@ -45,6 +45,8 @@ from pipeline import (
     ResourceLayoutError,
     ResourceLayoutWarning,
     SpriteMetadata,
+    calculate_padding_needed,
+    is_power_of_2,
 )
 
 # Types
@@ -178,7 +180,7 @@ def ingest_asset(
         raise RuntimeError("Could not read source image.")
 
     height, width = image.shape[:2]
-    if not (_is_power_of_2(height) and _is_power_of_2(width)):
+    if not (is_power_of_2(height) and is_power_of_2(width)):
         raise ResourceLayoutError(
             f"Source image '{bgra_image_path.name}' dimensions must be a "
             f"power of 2 (8, 16, 32, etc...)! Got {width}×{height}."
@@ -283,13 +285,11 @@ def compile_asset(output_path: Path, components: SpriteComponents) -> None:
     """
 
     meta = components.metadata
-    header_bytes = meta.MAGIC + meta.to_bytes()
+    header_bytes = meta.to_bytes()
 
     pixels, palette = _bake_pixels(components, output_path.name)
     pixel_bytes = pixels.tobytes(order="C")
-    padding_needed = (
-                         NEON_ALIGNMENT - len(pixel_bytes) % NEON_ALIGNMENT
-                     ) % NEON_ALIGNMENT
+    padding_needed = calculate_padding_needed(len(pixel_bytes), NEON_ALIGNMENT)
     pixel_bytes += b"\x00" * padding_needed
 
     palette_bytes = bytearray()
@@ -313,7 +313,7 @@ def compile_asset(output_path: Path, components: SpriteComponents) -> None:
     if len(combined_buffer) != sprite_size_bytes:
         raise ResourceLayoutError(
             f"Buffer size mismatch for {output_path.name}! "
-            f"Expected {sprite_size_bytes} bytes, got {combined_buffer} bytes "
+            f"Expected {sprite_size_bytes} bytes, got {len(combined_buffer)} bytes "
             f"(Metadata: {len(header_bytes)} bytes, Pixels: {len(pixel_bytes)} bytes, "
             f"Palette: {len(palette_bytes)} bytes, Dimensions: {len(footer_bytes)})."
         )
@@ -322,17 +322,6 @@ def compile_asset(output_path: Path, components: SpriteComponents) -> None:
 
 
 # Protected helpers
-
-
-def _is_power_of_2(n: int) -> bool:
-    """
-    Check if a number is a power of 2.
-
-    :param n: The number to check.
-    :return: `True` if it is; `False` otherwise.
-    """
-
-    return n > 0 and (n & (n - 1)) == 0
 
 
 def _calculate_bounding_box(mask: AlphaMask) -> tuple[int, int, int, int]:
@@ -397,7 +386,7 @@ def _bake_pixels(
     - [0–3] Palette Index: Pointer to one of the 16 colors.
 
     :param pixel_components: The components to bake.
-    :param asset_name: The asset name.
+    :param asset_name: The asset identifier.
 
     :returns: The baked pixels.
     """
@@ -436,7 +425,7 @@ def _extract_palette(bgr_array: BGRImage, asset_name: str) -> Palette:
     Extract 16 unique colors from the source image.
 
     :param bgr_array: The flattened bgr pixels array from the source image.
-    :param asset_name: The asset name.
+    :param asset_name: The asset identifier.
 
     :returns: The 16 unique colors that were extracted.
     """

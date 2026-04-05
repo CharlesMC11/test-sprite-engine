@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <ostream>
 
-#include "assets/atlas_index.hh"
+#include "assets/asset_ids.hh"
 #include "core/core.hh"
 #include "core/memory.hh"
 
@@ -159,8 +159,7 @@ namespace sc {
          * The starting aerial position.
          */
         void spawn(core::index_t i, float x, float y, float z) noexcept;
-        void spawn(
-                assets::sprite32_index i, float x, float y, float z) noexcept;
+        void spawn(assets::sprite32_id i, float x, float y, float z) noexcept;
 
         // Accessors
 

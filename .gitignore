@@ -28,4 +28,4 @@ vendor/
 *.png
 *.atlas
 *.sprite
-*_index.hh
+*_ids.hh

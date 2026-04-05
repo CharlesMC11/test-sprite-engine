@@ -6,14 +6,14 @@
 #include <ostream>
 #include <span>
 
-#include "assets/atlas_index.hh"
+#include "assets/asset_ids.hh"
 #include "assets/sprite.hh"
 #include "core/core.hh"
 #include "graphics/graphics_types.hh"
 
 namespace sc::assets {
 
-    static constexpr std::uint64_t kAtlasMagicBytes{0x3476205441204353ULL};
+    static constexpr std::uint64_t kAtlasMagicBytes{0x3676205441204353ULL};
 
     /**
      * A contiguous collection of sprites.
@@ -40,13 +40,13 @@ namespace sc::assets {
 
         // Operators
 
-        [[nodiscard]] constexpr auto operator[](palette_index i) const noexcept
+        [[nodiscard]] constexpr auto operator[](palette_id i) const noexcept
                 -> const graphics::palette&;
 
-        [[nodiscard]] constexpr auto operator[](sprite16_index i) const noexcept
+        [[nodiscard]] constexpr auto operator[](sprite16_id i) const noexcept
                 -> const sprite16&;
 
-        [[nodiscard]] constexpr auto operator[](sprite32_index i) const noexcept
+        [[nodiscard]] constexpr auto operator[](sprite32_id i) const noexcept
                 -> const sprite32&;
 
         // Accessors
@@ -97,19 +97,19 @@ namespace sc::assets {
     // Operators
 
     [[nodiscard]] constexpr auto atlas::operator[](
-            const palette_index i) const noexcept -> const graphics::palette&
+            const palette_id i) const noexcept -> const graphics::palette&
     {
         return palette_span()[static_cast<std::size_t>(i)];
     }
 
     [[nodiscard]] constexpr auto atlas::operator[](
-            const sprite16_index i) const noexcept -> const sprite16&
+            const sprite16_id i) const noexcept -> const sprite16&
     {
         return sprite16_span()[static_cast<std::size_t>(i)];
     }
 
     [[nodiscard]] constexpr auto atlas::operator[](
-            const sprite32_index i) const noexcept -> const sprite32&
+            const sprite32_id i) const noexcept -> const sprite32&
     {
         return sprite32_span()[static_cast<std::size_t>(i)];
     }

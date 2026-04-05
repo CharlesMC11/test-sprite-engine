@@ -1,11 +1,11 @@
 """
-Atlas Linker.
+Asset Linker.
 
-Assembles multiple sprite files into a single memory–mappable atlas binary.
+Assembles multiple asset files into a single memory–mappable atlas binary.
 
 The binary layout contains:
 - Header (16 bytes): atlas metadata
-    - Magic (8 bytes): 'SC AT v4'
+    - Magic (8 bytes)
     - 16×16 sprite count (4 bytes)
     - 32×32 sprite count (2 bytes)
     - Palette count (2 bytes)
@@ -15,69 +15,85 @@ The binary layout contains:
     - 32×32 sprites (1,040 × 32×32 sprite count bytes)
 """
 
-import struct
+import re
 from argparse import ArgumentParser
-from collections.abc import Sequence
+from collections.abc import Iterable
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Final
+from typing import Any
 
 from pipeline import (
-    ATLAS_METADATA_LAYOUT,
     FOOTER_SIZE_BYTES,
     SPRITE_DIMENSIONS_SIZE_BYTES,
-    SPRITE_MINIMUM_FILE_SIZE_BYTES,
+    AtlasMetadata,
     ResourceLayoutError,
     SpriteMetadata,
+    is_power_of_2,
 )
 
-ATLAS_MAGIC: Final[bytes] = b"SC AT v4"
+GENERATED_HEADER_FILENAME = "asset_ids.hh"
+
+INDENT = " " * 4
+INVALID_IDENTIFIER_SYMBOLS_RE = re.compile(r"\s")
 
 
-class AtlasLinker:
-    """Assembles multiple `.sprite` files into a singler memory-mappable atlas."""
+@dataclass(frozen=True, slots=True)
+class ComponentBlob:
+    blob: bytes
+    name: str
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            self.blob == other.blob
+            if isinstance(other, ComponentBlob)
+            else False
+        )
+
+    def __hash__(self) -> int:
+        return hash(self.blob)
+
+
+@dataclass(frozen=True, slots=True)
+class AssetBlob(ComponentBlob):
+    width: int
+    height: int
+
+
+class AssetLinker:
+    """Assembles multiple `.asset` files into a singler memory-mappable atlas."""
 
     # Type annotations
 
-    _palette_blobs: list[bytes]
-    _palette_names: list[str]
+    _metadata: AtlasMetadata
 
-    _sprite8_blobs: list[bytearray]
-    _sprite8_names: list[str]
+    _palette_registry: dict[ComponentBlob, int]
+    _asset_registry: dict[tuple[int, int], tuple[str, list[AssetBlob]]]
 
-    _sprite16_blobs: list[bytearray]
-    _sprite16_names: list[str]
+    _blobs: list[AssetBlob]
 
-    _sprite32_blobs: list[bytearray]
-    _sprite32_names: list[str]
-
-    _sprite64_blobs: list[bytearray]
-    _sprite64_names: list[str]
+    _current_offset: int
+    _sprite8_offset: int
+    _sprite16_offset: int
+    _sprite32_offset: int
+    _sprite64_offset: int
 
     # Magic methods
 
     def __init__(self):
-        self._palette_blobs = []
-        self._palette_names = []
 
-        self._sprite8_blobs = []
-        self._sprite8_names = []
+        self._palette_registry = {}
+        self._asset_registry = {
+            (16, 16): ("sprite16", []),
+            (32, 32): ("sprite32", []),
+        }
 
-        self._sprite16_blobs = []
-        self._sprite16_names = []
-
-        self._sprite32_blobs = []
-        self._sprite32_names = []
-
-        self._sprite64_blobs = []
-        self._sprite64_names = []
+        self._sprite8_offset = 0
+        self._sprite16_offset = 0
+        self._sprite32_offset = 0
+        self._sprite64_offset = 0
 
     def __len__(self) -> int:
-        return (
-            len(self._sprite8_blobs)
-            + len(self._sprite16_blobs)
-            + len(self._sprite32_blobs)
-            + len(self._sprite64_blobs)
-        )
+        return sum(len(b) for b in self._asset_registry.values())
 
     # Public methods
 
@@ -95,9 +111,9 @@ class AtlasLinker:
                 if path := line.strip():
                     paths.append(Path(path).expanduser())
 
-        self.add_sprites(paths)
+        self.add_asset(paths)
 
-    def add_sprites(self, sprite_paths: Sequence[Path]) -> None:
+    def add_asset(self, sprite_paths: Iterable[Path]) -> None:
         """
         Ingest and validate sprite binaries.
 
@@ -109,52 +125,43 @@ class AtlasLinker:
             or has invalid dimensions.
         """
 
+        asset_magic_size = len(SpriteMetadata.MAGIC)
+
         for path in sprite_paths:
             if not path.exists():
                 raise FileNotFoundError(f"Sprite not found: {path}.")
 
             blob = path.read_bytes()
-            if blob[:SpriteMetadata.MAGIC_SIZE_BYTES] != SpriteMetadata.MAGIC:
-                raise ValueError("Invalid magic bytes in file.")
+            meta = SpriteMetadata.from_bytes(blob)
 
-            if len(blob) <= SPRITE_MINIMUM_FILE_SIZE_BYTES:
-                raise ResourceLayoutError(
-                    f"'{path.name}' must be bigger than {SPRITE_MINIMUM_FILE_SIZE_BYTES} bytes."
-                )
-
-            sprite_blob = bytearray(blob[:-FOOTER_SIZE_BYTES])
+            pixels_blob = blob[meta.EXPECTED_SIZE_BYTES : -FOOTER_SIZE_BYTES]
             palette_blob = blob[
                 -FOOTER_SIZE_BYTES:-SPRITE_DIMENSIONS_SIZE_BYTES
             ]
             width, height = blob[-SPRITE_DIMENSIONS_SIZE_BYTES:]
 
-            if palette_blob not in self._palette_blobs:
-                self._palette_blobs.append(palette_blob)
-                self._palette_names.append(f"{path.stem}_palette")
-
-            sprite_blob[SpriteMetadata.PALETTE_INDEX_OFFSET] = (
-                self._palette_blobs.index(palette_blob)
-            )
-
-            if height == 8 and width == 8:
-                blob_dst = self._sprite8_blobs
-                name_dst = self._sprite8_names
-            elif height == 16 and width == 16:
-                blob_dst = self._sprite16_blobs
-                name_dst = self._sprite16_names
-            elif height == 32 and width == 32:
-                blob_dst = self._sprite32_blobs
-                name_dst = self._sprite32_names
-            elif height == 64 and width == 64:
-                blob_dst = self._sprite64_blobs
-                name_dst = self._sprite64_names
-            else:
+            if not (is_power_of_2(width) and is_power_of_2(height)):
                 raise ResourceLayoutError(
-                    f"'{path.name}' has invalid dimensions: {width}{height}!"
+                    f"'{path.name}' has invalid dimensions: {width}×{height}!"
                 )
 
-            blob_dst.append(sprite_blob)
-            name_dst.append(path.stem)
+            name = _clean_identifier(path.stem)
+
+            palette = ComponentBlob(palette_blob, name)
+            if palette not in self._palette_registry:
+                self._palette_registry[palette] = len(self._palette_registry)
+
+            meta.palette_index = self._palette_registry[palette]
+
+            header_bytes = meta.to_bytes()[asset_magic_size:]
+            asset = AssetBlob(header_bytes + pixels_blob, name, width, height)
+
+            if (width, height) in self._asset_registry:
+                self._asset_registry[width, height][1].append(asset)
+            else:
+                raise ResourceLayoutError(
+                    f"Unsupported asset dimensions: {width}×{height}."
+                )
 
     def link(self, output_path: Path) -> None:
         """
@@ -166,77 +173,73 @@ class AtlasLinker:
         :param output_path: The path to save the atlas to.
         """
 
-        metadata_bytes = struct.pack(
-            ATLAS_METADATA_LAYOUT,
-            ATLAS_MAGIC,
-            len(self._sprite16_blobs),
-            len(self._sprite32_blobs),
-            len(self._palette_blobs),
-        )
-
-        with output_path.open("wb") as f:
-            f.write(metadata_bytes)
-            for palette in self._palette_blobs:
-                f.write(palette)
-            for sprite in self._sprite16_blobs:
-                f.write(sprite)
-            for sprite in self._sprite32_blobs:
-                f.write(sprite)
-
-        self._generate_enum_header(output_path.with_name("atlas_index.hh"))
-
-    # Protected static methods
-
-    def _generate_enum_header(self, header_path: Path) -> None:
-        """
-        Generate a C++ enum that maps a sprite to its atlas index.
-
-        :param header_path: The path to save the header to.
-        """
-
-        indent = " " * 4
-
-        def enum_name(name: str) -> str:
-            return f"{indent}enum class {name} : core::index_t {{"
-
-        def clean_name(name: str) -> str:
-            return name.replace(" ", "_").replace("-", "_").upper()
-
+        header_path = output_path.with_name(GENERATED_HEADER_FILENAME)
         include_guard = f"SC_ASSETS_{header_path.stem.upper()}_HH"
-
-        lines = [
+        header_lines = [
             f"#ifndef {include_guard}",
             f"#define {include_guard}\n",
             '#include "core/core.hh"\n',
             "namespace sc::assets {\n",
         ]
 
-        if self._palette_blobs:
-            lines.append(enum_name("palette_index"))
-            for name in self._palette_names:
-                lines.append(f"{indent * 2}{clean_name(name)},")
-            lines.append(f"{indent}}};\n")
+        assets_bytes = bytearray()
 
-        if self._sprite16_blobs:
-            lines.append(enum_name("sprite16_index"))
-            for name in self._sprite16_names:
-                lines.append(f"{indent * 2}{clean_name(name)},")
-            lines.append(f"{indent}}};\n")
+        blobs, lines = self._generate_enum_contents(
+            "palette", self._palette_registry
+        )
+        assets_bytes.extend(blobs)
+        header_lines.extend(lines)
 
-        if self._sprite32_blobs:
-            lines.append(enum_name("sprite32_index"))
-            for name in self._sprite32_names:
-                lines.append(f"{indent * 2}{clean_name(name)},")
-            lines.append(f"{indent}}};\n")
+        for name, buffer in self._asset_registry.values():
+            blobs, lines = self._generate_enum_contents(name, buffer)
+            assets_bytes.extend(blobs)
+            header_lines.extend(lines)
 
-        lines.extend(
-            (
-                "} // namespace sc::assets\n",
-                f"#endif // {include_guard}",
-            )
+        header_lines.extend(
+            ("} // namespace sc::assets\n", f"#endif // {include_guard}")
         )
 
-        header_path.write_text("\n".join(lines))
+        metadata_bytes = AtlasMetadata(
+            len(self._asset_registry[16, 16][1]),
+            len(self._asset_registry[32, 32][1]),
+            len(self._palette_registry),
+        ).to_bytes()
+
+        output_path.write_bytes(metadata_bytes + assets_bytes)
+        header_path.write_text("\n".join(header_lines))
+
+    # Protected  methods
+
+    def _generate_enum_contents(
+        self, name: str, buffer: Iterable[ComponentBlob]
+    ) -> tuple[bytes, list[str]]:
+        """
+        Generate an enum containing asset IDs.
+
+        :param name: The name to give the enum.
+        :param buffer: The buffer to extract the values from.
+
+        :return: The asset blobs and the lines of the enum to write.
+        """
+
+        blobs = bytearray()
+        lines: list[str] = [self._enum_name(name)]
+
+        for i, asset in enumerate(buffer):
+            blobs.extend(asset.blob)
+            lines.append(f"{INDENT * 2}{_clean_identifier(asset.name)} = {i}U,")
+        lines.extend((f"{INDENT * 2}count", f"{INDENT}}};\n"))
+
+        return blobs, lines
+
+    # Protected static methods
+
+    @staticmethod
+    def _enum_name(name: str) -> str:
+        return f"{INDENT}enum class {name}_id : core::index_t {{"
+
+
+# Public functions
 
 
 def main() -> None:
@@ -256,18 +259,32 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    linker = AtlasLinker()
+    linker = AssetLinker()
 
     if args.file:
         linker.add_from_file_list(args.file)
 
     if args.input:
-        linker.add_sprites(args.input)
+        linker.add_asset(args.input)
 
     if len(linker) == 0:
-        raise ValueError("No sprites to link.")
+        raise ValueError("No assets to link.")
 
     linker.link(args.output_path)
+
+
+# Protected helpers
+
+
+def _clean_identifier(identifier: str) -> str:
+    """
+    Clean a string to be a valid C++ identifier.
+
+    :param identifier: The string to clean.
+
+    :return: The cleaned string.
+    """
+    return INVALID_IDENTIFIER_SYMBOLS_RE.sub("_", identifier).lower()
 
 
 if __name__ == "__main__":

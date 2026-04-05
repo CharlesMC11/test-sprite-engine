@@ -16,13 +16,11 @@ find_library(QUARTZ_LIB QuartzCore REQUIRED)
 
 add_executable(test-sprite-engine
         src/assets/asset_constants.hh
+        src/assets/asset_ids.hh
         src/assets/atlas.hh
         src/assets/atlas.cc
-        src/assets/palette_index.hh
         src/assets/sprite.hh
         src/assets/sprite.cc
-        src/assets/sprite16_index.hh
-        src/assets/sprite32_index.hh
         src/core/core.hh
         src/core/input.hh
         src/core/mapped_view.hh

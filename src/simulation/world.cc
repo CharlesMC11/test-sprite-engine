@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "assets/asset_constants.hh"
+#include "assets/asset_ids.hh"
 #include "graphics/display_constants.hh"
 #include "simulation/physics.hh"
 #include "simulation/physics_types.hh"
@@ -22,14 +23,14 @@ namespace sc {
 
         bridge_.set_atlas_buffer(atlas_);
 
-        constexpr auto idx{assets::sprite32_index::LANCIS};
+        constexpr auto idx{assets::sprite32_id::lancis};
         const assets::sprites::metadata sprite{atlas_->operator[](idx).meta};
         registry_.spawn(idx, (display::kWidth - 32U - sprite.u_anchor) * 0.5f,
                 (display::kHeight - 32U - sprite.v_anchor) * 0.5f, 0.0f);
 
-        registry_.spawn(assets::sprite32_index::MYARRA, 0.0f, 0.0f, 0.0f);
+        registry_.spawn(assets::sprite32_id::myarra, 0.0f, 0.0f, 0.0f);
 
-        registry_.spawn(assets::sprite32_index::HEART_OW_F,
+        registry_.spawn(assets::sprite32_id::heart_ow_f,
                 display::kWidth * 0.75f, display::kHeight * 0.75f, 25.0f);
     }
 
