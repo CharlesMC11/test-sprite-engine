@@ -7,6 +7,9 @@ from enum import IntEnum, IntFlag
 from struct import Struct
 from typing import ClassVar, Final, Self
 
+import numpy as np
+import numpy.typing as npt
+
 # Core
 
 NEON_ALIGNMENT: Final[int] = 16
@@ -32,6 +35,9 @@ FOOTER_SIZE_BYTES: Final[int] = (
     PALETTE_SIZE_BYTES + SPRITE_DIMENSIONS_SIZE_BYTES
 )
 """ The total size of the sprite footer in bytes."""
+
+
+type BGRImage = npt.NDArray[np.uint8]
 
 
 class ResourceLayoutError(Exception): ...
