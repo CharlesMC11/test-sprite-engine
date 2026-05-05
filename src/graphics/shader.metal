@@ -76,7 +76,7 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
 
     float4 out_color{out.read(gid)};
 
-    for (uint i{0U}; i < entity_count; ++i) {
+    for (auto i{0U}; i < entity_count; ++i) {
         const sc::core::index_t draw_idx{draw_order[i]};
 
         const auto entity_coord{float2(pos_x_ptr[draw_idx],
