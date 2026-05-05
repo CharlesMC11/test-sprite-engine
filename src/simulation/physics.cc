@@ -169,42 +169,25 @@ namespace sc::physics {
                     std::isless(a.zenith, b.nadir))
                 return result;
 
-            z_entry_time = -core::kInfinity;
-            z_exit_time = core::kInfinity;
-        }
-        else {
-            const float z_entry_pos{!std::signbit(z_vel) ? b.nadir - a.zenith
-                                                         : b.zenith - a.nadir};
-            const float z_exit_pos{!std::signbit(z_vel) ? b.zenith - a.nadir
-                                                        : b.nadir - a.zenith};
-
-            const float z_vel_inv{1.0f / z_vel};
-            z_entry_time = z_entry_pos * z_vel_inv;
-            z_exit_time = z_exit_pos * z_vel_inv;
-        }
-
-        const float entry_times[3U]{x_entry_time, y_entry_time, z_entry_time};
         const float entry_time{
-                *std::ranges::max_element(
-                        std::begin(entry_times), std::end(entry_times)),
-        };
+                std::max({x_entry_time, y_entry_time, z_entry_time})};
         const float exit_time{
                 std::min({x_exit_time, y_exit_time, z_exit_time})};
-        const bool exit_times_are_neg{std::signbit(
-                std::max({x_exit_time, y_exit_time, z_exit_time}))};
-        if (entry_time > exit_time || std::isgreater(entry_time, 1.0f) ||
-                std::signbit(entry_time) || exit_times_are_neg)
+        if (std::signbit(exit_time) || entry_time > exit_time ||
+                std::isgreater(entry_time, 1.0f))
             return result;
 
         result.time = entry_time;
 
-        unsigned max_axis{x_entry_time > y_entry_time ? 0U : 1U};
-        if (z_entry_time > entry_times[max_axis])
-            max_axis = 2U;
+        const bool x_is_max{std::isgreaterequal(x_entry_time, y_entry_time) &&
+                std::isgreaterequal(x_entry_time, z_entry_time)};
+        const bool y_is_max{
+                !x_is_max && std::isgreaterequal(y_entry_time, z_entry_time)};
 
-        result.normal_x = max_axis == 0U ? std::copysign(1.0f, -x_vel) : 0.0f;
-        result.normal_y = max_axis == 1U ? std::copysign(1.0f, -y_vel) : 0.0f;
-        result.normal_z = max_axis == 2U ? std::copysign(1.0f, -z_vel) : 0.0f;
+        result.normal_x = x_is_max ? std::copysign(1.0f, -x_vel) : 0.0f;
+        result.normal_y = y_is_max ? std::copysign(1.0f, -y_vel) : 0.0f;
+        result.normal_z =
+                !x_is_max && !y_is_max ? std::copysign(1.0f, -z_vel) : 0.0f;
 
         return result;
     }
@@ -251,4 +234,5 @@ namespace sc::physics {
         registry.y_vel_ptr()[i] = slide_y;
         registry.z_vel_ptr()[i] = slide_z;
     }
+
 } // namespace sc::physics
