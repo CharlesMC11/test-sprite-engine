@@ -60,6 +60,7 @@ namespace sc::core {
 
     inline constexpr float kEpsilon{float_limits::epsilon()};
     inline constexpr float kInfinity{float_limits::infinity()};
+    inline constexpr float kNaN{float_limits::quiet_NaN()};
 
 #endif // __METAL_VERSION__
 

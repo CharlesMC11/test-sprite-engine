@@ -115,59 +115,54 @@ namespace sc::physics {
         }
     }
 
+    [[nodiscard]] static std::pair<float, float> calculate_entry_exit_times(
+            const float vel, const float a_min, const float a_max,
+            const float b_min, const float b_max)
+    {
+        float entry_time, exit_time;
+        if (std::isless(std::abs(vel), core::kEpsilon)) {
+            if (std::isless(a_max, b_min) || std::isgreater(a_min, b_max))
+                return {core::kNaN, core::kNaN};
+
+            entry_time = -core::kInfinity;
+            exit_time = core::kInfinity;
+        }
+        else {
+            const float entry_pos{
+                    !std::signbit(vel) ? b_min - a_max : b_max - a_min};
+            const float exit_pos{
+                    !std::signbit(vel) ? b_max - a_min : b_min - a_max};
+
+            const float vel_inv{1.0f / vel};
+            entry_time = entry_pos * vel_inv;
+            exit_time = exit_pos * vel_inv;
+        }
+
+        return {entry_time, exit_time};
+    }
+
     [[nodiscard]] static sweep_result sweep_aabb(
             const aabb& a, const aabb& b, const float dt)
     {
         sweep_result result;
 
         const float x_vel{(a.x_vel - b.x_vel) * dt};
+        const auto [x_entry_time, x_exit_time]{calculate_entry_exit_times(
+                x_vel, a.west, a.east, b.west, b.east)};
+        if (std::isnan(x_entry_time))
+            return result;
+
         const float y_vel{(a.y_vel - b.y_vel) * dt};
+        const auto [y_entry_time, y_exit_time]{calculate_entry_exit_times(
+                y_vel, a.north, a.south, b.north, b.south)};
+        if (std::isnan(y_entry_time))
+            return result;
+
         const float z_vel{(a.z_vel - b.z_vel) * dt};
-
-        float x_entry_time, x_exit_time;
-        if (std::isless(std::abs(x_vel), core::kEpsilon)) {
-            if (std::isless(a.east, b.west) || std::isgreater(a.west, b.east))
-                return result;
-
-            x_entry_time = -core::kInfinity;
-            x_exit_time = core::kInfinity;
-        }
-        else {
-            const float x_entry_pos{
-                    !std::signbit(x_vel) ? b.west - a.east : b.east - a.west};
-            const float x_exit_pos{
-                    !std::signbit(x_vel) ? b.east - a.west : b.west - a.east};
-
-            const float x_vel_inv{1.0f / x_vel};
-            x_entry_time = x_entry_pos * x_vel_inv;
-            x_exit_time = x_exit_pos * x_vel_inv;
-        }
-
-        float y_entry_time, y_exit_time;
-        if (std::isless(std::abs(y_vel), core::kEpsilon)) {
-            if (std::isless(a.south, b.north) ||
-                    std::isgreater(a.north, b.south))
-                return result;
-
-            y_entry_time = -core::kInfinity;
-            y_exit_time = core::kInfinity;
-        }
-        else {
-            const float y_entry_pos{!std::signbit(y_vel) ? b.north - a.south
-                                                         : b.south - a.north};
-            const float y_exit_pos{!std::signbit(y_vel) ? b.south - a.north
-                                                        : b.north - a.south};
-
-            const float y_vel_inv{1.0f / y_vel};
-            y_entry_time = y_entry_pos * y_vel_inv;
-            y_exit_time = y_exit_pos * y_vel_inv;
-        }
-
-        float z_entry_time, z_exit_time;
-        if (std::isless(std::abs(z_vel), core::kEpsilon)) {
-            if (std::isgreater(a.nadir, b.zenith) ||
-                    std::isless(a.zenith, b.nadir))
-                return result;
+        const auto [z_entry_time, z_exit_time]{calculate_entry_exit_times(
+                z_vel, a.nadir, a.zenith, b.nadir, b.zenith)};
+        if (std::isnan(z_entry_time))
+            return result;
 
         const float entry_time{
                 std::max({x_entry_time, y_entry_time, z_entry_time})};
