@@ -138,7 +138,7 @@ namespace sc::physics {
             const float x_exit_pos{
                     !std::signbit(x_vel) ? b.east - a.west : b.west - a.east};
 
-            const float x_vel_inv{1 / x_vel};
+            const float x_vel_inv{1.0f / x_vel};
             x_entry_time = x_entry_pos * x_vel_inv;
             x_exit_time = x_exit_pos * x_vel_inv;
         }
@@ -158,7 +158,7 @@ namespace sc::physics {
             const float y_exit_pos{!std::signbit(y_vel) ? b.south - a.north
                                                         : b.north - a.south};
 
-            const float y_vel_inv{1 / y_vel};
+            const float y_vel_inv{1.0f / y_vel};
             y_entry_time = y_entry_pos * y_vel_inv;
             y_exit_time = y_exit_pos * y_vel_inv;
         }
@@ -178,7 +178,7 @@ namespace sc::physics {
             const float z_exit_pos{!std::signbit(z_vel) ? b.zenith - a.nadir
                                                         : b.nadir - a.zenith};
 
-            const float z_vel_inv{1 / z_vel};
+            const float z_vel_inv{1.0f / z_vel};
             z_entry_time = z_entry_pos * z_vel_inv;
             z_exit_time = z_exit_pos * z_vel_inv;
         }
