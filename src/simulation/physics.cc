@@ -183,8 +183,11 @@ namespace sc::physics {
             z_exit_time = z_exit_pos * z_vel_inv;
         }
 
+        const float entry_times[3U]{x_entry_time, y_entry_time, z_entry_time};
         const float entry_time{
-                std::max({x_entry_time, y_entry_time, z_entry_time})};
+                *std::ranges::max_element(
+                        std::begin(entry_times), std::end(entry_times)),
+        };
         const float exit_time{
                 std::min({x_exit_time, y_exit_time, z_exit_time})};
         const bool exit_times_are_neg{std::signbit(
@@ -194,23 +197,14 @@ namespace sc::physics {
             return result;
 
         result.time = entry_time;
-        if (std::isgreaterequal(x_entry_time, y_entry_time) &&
-                std::isgreaterequal(x_entry_time, z_entry_time)) {
-            result.normal_x = std::copysign(1.0f, -x_vel);
-            result.normal_y = 0.0f;
-            result.normal_z = 0.0f;
-        }
-        else if (std::isgreaterequal(y_entry_time, x_entry_time) &&
-                std::isgreaterequal(y_entry_time, z_entry_time)) {
-            result.normal_x = 0.0f;
-            result.normal_y = std::copysign(1.0f, -y_vel);
-            result.normal_z = 0.0f;
-        }
-        else {
-            result.normal_x = 0.0f;
-            result.normal_y = 0.0f;
-            result.normal_z = std::copysign(1.0f, -z_vel);
-        }
+
+        unsigned max_axis{x_entry_time > y_entry_time ? 0U : 1U};
+        if (z_entry_time > entry_times[max_axis])
+            max_axis = 2U;
+
+        result.normal_x = max_axis == 0U ? std::copysign(1.0f, -x_vel) : 0.0f;
+        result.normal_y = max_axis == 1U ? std::copysign(1.0f, -y_vel) : 0.0f;
+        result.normal_z = max_axis == 2U ? std::copysign(1.0f, -z_vel) : 0.0f;
 
         return result;
     }
