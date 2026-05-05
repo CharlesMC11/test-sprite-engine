@@ -7,7 +7,6 @@
 #include "simulation/spatial_grid.hh"
 
 namespace sc::physics {
-
     [[nodiscard]] static sweep_result sweep_aabb(
             const aabb& a, const aabb& b, float dt);
 
@@ -31,15 +30,18 @@ namespace sc::physics {
                         static_cast<type>(a_meta.physics_type) & type::ACTOR))
                 continue;
 
-            if (std::abs(registry.x_vel_ptr()[a_idx]) < core::kEpsilon &&
-                    std::abs(registry.y_vel_ptr()[a_idx]) < core::kEpsilon) {
+            if (std::isless(std::abs(registry.x_vel_ptr()[a_idx]),
+                        core::kEpsilon) &&
+                    std::isless(std::abs(registry.y_vel_ptr()[a_idx]),
+                            core::kEpsilon)) {
                 registry.new_x_pos_ptr()[a_idx] = registry.x_pos_ptr()[a_idx];
                 registry.new_y_pos_ptr()[a_idx] = registry.y_pos_ptr()[a_idx];
                 registry.new_z_pos_ptr()[a_idx] = registry.z_pos_ptr()[a_idx];
                 continue;
             }
 
-            if (std::abs(registry.y_vel_ptr()[a_idx]) > core::kEpsilon)
+            if (std::isgreater(
+                        std::abs(registry.y_vel_ptr()[a_idx]), core::kEpsilon))
                 registry.draw_order_needs_sort = true;
 
             const float a_dx{registry.new_x_pos_ptr()[a_idx] -
@@ -98,7 +100,7 @@ namespace sc::physics {
                         const sweep_result ab_collision{
                                 sweep_aabb(a_aabb, b_aabb, dt)};
 
-                        if (ab_collision.time < collision.time)
+                        if (std::isless(ab_collision.time, collision.time))
                             collision = ab_collision;
 
                         b_idx = registry.next_in_cell_ptr()[b_idx];
@@ -106,11 +108,37 @@ namespace sc::physics {
                 }
             }
 
-            if (collision.time < 1.0f) {
+            if (std::isless(collision.time, 1.0f)) {
                 apply_collision(registry, a_idx, collision, a_dx, a_dy, a_dz);
                 apply_slide(registry, a_idx, collision, dt);
             }
         }
+    }
+
+    [[nodiscard]] static std::pair<float, float> calculate_entry_exit_times(
+            const float vel, const float a_min, const float a_max,
+            const float b_min, const float b_max)
+    {
+        float entry_time, exit_time;
+        if (std::isless(std::abs(vel), core::kEpsilon)) {
+            if (std::isless(a_max, b_min) || std::isgreater(a_min, b_max))
+                return {core::kNaN, core::kNaN};
+
+            entry_time = -core::kInfinity;
+            exit_time = core::kInfinity;
+        }
+        else {
+            const float entry_pos{
+                    !std::signbit(vel) ? b_min - a_max : b_max - a_min};
+            const float exit_pos{
+                    !std::signbit(vel) ? b_max - a_min : b_min - a_max};
+
+            const float vel_inv{1.0f / vel};
+            entry_time = entry_pos * vel_inv;
+            exit_time = exit_pos * vel_inv;
+        }
+
+        return {entry_time, exit_time};
     }
 
     [[nodiscard]] static sweep_result sweep_aabb(
@@ -119,88 +147,42 @@ namespace sc::physics {
         sweep_result result;
 
         const float x_vel{(a.x_vel - b.x_vel) * dt};
+        const auto [x_entry_time, x_exit_time]{calculate_entry_exit_times(
+                x_vel, a.west, a.east, b.west, b.east)};
+        if (std::isnan(x_entry_time))
+            return result;
+
         const float y_vel{(a.y_vel - b.y_vel) * dt};
+        const auto [y_entry_time, y_exit_time]{calculate_entry_exit_times(
+                y_vel, a.north, a.south, b.north, b.south)};
+        if (std::isnan(y_entry_time))
+            return result;
+
         const float z_vel{(a.z_vel - b.z_vel) * dt};
-
-        float x_entry_time, x_exit_time;
-        if (std::abs(x_vel) < core::kEpsilon) {
-            if (a.east < b.west || a.west > b.east)
-                return result;
-
-            x_entry_time = -core::kInfinity;
-            x_exit_time = core::kInfinity;
-        }
-        else {
-            const float x_entry_pos{
-                    x_vel > 0.0f ? b.west - a.east : b.east - a.west};
-            const float x_exit_pos{
-                    x_vel > 0.0f ? b.east - a.west : b.west - a.east};
-
-            x_entry_time = x_entry_pos / x_vel;
-            x_exit_time = x_exit_pos / x_vel;
-        }
-
-        float y_entry_time, y_exit_time;
-        if (std::abs(y_vel) < core::kEpsilon) {
-            if (a.south < b.north || a.north > b.south)
-                return result;
-
-            y_entry_time = -core::kInfinity;
-            y_exit_time = core::kInfinity;
-        }
-        else {
-            const float y_entry_pos{
-                    y_vel > 0.0f ? b.north - a.south : b.south - a.north};
-            const float y_exit_pos{
-                    y_vel > 0.0f ? b.south - a.north : b.north - a.south};
-
-            y_entry_time = y_entry_pos / y_vel;
-            y_exit_time = y_exit_pos / y_vel;
-        }
-
-        float z_entry_time, z_exit_time;
-        if (std::abs(z_vel) < core::kEpsilon) {
-            if (a.nadir > b.zenith || a.zenith < b.nadir)
-                return result;
-
-            z_entry_time = -core::kInfinity;
-            z_exit_time = core::kInfinity;
-        }
-        else {
-            const float z_entry_pos{
-                    z_vel > 0.0f ? b.nadir - a.zenith : b.zenith - a.nadir};
-            const float z_exit_pos{
-                    z_vel > 0.0f ? b.zenith - a.nadir : b.nadir - a.zenith};
-
-            z_entry_time = z_entry_pos / z_vel;
-            z_exit_time = z_exit_pos / z_vel;
-        }
+        const auto [z_entry_time, z_exit_time]{calculate_entry_exit_times(
+                z_vel, a.nadir, a.zenith, b.nadir, b.zenith)};
+        if (std::isnan(z_entry_time))
+            return result;
 
         const float entry_time{
-                std::max(x_entry_time, std::max(y_entry_time, z_entry_time))};
-        if (entry_time > std::min(x_exit_time,
-                                 std::min(y_exit_time, z_exit_time)) ||
-                entry_time > 1.0f || entry_time < 0.0f ||
-                (x_exit_time < 0.0f && y_exit_time < 0.0f &&
-                        z_entry_time < 0.0f))
+                std::max({x_entry_time, y_entry_time, z_entry_time})};
+        const float exit_time{
+                std::min({x_exit_time, y_exit_time, z_exit_time})};
+        if (std::signbit(exit_time) || entry_time > exit_time ||
+                std::isgreater(entry_time, 1.0f))
             return result;
 
         result.time = entry_time;
-        if (x_entry_time >= y_entry_time && x_entry_time >= z_entry_time) {
-            result.normal_x = x_vel > 0.0f ? -1.0f : 1.0f;
-            result.normal_y = 0.0f;
-            result.normal_z = 0.0f;
-        }
-        else if (y_entry_time >= x_entry_time && y_entry_time >= z_entry_time) {
-            result.normal_x = 0.0f;
-            result.normal_y = y_vel > 0.0f ? -1.0f : 1.0f;
-            result.normal_z = 0.0f;
-        }
-        else {
-            result.normal_x = 0.0f;
-            result.normal_y = 0.0f;
-            result.normal_z = z_vel > 0.0f ? 1.0f : -1.0f;
-        }
+
+        const bool x_is_max{std::isgreaterequal(x_entry_time, y_entry_time) &&
+                std::isgreaterequal(x_entry_time, z_entry_time)};
+        const bool y_is_max{
+                !x_is_max && std::isgreaterequal(y_entry_time, z_entry_time)};
+
+        result.normal_x = x_is_max ? std::copysign(1.0f, -x_vel) : 0.0f;
+        result.normal_y = y_is_max ? std::copysign(1.0f, -y_vel) : 0.0f;
+        result.normal_z =
+                !x_is_max && !y_is_max ? std::copysign(1.0f, -z_vel) : 0.0f;
 
         return result;
     }
@@ -209,11 +191,14 @@ namespace sc::physics {
             const core::index_t i, const sweep_result hit, const float dx,
             const float dy, const float dz)
     {
-        const float padded_t{std::max(0.0f, hit.time - 0.01f)};
+        const float padded_t{std::clamp(hit.time - 0.01f, 0.0f, 1.0f)};
 
-        registry.new_x_pos_ptr()[i] = registry.x_pos_ptr()[i] + dx * padded_t;
-        registry.new_y_pos_ptr()[i] = registry.y_pos_ptr()[i] + dy * padded_t;
-        registry.new_z_pos_ptr()[i] = registry.z_pos_ptr()[i] + dz * padded_t;
+        registry.new_x_pos_ptr()[i] =
+                std::fma(dx, padded_t, registry.x_pos_ptr()[i]);
+        registry.new_y_pos_ptr()[i] =
+                std::fma(dy, padded_t, registry.y_pos_ptr()[i]);
+        registry.new_z_pos_ptr()[i] =
+                std::fma(dz, padded_t, registry.z_pos_ptr()[i]);
     }
 
     static void apply_slide(entity_registry& registry, const core::index_t i,
@@ -221,17 +206,24 @@ namespace sc::physics {
     {
         const float remain_t{1.0f - hit.time};
 
-        const float dot{registry.x_vel_ptr()[i] * hit.normal_x +
-                registry.y_vel_ptr()[i] * hit.normal_y +
-                registry.z_vel_ptr()[i] * hit.normal_z};
+        const float dot_neg{-std::fma(registry.x_vel_ptr()[i], hit.normal_x,
+                std::fma(registry.y_vel_ptr()[i], hit.normal_y,
+                        registry.z_vel_ptr()[i] * hit.normal_z))};
 
-        const float slide_x{registry.x_vel_ptr()[i] - dot * hit.normal_x};
-        const float slide_y{registry.y_vel_ptr()[i] - dot * hit.normal_y};
-        const float slide_z{registry.z_vel_ptr()[i] - dot * hit.normal_z};
+        const float slide_x{
+                std::fma(dot_neg, hit.normal_x, registry.x_vel_ptr()[i])};
+        const float slide_y{
+                std::fma(dot_neg, hit.normal_y, registry.y_vel_ptr()[i])};
+        const float slide_z{
+                std::fma(dot_neg, hit.normal_z, registry.z_vel_ptr()[i])};
 
-        registry.new_x_pos_ptr()[i] += slide_x * dt * remain_t;
-        registry.new_y_pos_ptr()[i] += slide_y * dt * remain_t;
-        registry.new_z_pos_ptr()[i] += slide_z * dt * remain_t;
+        const float slide_t{dt * remain_t};
+        registry.new_x_pos_ptr()[i] =
+                std::fma(slide_x, slide_t, registry.new_x_pos_ptr()[i]);
+        registry.new_y_pos_ptr()[i] =
+                std::fma(slide_y, slide_t, registry.new_y_pos_ptr()[i]);
+        registry.new_z_pos_ptr()[i] =
+                std::fma(slide_z, slide_t, registry.new_z_pos_ptr()[i]);
 
         registry.x_vel_ptr()[i] = slide_x;
         registry.y_vel_ptr()[i] = slide_y;

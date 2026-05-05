@@ -131,14 +131,14 @@ class AssetLinker:
             if not path.exists():
                 raise FileNotFoundError(f"Sprite not found: {path}.")
 
-            blob = path.read_bytes()
-            meta = SpriteMetadata.from_bytes(blob)
+            buffer = path.read_bytes()
+            meta = SpriteMetadata.from_bytes(buffer)
 
-            pixels_blob = blob[meta.EXPECTED_SIZE_BYTES : -FOOTER_SIZE_BYTES]
-            palette_blob = blob[
+            pixels_blob = buffer[meta.EXPECTED_SIZE_BYTES : -FOOTER_SIZE_BYTES]
+            palette_blob = buffer[
                 -FOOTER_SIZE_BYTES:-SPRITE_DIMENSIONS_SIZE_BYTES
             ]
-            width, height = blob[-SPRITE_DIMENSIONS_SIZE_BYTES:]
+            width, height = buffer[-SPRITE_DIMENSIONS_SIZE_BYTES:]
 
             if not (is_power_of_2(width) and is_power_of_2(height)):
                 raise ResourceLayoutError(

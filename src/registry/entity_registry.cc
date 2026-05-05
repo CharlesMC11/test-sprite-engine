@@ -2,6 +2,7 @@
 
 #include <arm_neon.h>
 
+#include <cmath>
 #include <cstddef>
 #include <format>
 #include <iostream>
@@ -10,7 +11,6 @@
 #include "core/core.hh"
 
 namespace sc {
-
     // Public methods
 
     void entity_registry::update(const float dt) noexcept
@@ -39,9 +39,9 @@ namespace sc {
 
         for (core::index_t i{static_cast<core::index_t>(vectorized_lim)};
                 i < static_cast<core::index_t>(n); ++i) {
-            new_x_pos_ptr()[i] = x_pos_ptr()[i] + x_vel_ptr()[i] * dt;
-            new_y_pos_ptr()[i] = y_pos_ptr()[i] + y_vel_ptr()[i] * dt;
-            new_z_pos_ptr()[i] = z_pos_ptr()[i] + z_vel_ptr()[i] * dt;
+            new_x_pos_ptr()[i] = std::fma(x_vel_ptr()[i], dt, x_pos_ptr()[i]);
+            new_y_pos_ptr()[i] = std::fma(y_vel_ptr()[i], dt, y_pos_ptr()[i]);
+            new_z_pos_ptr()[i] = std::fma(z_vel_ptr()[i], dt, z_pos_ptr()[i]);
         }
     }
 
@@ -58,9 +58,10 @@ namespace sc {
                             const core::index_t b) noexcept -> bool {
                         const float y_a{y_ptr[a]};
                         const float y_b{y_ptr[b]};
-                        return std::abs(y_a - y_b) > core::kEpsilon
-                                ? y_a < y_b
-                                : z_ptr[a] < z_ptr[b];
+                        return std::isgreater(
+                                       std::abs(y_a - y_b), core::kEpsilon)
+                                ? std::isless(y_a, y_b)
+                                : std::isless(z_ptr[a], z_ptr[b]);
                     });
 
             draw_order_needs_sort = false;
@@ -103,7 +104,6 @@ namespace sc {
     {
         spawn(static_cast<core::index_t>(i), x, y, z);
     }
-
 } // namespace sc
 
 std::ostream& operator<<(std::ostream& out, const sc::entity_registry& registry)

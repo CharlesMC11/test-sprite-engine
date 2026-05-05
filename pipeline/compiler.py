@@ -40,6 +40,7 @@ from pipeline import (
     MAX_PALETTE_SIZE,
     NEON_ALIGNMENT,
     SPRITE_MINIMUM_FILE_SIZE_BYTES,
+    BGRImage,
     ColorEncoding,
     PhysicsType,
     ResourceLayoutError,
@@ -51,7 +52,6 @@ from pipeline import (
 
 # Types
 
-type BGRImage = npt.NDArray[np.uint8]
 type AlphaMask = npt.NDArray[np.uint8]
 type EmissionMask = npt.NDArray[np.uint8]
 type SpecularMask = npt.NDArray[np.uint8]
@@ -174,7 +174,7 @@ def ingest_asset(
     # Validate source image
 
     if not bgra_image_path.exists():
-        raise FileNotFoundError(f"Missing image file: {bgra_image_path}")
+        raise FileNotFoundError(f"Missing image file: '{bgra_image_path}'")
 
     if (image := cv2.imread(bgra_image_path, cv2.IMREAD_UNCHANGED)) is None:
         raise RuntimeError("Could not read source image.")
@@ -472,12 +472,14 @@ def _pack_colors_to_16bit(
     bgr_matrix: BGRImage, encoding: ColorEncoding
 ) -> PackedColors:
     """
-    Pack the 8-bit BGR channels into 2-byte integers.
+    Pack 1-byte BGR channels into 2-byte integers.
 
     :param bgr_matrix: The original color channels to pack.
     :param encoding: The color encoding mode to use.
 
     :returns: The packed 2-byte colors.
+
+    :raises ValueError: If the given color encoding is invalid.
     """
 
     b, g, r = bgr_matrix.astype(np.uint16).T
@@ -492,7 +494,7 @@ def _pack_colors_to_16bit(
         packed_colors = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
 
     else:
-        raise ValueError("Invalid color mode.")
+        raise ValueError("Invalid color encoding.")
 
     return packed_colors
 

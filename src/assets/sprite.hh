@@ -15,7 +15,7 @@ namespace sc::assets {
 
     namespace sprites {
 
-        static SC_CONSTEXPR uint32_t kDefaultSize{32U};
+        inline SC_CONSTEXPR uint32_t kDefaultSize{32U};
 
         /**
          * A sprite’s metadata.

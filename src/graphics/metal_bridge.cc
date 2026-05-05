@@ -29,10 +29,16 @@ namespace sc::render {
         const auto* library_path{
                 NS::String::string(assets::kShaderLib, NS::UTF8StringEncoding)};
         auto* library{device->newLibrary(library_path, &error)};
+        if (!library) [[unlikely]]
+            throw std::runtime_error{
+                    error->localizedDescription()->utf8String()};
 
         const auto* fn_name{
                 NS::String::string("k_clear_screen", NS::UTF8StringEncoding)};
         auto* function{library->newFunction(fn_name)};
+        if (!function) [[unlikely]]
+            throw std::runtime_error{
+                    error->localizedDescription()->utf8String()};
 
         clear_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));
@@ -42,6 +48,9 @@ namespace sc::render {
 
         fn_name = NS::String::string("k_draw_sprites", NS::UTF8StringEncoding);
         function = library->newFunction(fn_name);
+        if (!function) [[unlikely]]
+            throw std::runtime_error{
+                    error->localizedDescription()->utf8String()};
 
         sprite_pso_ = NS::TransferPtr(
                 device_->newComputePipelineState(function, &error));

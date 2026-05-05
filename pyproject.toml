@@ -31,3 +31,8 @@ select = ["I"]
 
 [tool.uv]
 package = true
+
+[tool.uv.workspace]
+members = [
+    "venv",
+]

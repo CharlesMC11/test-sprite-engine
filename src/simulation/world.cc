@@ -1,5 +1,6 @@
 #include "world.hh"
 
+#include <cmath>
 #include <stdexcept>
 
 #include "assets/asset_constants.hh"
@@ -9,16 +10,15 @@
 #include "simulation/physics_types.hh"
 
 namespace sc {
-
     [[nodiscard]] world::world(MTL::Device* device)
         : grid_{}, bridge_{render::metal_bridge{device}},
           registry_{entity_registry{device}},
           atlas_{core::mapped_view<assets::atlas>{assets::kAtlas}}
     {
-        if (!(atlas_ && atlas_.data()))
+        if (!(atlas_ && atlas_.data())) [[unlikely]]
             throw std::runtime_error{"Could not load the atlas."};
 
-        if (!assets::atlas::validate(atlas_.data(), atlas_.size()))
+        if (!assets::atlas::validate(atlas_.data(), atlas_.size())) [[unlikely]]
             throw std::runtime_error{"Atlas has an invalid structure."};
 
         bridge_.set_atlas_buffer(atlas_);
@@ -36,13 +36,10 @@ namespace sc {
 
     void world::update(const input::mask input, const MTL::Drawable* drawable)
     {
-        float frame_time{1.0f / display::kTargetFPS};
-        if (frame_time > 0.25f)
-            frame_time = 0.25f;
+        ftime_accumulator_ += std::min(display::kFrameTime, 0.25f);
 
-        ftime_accumulator_ += frame_time;
-
-        while (ftime_accumulator_ >= physics::kFixedTimestep) {
+        while (std::isgreaterequal(
+                ftime_accumulator_, physics::kFixedTimestep)) {
             registry_.x_vel_ptr()[0UZ] = registry_.y_vel_ptr()[0UZ] = 0.0f;
 
             constexpr float vel{200.0f};
@@ -71,5 +68,4 @@ namespace sc {
         bridge_.draw(registry_);
         bridge_.end_frame(drawable);
     }
-
 } // namespace sc

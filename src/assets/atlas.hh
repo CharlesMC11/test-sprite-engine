@@ -13,7 +13,7 @@
 
 namespace sc::assets {
 
-    static constexpr std::uint64_t kAtlasMagicBytes{0x3676205441204353ULL};
+    inline constexpr std::uint64_t kAtlasMagicBytes{0x3676205441204353ULL};
 
     /**
      * A contiguous collection of sprites.

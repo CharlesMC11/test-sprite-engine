@@ -24,12 +24,12 @@
 namespace sc::core {
 
     using index_t = uint32_t;
-    static SC_CONSTEXPR auto kInvalidIndex{static_cast<index_t>(-1)};
+    inline SC_CONSTEXPR auto kInvalidIndex{static_cast<index_t>(-1)};
 
     using physics_t = uint8_t;
 
-    static SC_CONSTEXPR SC_SIZE_T kNeonAlignment{16UZ};
-    static SC_CONSTEXPR SC_SIZE_T kCacheAlignment{128UZ};
+    inline SC_CONSTEXPR SC_SIZE_T kNeonAlignment{16UZ};
+    inline SC_CONSTEXPR SC_SIZE_T kCacheAlignment{128UZ};
 
 #ifndef __METAL_VERSION__
 
@@ -58,8 +58,9 @@ namespace sc::core {
 
     using float_limits = std::numeric_limits<float>;
 
-    static constexpr float kEpsilon{float_limits::epsilon()};
-    static constexpr float kInfinity{float_limits::infinity()};
+    inline constexpr float kEpsilon{float_limits::epsilon()};
+    inline constexpr float kInfinity{float_limits::infinity()};
+    inline constexpr float kNaN{float_limits::quiet_NaN()};
 
 #endif // __METAL_VERSION__
 
