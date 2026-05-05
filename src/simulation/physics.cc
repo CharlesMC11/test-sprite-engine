@@ -217,13 +217,13 @@ namespace sc::physics {
         const float slide_z{
                 std::fma(dot_neg, hit.normal_z, registry.z_vel_ptr()[i])};
 
-        const float displacement_factor{dt * remain_t};
-        registry.new_x_pos_ptr()[i] = std::fma(
-                slide_x, displacement_factor, registry.new_x_pos_ptr()[i]);
-        registry.new_y_pos_ptr()[i] = std::fma(
-                slide_y, displacement_factor, registry.new_y_pos_ptr()[i]);
-        registry.new_z_pos_ptr()[i] = std::fma(
-                slide_z, displacement_factor, registry.new_z_pos_ptr()[i]);
+        const float slide_t{dt * remain_t};
+        registry.new_x_pos_ptr()[i] =
+                std::fma(slide_x, slide_t, registry.new_x_pos_ptr()[i]);
+        registry.new_y_pos_ptr()[i] =
+                std::fma(slide_y, slide_t, registry.new_y_pos_ptr()[i]);
+        registry.new_z_pos_ptr()[i] =
+                std::fma(slide_z, slide_t, registry.new_z_pos_ptr()[i]);
 
         registry.x_vel_ptr()[i] = slide_x;
         registry.y_vel_ptr()[i] = slide_y;
