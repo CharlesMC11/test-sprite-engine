@@ -40,7 +40,7 @@ namespace sc {
         for (core::index_t i{static_cast<core::index_t>(vectorized_lim)};
                 i < static_cast<core::index_t>(n); ++i) {
             new_x_pos_ptr()[i] = std::fma(x_vel_ptr()[i], dt, x_pos_ptr()[i]);
-            new_y_pos_ptr()[i] = std::fma(+y_vel_ptr()[i], dt, y_pos_ptr()[i]);
+            new_y_pos_ptr()[i] = std::fma(y_vel_ptr()[i], dt, y_pos_ptr()[i]);
             new_z_pos_ptr()[i] = std::fma(z_vel_ptr()[i], dt, z_pos_ptr()[i]);
         }
     }

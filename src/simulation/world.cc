@@ -15,10 +15,10 @@ namespace sc {
           registry_{entity_registry{device}},
           atlas_{core::mapped_view<assets::atlas>{assets::kAtlas}}
     {
-        if (!(atlas_ && atlas_.data()))
+        if (!(atlas_ && atlas_.data())) [[unlikely]]
             throw std::runtime_error{"Could not load the atlas."};
 
-        if (!assets::atlas::validate(atlas_.data(), atlas_.size()))
+        if (!assets::atlas::validate(atlas_.data(), atlas_.size())) [[unlikely]]
             throw std::runtime_error{"Atlas has an invalid structure."};
 
         bridge_.set_atlas_buffer(atlas_);
@@ -36,11 +36,7 @@ namespace sc {
 
     void world::update(const input::mask input, const MTL::Drawable* drawable)
     {
-        float frame_time{1.0f / display::kTargetFPS};
-        if (std::isgreater(frame_time, 0.25f))
-            frame_time = 0.25f;
-
-        ftime_accumulator_ += frame_time;
+        ftime_accumulator_ += std::min(display::kFrameTime, 0.25f);
 
         while (std::isgreaterequal(
                 ftime_accumulator_, physics::kFixedTimestep)) {
