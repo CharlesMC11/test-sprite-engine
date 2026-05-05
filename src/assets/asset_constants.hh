@@ -3,8 +3,8 @@
 
 namespace sc::assets {
 
-    static constexpr auto kAtlas{"assets/core.atlas"};
-    static constexpr auto kShaderLib{"assets/shader.metallib"};
+    inline constexpr auto kAtlas{"assets/core.atlas"};
+    inline constexpr auto kShaderLib{"assets/shader.metallib"};
 
 } // namespace sc::assets
 

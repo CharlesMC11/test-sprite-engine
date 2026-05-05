@@ -10,10 +10,10 @@
 
 namespace sc::physics {
 
-    static constexpr int kCellSize{16};
-    static constexpr int kColCount{display::kWidth / kCellSize};
-    static constexpr int kRowCount{display::kHeight / kCellSize};
-    static constexpr auto kTotalCells{
+    inline constexpr int kCellSize{16};
+    inline constexpr int kColCount{display::kWidth / kCellSize};
+    inline constexpr int kRowCount{display::kHeight / kCellSize};
+    inline constexpr auto kTotalCells{
             static_cast<std::size_t>(kColCount) * kRowCount};
 
     struct alignas(core::kCacheAlignment) spatial_grid final {

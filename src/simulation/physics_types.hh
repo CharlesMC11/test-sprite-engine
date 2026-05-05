@@ -8,9 +8,9 @@
 
 namespace sc::physics {
 
-    static constexpr float kGravity{9.8f};
-    static constexpr float kFixedTimestep{1.0f / 120.0f};
-    static constexpr float kMaxVelocity{500.0f};
+    inline constexpr float kGravity{9.8f};
+    inline constexpr float kFixedTimestep{1.0f / 120.0f};
+    inline constexpr float kMaxVelocity{500.0f};
 
     /**
      * The laws of physics an entity obeys.
