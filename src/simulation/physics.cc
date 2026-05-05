@@ -40,7 +40,8 @@ namespace sc::physics {
                 continue;
             }
 
-            if (std::abs(registry.y_vel_ptr()[a_idx]) > core::kEpsilon)
+            if (std::isgreater(
+                        std::abs(registry.y_vel_ptr()[a_idx]), core::kEpsilon))
                 registry.draw_order_needs_sort = true;
 
             const float a_dx{registry.new_x_pos_ptr()[a_idx] -
@@ -99,7 +100,7 @@ namespace sc::physics {
                         const sweep_result ab_collision{
                                 sweep_aabb(a_aabb, b_aabb, dt)};
 
-                        if (ab_collision.time < collision.time)
+                        if (std::isless(ab_collision.time, collision.time))
                             collision = ab_collision;
 
                         b_idx = registry.next_in_cell_ptr()[b_idx];
