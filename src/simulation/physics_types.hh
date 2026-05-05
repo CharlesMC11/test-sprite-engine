@@ -69,7 +69,7 @@ namespace sc::physics {
         return aabb{registry.x_pos_ptr()[i], registry.y_pos_ptr()[i],
                 registry.z_pos_ptr()[i],
                 static_cast<geometry::bbox<float>>(meta.bbox),
-                static_cast<float>(meta.depth) / 2.0f, registry.x_vel_ptr()[i],
+                static_cast<float>(meta.depth) * 0.5f, registry.x_vel_ptr()[i],
                 registry.y_vel_ptr()[i], registry.z_vel_ptr()[i]};
     }
 
