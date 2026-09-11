@@ -8,14 +8,14 @@ Inspired by the hardware architecture of the Game Boy Advance (GBA) and the exe
 
 ## Core Architecture
 
-### 1. Unified Structure of Arrays (SoA) Pool Allocator
+### 1. Unified Structure of Arrays (SoA) Pool Allocator
 
 To maximize cache‐line efficiency, entities are managed inside a unified `channel_pool`. Rather than allocating individual entity objects, fields are partitioned into contiguous, linear memory channels (`x_pos`, `y_vel`, `z_new_pos`, etc.).
 
 - **Zero‐Copy GPU Sharing**: Backed by `MTL::ResourceStorageModeShared`, the CPU‐side physics subsystem writes directly to unified memory space, making transforms immediately visible to the GPU.
 - **Strict Cache Alignment**: Memory reallocations automatically round up each channel’s internal capacity to 128‐byte alignment, ensuring its Neon vector field fit into a cache lane boundaries.
 
-### 2. Vectorized Update Pipeline (Arm Neon)
+### 2. Vectorized Update Pipeline (Arm Neon)
 
 - The engine loads transformations via 128‐bit vector lanes (`vld1q_f32`) and updates states using hardware fused multiply‐accumulate (`vfmaq_f32`) operations.
 
