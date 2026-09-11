@@ -17,9 +17,9 @@ The binary layout contains:
         - Physics type (1 byte)
         - Color encoding (1 byte)
         - Palette index (1 byte), set to 0x3F (ASCII for '?') as a placeholder
-- Pixels (height×width bytes): 1-byte packed values [S][E][AA][IIII]
+- Pixels (height×width bytes): 1-byte packed values [S][E][AA][IIII]
 - Footer (34 bytes): additional metadata
-    - Color palette (32 bytes): 16 2-byte unique colors
+    - Color palette (32 bytes): 16 2-byte unique colors
     - Width (1 byte): width in pixels
     - Height (1 byte): height in pixels
 """
