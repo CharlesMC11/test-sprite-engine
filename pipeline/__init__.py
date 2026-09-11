@@ -144,7 +144,7 @@ def is_power_of_2(n: int) -> bool:
     :return: `True` if it is; `False` otherwise.
     """
 
-    return n > 0 and (n & (n - 1)) == 0
+    return n > 0 and n & (n - 1) == 0
 
 
 def calculate_padding_needed(n: int, alignment: int) -> int:
