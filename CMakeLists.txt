@@ -33,7 +33,7 @@ add_library(shared INTERFACE
 )
 
 nanobind_add_module(_pipeline
-        pipeline/library.cc
+        pipeline/_pipeline.cc
 )
 target_link_libraries(_pipeline PRIVATE shared)
 
