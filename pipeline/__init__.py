@@ -1,32 +1,25 @@
 import dataclasses
-import enum
 import struct
 from abc import ABC
 from dataclasses import dataclass
-from enum import IntEnum, IntFlag
 from struct import Struct
 from typing import ClassVar, Final, Self
 
 import numpy as np
 import numpy.typing as npt
-
-# Core
-
-NEON_ALIGNMENT: Final[int] = 16
-CACHE_ALIGNMENT: Final[int] = 128
+from pipeline._pipeline import (
+    NEON_ALIGNMENT,
+    CACHE_ALIGNMENT,
+    MAX_PALETTE_SIZE,
+    PACKED_COLOR_SIZE_BYTES,
+    PALETTE_SIZE_BYTES,
+    ColorEncoding,
+    PhysicsType,
+)
 
 # Graphics
 
 ASSET_LAYOUT_VERSION: Final[bytes] = b"6"
-
-MAX_PALETTE_SIZE: Final[int] = 16
-"""The max number of unique colors in an asset."""
-
-PACKED_COLOR_SIZE_BYTES: Final[int] = 2
-"""The size of a packed color in bytes."""
-
-PALETTE_SIZE_BYTES: Final[int] = PACKED_COLOR_SIZE_BYTES * MAX_PALETTE_SIZE
-"""The total size of all 2-byte colors in bytes."""
 
 SPRITE_DIMENSIONS_SIZE_BYTES: Final[int] = 2
 """The total size of the sprite dimensions in bytes."""
@@ -44,25 +37,6 @@ class ResourceLayoutError(Exception): ...
 
 
 class ResourceLayoutWarning(UserWarning): ...
-
-
-class ColorEncoding(IntEnum):
-    """Distribution of color bits across a 2-byte packed integer."""
-
-    NEUTRAL = 0  # R5G6B5
-    WARM = enum.auto()  # R6G5B5
-    COOL = enum.auto()  # R5G5B6
-
-
-class PhysicsType(IntFlag):
-    """The laws of physics an entity obeys."""
-
-    UNDEFINED = 0
-    NONE = enum.auto()
-    ACTOR = enum.auto()
-    STATIC = enum.auto()
-    SENSOR = enum.auto()
-    PROJECTILE = enum.auto()
 
 
 @dataclass(slots=True)
