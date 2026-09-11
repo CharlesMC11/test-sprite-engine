@@ -4,17 +4,18 @@
 
 # Python-generated files
 __pycache__/
-*.py[oc]
 build*/
 dist/
 wheels/
 *.egg-info
+*.py[oc]
+
+*.so
 
 # Virtual environments
-.venv
+.venv/
 
 # System files
-
 .DS_Store
 .idea
 .vscode
