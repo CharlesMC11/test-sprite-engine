@@ -31,6 +31,7 @@ from warnings import warn
 
 import cv2
 import numpy as np
+import numpy.typing as npt
 
 from pipeline import (
     FOOTER_SIZE_BYTES,
@@ -116,27 +117,42 @@ def _unpack_16bit_to_color(
     :raises ValueError: If the given color encoding is invalid.
     """
 
-    packed_color = np.frombuffer(packed_buffer, dtype=np.uint16)
+    r_bit_count = g_bit_count = b_bit_count = 5
+
+    r_shift_amt = 11
+    g_shift_amt = 5
 
     if encoding == ColorEncoding.NEUTRAL:
-        r = ((packed_color >> 11) & 0x1F) * SCALE_5BIT_TO_8
-        g = ((packed_color >> 5) & 0x3F) * SCALE_6BIT_TO_8
-        b = (packed_color & 0x1F) * SCALE_5BIT_TO_8
+        g_bit_count = 6
 
     elif encoding == ColorEncoding.WARM:
-        r = (packed_color >> 10 & 0x3F) * SCALE_6BIT_TO_8
-        g = (packed_color >> 5 & 0x1F) * SCALE_5BIT_TO_8
-        b = (packed_color & 0x1F) * SCALE_5BIT_TO_8
+        r_bit_count = 6
+        r_shift_amt = 10
 
     elif encoding == ColorEncoding.COOL:
-        r = (packed_color >> 11 & 0x1F) * SCALE_5BIT_TO_8
-        g = (packed_color >> 5 & 0x1F) * SCALE_5BIT_TO_8
-        b = (packed_color & 0x3F) * SCALE_6BIT_TO_8
+        b_bit_count = 6
+        g_shift_amt = 6
 
     else:
         raise ValueError("Invalid color encoding.")
 
-    return np.stack((b, g, r), axis=-1).astype(np.uint8)
+    packed_color = np.frombuffer(packed_buffer, dtype=np.uint16)
+    r = _dequantize(packed_color >> r_shift_amt, r_bit_count)
+    g = _dequantize(packed_color >> g_shift_amt, g_bit_count)
+    b = _dequantize(packed_color, b_bit_count)
+
+    return np.stack((b, g, r), axis=-1)
+
+
+def _dequantize(
+    values: npt.NDArray[np.uint16], bit_count: int
+) -> npt.NDArray[np.uint8]:
+
+    max_val = (0x01 << bit_count) - 0x01
+    masked_values = values & max_val
+    dequantized = (masked_values * 0xFF + max_val // 2) // max_val
+
+    return dequantized.astype(np.uint8)
 
 
 if __name__ == "__main__":

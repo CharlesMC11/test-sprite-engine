@@ -482,21 +482,41 @@ def _pack_colors_to_16bit(
     :raises ValueError: If the given color encoding is invalid.
     """
 
-    b, g, r = bgr_matrix.astype(np.uint16).T
+    r_bit_count = g_bit_count = b_bit_count = 5
+
+    r_shift_amt = 11
+    g_shift_amt = 5
 
     if encoding == ColorEncoding.NEUTRAL:
-        packed_colors = (r >> 3) << 11 | (g >> 2) << 5 | b >> 3
+        g_bit_count = 6
 
     elif encoding == ColorEncoding.WARM:
-        packed_colors = (r >> 2) << 10 | (g >> 3) << 5 | b >> 3
+        r_bit_count = 6
+        r_shift_amt = 10
 
     elif encoding == ColorEncoding.COOL:
-        packed_colors = (r >> 3) << 11 | (g >> 3) << 5 | b >> 2
+        b_bit_count = 6
+        g_shift_amt = 6
 
     else:
         raise ValueError("Invalid color encoding.")
 
-    return packed_colors
+    b, g, r = bgr_matrix.astype(np.uint32).T
+    r_quantized = _quantize(r, r_bit_count) << r_shift_amt
+    g_quantized = _quantize(g, g_bit_count) << g_shift_amt
+    b_quantized = _quantize(b, b_bit_count)
+
+    return r_quantized | g_quantized | b_quantized
+
+
+def _quantize(
+    values: npt.NDArray[np.uint32], bit_count: int
+) -> npt.NDArray[np.uint16]:
+
+    max_val = (0x01 << bit_count) - 0x01
+    quantized = (values * max_val + 0x7F) // 0xFF
+
+    return quantized.astype(np.uint16)
 
 
 if __name__ == "__main__":
