@@ -28,22 +28,27 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
     float g{1.0f};
     float b{1.0f};
 
+    constexpr sc::graphics::packed_color_t k6BitMask{0x3FU};
+    constexpr auto k6BitNorm{1.0f / static_cast<float>(k6BitMask)};
+    constexpr sc::graphics::packed_color_t k5BitMask{0x1FU};
+    constexpr auto k5BitNorm{1.0f / static_cast<float>(k5BitMask)};
+
     using enum sc::graphics::color_encoding;
     switch (encoding) {
     case neutral:
-        r = static_cast<float>((packed_color >> 11) & 0x1FU) / 31.0f;
-        g = static_cast<float>((packed_color >> 5) & 0x3FU) / 63.0f;
-        b = static_cast<float>(packed_color & 0x1F) / 31.0f;
+        r = static_cast<float>((packed_color >> 11) & k5BitMask) * k5BitNorm;
+        g = static_cast<float>((packed_color >> 5) & k6BitMask) * k6BitNorm;
+        b = static_cast<float>(packed_color & k5BitMask) * k5BitNorm;
         break;
     case warm:
-        r = static_cast<float>((packed_color >> 10) & 0x3FU) / 63.0f;
-        g = static_cast<float>((packed_color >> 5) & 0x1FU) / 31.0f;
-        b = static_cast<float>(packed_color & 0x1F) / 31.0f;
+        r = static_cast<float>((packed_color >> 10) & k6BitMask) * k6BitNorm;
+        g = static_cast<float>((packed_color >> 5) & k5BitMask) * k5BitNorm;
+        b = static_cast<float>(packed_color & k5BitMask) * k5BitNorm;
         break;
     case cool:
-        r = static_cast<float>((packed_color >> 11) & 0x1FU) / 31.0f;
-        g = static_cast<float>((packed_color >> 5) & 0x1FU) / 31.0f;
-        b = static_cast<float>(packed_color & 0x3F) / 63.0f;
+        r = static_cast<float>((packed_color >> 11) & k5BitMask) * k5BitNorm;
+        g = static_cast<float>((packed_color >> 6) & k5BitMask) * k5BitNorm;
+        b = static_cast<float>(packed_color & k6BitMask) * k6BitNorm;
         break;
     default:
         break;
