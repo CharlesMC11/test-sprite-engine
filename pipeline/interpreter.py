@@ -94,13 +94,13 @@ def decompile_asset(source_path: Path) -> BGRImage:
     pixels = np.frombuffer(pixels_blob, dtype=np.uint8)
     index_bits = pixels & 0x0F
 
-    alpha_bits = (pixels >> 4).astype(np.uint32)
+    alpha_bits = (pixels >> 4).astype(np.uint16)
     alpha_mask = _dequantize(alpha_bits, 2).reshape((height, width))
 
     unpacked_palette = _unpack_16bit_to_color(palette_blob, meta.color_encoding)
     image_bgr = unpacked_palette[index_bits].reshape((height, width, 3))
 
-    return cv2.merge((image_bgr, alpha_mask))
+    return cv2.merge((image_bgr, alpha_mask), dtype=np.uint8)
 
 
 def _unpack_16bit_to_color(

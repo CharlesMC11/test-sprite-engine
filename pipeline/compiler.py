@@ -404,25 +404,19 @@ def _bake_pixels(
     height = pixel_components.height
 
     if pixel_components.alpha_mask is not None:
-        flattened_alpha = pixel_components.alpha_mask.flatten(
-            order="C", dtype=np.uint16
-        )
-        alpha = _quantize(flattened_alpha, 2)
+        flattened_alpha = pixel_components.alpha_mask.flatten(order="C")
+        alpha = _quantize(flattened_alpha.astype(np.uint16), 2)
     else:
         alpha = np.full(height * width, 0x03, dtype=np.uint16)
 
     if pixel_components.emission_mask is not None:
-        flattened_emission = pixel_components.emission_mask.flatten(
-            order="C", dtype=np.uint16
-        )
+        flattened_emission = pixel_components.emission_mask.flatten(order="C")
         emission = (flattened_emission > 0x08) & 0x01
     else:
         emission = np.zeros(height * width, dtype=np.uint16)
 
     if pixel_components.specular_mask is not None:
-        flattened_specular = pixel_components.specular_mask.flatten(
-            order="C", dtype=np.uint16
-        )
+        flattened_specular = pixel_components.specular_mask.flatten(order="C")
         specular = (flattened_specular > 0x08) & 0x01
     else:
         specular = np.zeros(height * width, dtype=np.uint16)
