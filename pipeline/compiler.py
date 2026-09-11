@@ -95,7 +95,7 @@ def main() -> None:
         "-a",
         "--anchor",
         nargs=2,
-        default=(float("NaN"), float("Nan")),
+        default=(float("NaN"), float("NaN")),
         type=float,
         help=f"Sprite anchor (u, v). Default is center.",
     )
