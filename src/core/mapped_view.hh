@@ -136,7 +136,7 @@ namespace sc::core {
 template<sc::core::mappable T>
 std::ostream& operator<<(std::ostream& out, const sc::core::mapped_view<T>& map)
 {
-    out << std::format("Mapped View: {} B | ", map.size()) << *map.data();
+    out << std::format("Mapped View: {} B | ", map.size()) << *map.data();
 
     return out;
 }

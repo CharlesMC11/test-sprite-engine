@@ -12,7 +12,7 @@
 namespace sc::mem {
 
     /**
-     * A dynamic array meant to contain at least 2 subarrays.
+     * A dynamic array meant to contain at least 2 subarrays.
      *
      * @tparam T
      * The type of the contained elements.

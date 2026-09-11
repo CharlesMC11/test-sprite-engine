@@ -36,7 +36,7 @@ namespace sc::core {
     /**
      * Requirements for types to be safe to direct memory mapping.
      *
-     * Type must be 16-byte aligned and follow Standard Layout to ensure the
+     * Type must be 16‑byte aligned and follow Standard Layout to ensure the
      * CPU and GPU interpret the raw bytes identically.
      */
     template<typename T>

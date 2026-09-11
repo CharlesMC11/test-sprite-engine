@@ -1,6 +1,6 @@
 #!/usr/bin/env -S python3
 """
-Quantize a list of hexadecimal color codes to 6-bit and 5-bit representations,
+Quantize a list of hexadecimal color codes to 6‑bit and 5‑bit representations,
 then display the entered and quantized colors in a tabular format along with
 their ANSI color representations.
 """
@@ -18,7 +18,7 @@ def main(hex_codes: Iterable[str]) -> None:
     unit = "bit" if bit_count == 1 else "bits"
 
     print(
-        f"{palette_size}\u00a0colors ({bit_count}\u202f{unit})\n"
+        f"{palette_size} colors ({bit_count}\u202f{unit})\n"
         f"{'Entered':<7} {'Neutral':^14} {'Warm':^14} {'Cool':^14} {'Patches':<7}"
     )
 
@@ -116,9 +116,9 @@ def print_codes(
 
     print(
         entered,
-        f"{neutral_expanded}\u00a0[{neutral_quantized:04X}]",
-        f"{warm_expanded}\u00a0[{warm_quantized:04X}]",
-        f"{cool_expanded}\u00a0[{cool_quantized:04X}]",
+        f"{neutral_expanded} [{neutral_quantized:04X}]",
+        f"{warm_expanded} [{warm_quantized:04X}]",
+        f"{cool_expanded} [{cool_quantized:04X}]",
         patches,
     )
 
@@ -128,7 +128,7 @@ def hex_str(r: int, g: int, b: int) -> str:
 
 
 def ansi_str(r: int, g: int, b: int) -> str:
-    return f"\x1b[48;2;{r};{g};{b}m\u00a0\u00a0\x1b[0m"
+    return f"\x1b[48;2;{r};{g};{b}m  \x1b[0m"
 
 
 if __name__ == "__main__":
