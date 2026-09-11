@@ -399,22 +399,28 @@ def _bake_pixels(
     height = pixel_components.height
 
     if pixel_components.alpha_mask is not None:
-        flattened_alpha = pixel_components.alpha_mask.flatten(order="C")
-        alpha = (flattened_alpha >> 6) & 0x03
+        flattened_alpha = pixel_components.alpha_mask.flatten(
+            order="C", dtype=np.uint16
+        )
+        alpha = _quantize(flattened_alpha, 2)
     else:
-        alpha = np.full(height * width, 0x03, dtype=np.uint8)
+        alpha = np.full(height * width, 0x03, dtype=np.uint16)
 
     if pixel_components.emission_mask is not None:
-        flattened_emission = pixel_components.emission_mask.flatten(order="C")
+        flattened_emission = pixel_components.emission_mask.flatten(
+            order="C", dtype=np.uint16
+        )
         emission = (flattened_emission > 0x08) & 0x01
     else:
-        emission = np.zeros(height * width, dtype=np.uint8)
+        emission = np.zeros(height * width, dtype=np.uint16)
 
     if pixel_components.specular_mask is not None:
-        flattened_specular = pixel_components.specular_mask.flatten(order="C")
+        flattened_specular = pixel_components.specular_mask.flatten(
+            order="C", dtype=np.uint16
+        )
         specular = (flattened_specular > 0x08) & 0x01
     else:
-        specular = np.zeros(height * width, dtype=np.uint8)
+        specular = np.zeros(height * width, dtype=np.uint16)
 
     baked_pixels = specular << 7 | emission << 6 | alpha << 4 | index
     return baked_pixels.astype(np.uint8), palette
@@ -501,7 +507,7 @@ def _pack_colors_to_16bit(
     else:
         raise ValueError("Invalid color encoding.")
 
-    b, g, r = bgr_matrix.astype(np.uint32).T
+    b, g, r = bgr_matrix.astype(np.uint16).T
     r_quantized = _quantize(r, r_bit_count) << r_shift_amt
     g_quantized = _quantize(g, g_bit_count) << g_shift_amt
     b_quantized = _quantize(b, b_bit_count)
@@ -509,14 +515,11 @@ def _pack_colors_to_16bit(
     return r_quantized | g_quantized | b_quantized
 
 
-def _quantize(
-    values: npt.NDArray[np.uint32], bit_count: int
-) -> npt.NDArray[np.uint16]:
+def _quantize(values: npt.NDArray, bit_count: int) -> npt.NDArray:
 
     max_val = (0x01 << bit_count) - 0x01
-    quantized = (values * max_val + 0x7F) // 0xFF
 
-    return quantized.astype(np.uint16)
+    return (values * max_val + 0x7F) // 0xFF
 
 
 if __name__ == "__main__":
