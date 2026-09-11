@@ -60,7 +60,7 @@ class Metadata(ABC):
         magic = buffer[:magic_size]
         if magic != cls.MAGIC:
             raise ResourceLayoutError(
-                f"Invalid magic bytes! Expected '{cls.MAGIC}' bytes, got {magic}."
+                f"Invalid magic bytes! Expected '{cls.MAGIC}' bytes, got {magic}."
             )
 
         try:

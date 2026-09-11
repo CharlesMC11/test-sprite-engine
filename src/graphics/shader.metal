@@ -81,6 +81,8 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
 
     float4 out_color{out.read(gid)};
 
+    constexpr auto kAlphaNorm{1.0f / 3.0f};
+
     for (auto i{0U}; i < entity_count; ++i) {
         const sc::core::index_t draw_idx{draw_order[i]};
 
@@ -109,7 +111,8 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
         const float4 color_normalized{
                 unpack_color(packed_color, sprite.meta.color_encoding)};
 
-        const float alpha_normalized{static_cast<float>(alpha_raw) / 3.0f};
+        const float alpha_normalized{
+                static_cast<float>(alpha_raw) * kAlphaNorm};
         if (alpha_normalized < 1.0f) {
             out_color.rgb = (color_normalized.rgb * alpha_normalized) +
                     (out_color.rgb * (1.0f - alpha_normalized));

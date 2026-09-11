@@ -4,24 +4,24 @@ Asset Interpreter.
 Preview a specialized binary format.
 
 The binary layout contains:
-- Header (24 bytes):
-    - Magic (8 bytes)
-    - Sprite metadata (16 bytes)
-        - Bounding box (4 bytes)
+- Header (24 bytes):
+    - Magic (8 bytes)
+    - Sprite metadata (16 bytes)
+        - Bounding box (4 bytes)
             - u_min, u_max (2 bytes)
             - v_min, v_max (2 bytes)
-        - Anchor (8 bytes)
-            - u_anchor (4 bytes)
-            - v_anchor (4 bytes)
-        - Depth (1 byte)
-        - Physics type (1 byte)
-        - Color encoding (1 byte)
-        - Palette index (1 byte), set to 0x3F (ASCII for '?') as a placeholder
+        - Anchor (8 bytes)
+            - u_anchor (4 bytes)
+            - v_anchor (4 bytes)
+        - Depth (1 byte)
+        - Physics type (1 byte)
+        - Color encoding (1 byte)
+        - Palette index (1 byte), set to 0x3F (ASCII for '?') as a placeholder
 - Pixels (height×width bytes): 1-byte packed values [S][E][AA][IIII]
-- Footer (34 bytes): additional metadata
-    - Color palette (32 bytes): 16 2-byte unique colors
-    - Width (1 byte): width in pixels
-    - Height (1 byte): height in pixels
+- Footer (34 bytes): additional metadata
+    - Color palette (32 bytes): 16 2-byte unique colors
+    - Width (1 byte): width in pixels
+    - Height (1 byte): height in pixels
 """
 
 import sys
@@ -92,13 +92,12 @@ def decompile_asset(source_path: Path) -> BGRImage:
 
     pixels = np.frombuffer(pixels_blob, dtype=np.uint8)
     index_bits = pixels & 0x0F
-    alpha_bits = (pixels >> 4) & 0x03
+
+    alpha_bits = (pixels >> 4).astype(np.uint32)
+    alpha_mask = _dequantize(alpha_bits, 2).reshape((height, width))
 
     unpacked_palette = _unpack_16bit_to_color(palette_blob, meta.color_encoding)
     image_bgr = unpacked_palette[index_bits].reshape((height, width, 3))
-
-    alpha_mask = alpha_bits.reshape((height, width)) * SCALE_2BIT_TO_8
-    alpha_mask = alpha_mask.astype(np.uint8)
 
     return cv2.merge((image_bgr, alpha_mask))
 

@@ -2,27 +2,27 @@
 Asset Compiler.
 
 Bakes a source (BGR/RGBA) image and optional emission & specular masks
-into a specialized binary format of at least 58 bytes.
+into a specialized binary format of at least 58 bytes.
 
 The binary layout contains:
-- Header (24 bytes):
-    - Magic (8 bytes)
-    - Sprite metadata (16 bytes)
-        - Bounding box (4 bytes)
-            - u_min, u_max (2 bytes)
-            - v_min, v_max (2 bytes)
-        - Anchor (8 bytes)
-            - u_anchor (4 bytes)
-            - v_anchor (4 bytes)
-        - Depth (1 byte)
-        - Physics type (1 byte)
-        - Color encoding (1 byte)
-        - Palette index (1 byte), set to 0x3F (ASCII for '?') as a placeholder
-- Pixels (height×width bytes): 1-byte packed values [S][E][AA][IIII]
-- Footer (34 bytes): additional metadata
-    - Color palette (32 bytes): 16 2-byte unique colors
-    - Width (1 byte): width in pixels
-    - Height (1 byte): height in pixels
+- Header (24 bytes):
+    - Magic (8 bytes)
+    - Sprite metadata (16 bytes)
+        - Bounding box (4 bytes)
+            - u_min, u_max (2 bytes)
+            - v_min, v_max (2 bytes)
+        - Anchor (8 bytes)
+            - u_anchor (4 bytes)
+            - v_anchor (4 bytes)
+        - Depth (1 byte)
+        - Physics type (1 byte)
+        - Color encoding (1 byte)
+        - Palette index (1 byte), set to 0x3F (ASCII for '?') as a placeholder
+- Pixels (height×width bytes): 1‑byte packed values [S][E][AA][IIII]
+- Footer (34 bytes): additional metadata
+    - Color palette (32 bytes): 16 2‑byte unique colors
+    - Width (1 byte): width in pixels
+    - Height (1 byte): height in pixels
 """
 
 import struct
@@ -106,6 +106,7 @@ def main() -> None:
         type=int,
         help='"Thickness" of the sprite. Default is 0.',
     )
+
     parser.add_argument(
         "-p",
         "--physics_type",
@@ -281,7 +282,8 @@ def compile_asset(output_path: Path, components: SpriteComponents) -> None:
     :param output_path: The path to save the binary to.
     :param components: The asset pixel_components to bake.
 
-    :raises ResourceLayoutError: If the baked asset does not follow the expected format.
+    :raises ResourceLayoutError: If the baked asset does not follow the expected
+        format.
     """
 
     meta = components.metadata
@@ -313,9 +315,12 @@ def compile_asset(output_path: Path, components: SpriteComponents) -> None:
     if len(combined_buffer) != sprite_size_bytes:
         raise ResourceLayoutError(
             f"Buffer size mismatch for {output_path.name}! "
-            f"Expected {sprite_size_bytes} bytes, got {len(combined_buffer)} bytes "
-            f"(Metadata: {len(header_bytes)} bytes, Pixels: {len(pixel_bytes)} bytes, "
-            f"Palette: {len(palette_bytes)} bytes, Dimensions: {len(footer_bytes)})."
+            f"Expected {sprite_size_bytes} bytes, "
+            f"got {len(combined_buffer)} bytes "
+            f"(Metadata: {len(header_bytes)} bytes, "
+            f"Pixels: {len(pixel_bytes)} bytes, "
+            f"Palette: {len(palette_bytes)} bytes, "
+            f"Dimensions: {len(footer_bytes)} bytes)."
         )
 
     output_path.write_bytes(combined_buffer)
@@ -377,13 +382,13 @@ def _bake_pixels(
     pixel_components: SpriteComponents, asset_name: str
 ) -> tuple[BakedPixels, Palette]:
     """
-    Bake the pixel components into a final 8-bit format.
+    Bake the pixel components into a final 8‑bit format.
 
     The Bit Mapping:
     - [7] Specular: Boolean signal (0 or 1).
     - [6] Emission: Boolean signal (0 or 1).
-    - [4–5] Alpha: 2-bit transparency (0–3).
-    - [0–3] Palette Index: Pointer to one of the 16 colors.
+    - [4–5] Alpha: 2‑bit transparency (0–3).
+    - [0–3] Palette Index: Pointer to one of the 16 colors.
 
     :param pixel_components: The components to bake.
     :param asset_name: The asset identifier.
@@ -399,22 +404,28 @@ def _bake_pixels(
     height = pixel_components.height
 
     if pixel_components.alpha_mask is not None:
-        flattened_alpha = pixel_components.alpha_mask.flatten(order="C")
-        alpha = (flattened_alpha >> 6) & 0x03
+        flattened_alpha = pixel_components.alpha_mask.flatten(
+            order="C", dtype=np.uint16
+        )
+        alpha = _quantize(flattened_alpha, 2)
     else:
-        alpha = np.full(height * width, 0x03, dtype=np.uint8)
+        alpha = np.full(height * width, 0x03, dtype=np.uint16)
 
     if pixel_components.emission_mask is not None:
-        flattened_emission = pixel_components.emission_mask.flatten(order="C")
+        flattened_emission = pixel_components.emission_mask.flatten(
+            order="C", dtype=np.uint16
+        )
         emission = (flattened_emission > 0x08) & 0x01
     else:
-        emission = np.zeros(height * width, dtype=np.uint8)
+        emission = np.zeros(height * width, dtype=np.uint16)
 
     if pixel_components.specular_mask is not None:
-        flattened_specular = pixel_components.specular_mask.flatten(order="C")
+        flattened_specular = pixel_components.specular_mask.flatten(
+            order="C", dtype=np.uint16
+        )
         specular = (flattened_specular > 0x08) & 0x01
     else:
-        specular = np.zeros(height * width, dtype=np.uint8)
+        specular = np.zeros(height * width, dtype=np.uint16)
 
     baked_pixels = specular << 7 | emission << 6 | alpha << 4 | index
     return baked_pixels.astype(np.uint8), palette
@@ -422,12 +433,12 @@ def _bake_pixels(
 
 def _extract_palette(bgr_array: BGRImage, asset_name: str) -> Palette:
     """
-    Extract 16 unique colors from the source image.
+    Extract 16 unique colors from the source image.
 
     :param bgr_array: The flattened bgr pixels array from the source image.
     :param asset_name: The asset identifier.
 
-    :returns: The 16 unique colors that were extracted.
+    :returns: The 16 unique colors that were extracted.
     """
 
     unique_colors, per_color_pixel_count = np.unique(
@@ -437,7 +448,7 @@ def _extract_palette(bgr_array: BGRImage, asset_name: str) -> Palette:
     color_count = len(unique_colors)
     if color_count > MAX_PALETTE_SIZE:
         warn(
-            f"'{asset_name}' has {color_count} unique colors. "
+            f"'{asset_name}' has {color_count} unique colors. "
             f"It will be truncated to {MAX_PALETTE_SIZE}.",
             ResourceLayoutWarning,
         )
@@ -457,7 +468,7 @@ def _index_colors(bgr_array: BGRImage, palette: Palette):
     Calculate the color indices for the extracted palette.
 
     :param bgr_array: The flattened bgr pixels array from the source image.
-    :param palette: The top 16 unique colors from the source image.
+    :param palette: The top 16 unique colors from the source image.
 
     :returns: The indices to colors in the palette.
     """
@@ -472,12 +483,12 @@ def _pack_colors_to_16bit(
     bgr_matrix: BGRImage, encoding: ColorEncoding
 ) -> PackedColors:
     """
-    Pack 1-byte BGR channels into 2-byte integers.
+    Pack 1‑byte BGR channels into 2‑byte integers.
 
     :param bgr_matrix: The original color channels to pack.
     :param encoding: The color encoding mode to use.
 
-    :returns: The packed 2-byte colors.
+    :returns: The packed 2‑byte colors.
 
     :raises ValueError: If the given color encoding is invalid.
     """
@@ -501,7 +512,7 @@ def _pack_colors_to_16bit(
     else:
         raise ValueError("Invalid color encoding.")
 
-    b, g, r = bgr_matrix.astype(np.uint32).T
+    b, g, r = bgr_matrix.astype(np.uint16).T
     r_quantized = _quantize(r, r_bit_count) << r_shift_amt
     g_quantized = _quantize(g, g_bit_count) << g_shift_amt
     b_quantized = _quantize(b, b_bit_count)
@@ -509,14 +520,11 @@ def _pack_colors_to_16bit(
     return r_quantized | g_quantized | b_quantized
 
 
-def _quantize(
-    values: npt.NDArray[np.uint32], bit_count: int
-) -> npt.NDArray[np.uint16]:
+def _quantize(values: npt.NDArray, bit_count: int) -> npt.NDArray:
 
     max_val = (0x01 << bit_count) - 0x01
-    quantized = (values * max_val + 0x7F) // 0xFF
 
-    return quantized.astype(np.uint16)
+    return (values * max_val + 0x7F) // 0xFF
 
 
 if __name__ == "__main__":

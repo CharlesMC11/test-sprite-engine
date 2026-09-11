@@ -22,7 +22,7 @@ namespace sc::graphics {
     inline SC_CONSTEXPR uint32_t kMaskSpecular{0x80U};
 
     /**
-     * Distribution of color bits across a 2-byte packed integer.
+     * Distribution of color bits across a 2‑byte packed integer.
      */
     enum class color_encoding : uint8_t {
         neutral, // R5G6B5
@@ -31,7 +31,7 @@ namespace sc::graphics {
     };
 
     /**
-     * A palette of colors packed into 16-bit integers.
+     * A palette of colors packed into 16‑bit integers.
      */
     struct alignas(core::kNeonAlignment) palette final {
         packed_color_t colors[kMaxPaletteSize];

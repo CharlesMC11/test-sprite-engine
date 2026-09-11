@@ -1,18 +1,18 @@
 """
 Asset Linker.
 
-Assembles multiple asset files into a single memory–mappable atlas binary.
+Assembles multiple asset files into a single memory-mappable atlas binary.
 
 The binary layout contains:
-- Header (16 bytes): atlas metadata
-    - Magic (8 bytes)
-    - 16×16 sprite count (4 bytes)
-    - 32×32 sprite count (2 bytes)
-    - Palette count (2 bytes)
-- Data (n bytes): contiguous arrays of palette and sprite structures
-    - Color palettes (32 × palette count bytes)
-    - 16×16 sprites (272 × 16×16 sprite count bytes)
-    - 32×32 sprites (1,040 × 32×32 sprite count bytes)
+- Header (16 bytes): atlas metadata
+    - Magic (8 bytes)
+    - 16×16 sprite count (4 bytes)
+    - 32×32 sprite count (2 bytes)
+    - Palette count (2 bytes)
+- Data (n bytes): contiguous arrays of palette and sprite structures
+    - Color palettes (32 × palette count bytes)
+    - 16×16 sprites (272 × 16×16 sprite count bytes)
+    - 32×32 sprites (1,040 × 32×32 sprite count bytes)
 """
 
 import re
@@ -60,7 +60,7 @@ class AssetBlob(ComponentBlob):
 
 
 class AssetLinker:
-    """Assembles multiple `.asset` files into a singler memory-mappable atlas."""
+    """Assembles multiple `.asset` files into a single memory-mappable atlas."""
 
     # Type annotations
 
@@ -121,7 +121,7 @@ class AssetLinker:
 
         :raises FileNotFoundError: If a path does not exist.
         :raises ValueError: If the sprite contains invalid magic bytes.
-        :raises ResourceLayoutError: If a sprite is less than or equal to 54 bytes in size
+        :raises ResourceLayoutError: If a sprite is less than or equal to 54 bytes in size
             or has invalid dimensions.
         """
 
@@ -167,8 +167,8 @@ class AssetLinker:
         """
         Collapse the internal blobs into a single atlas binary.
 
-        The header is 16-byte aligned to ensure the first sprite starts on a
-        clean 16-byte boundary.
+        The header is 16‑byte aligned to ensure the first sprite starts on a
+        clean 16‑byte boundary.
 
         :param output_path: The path to save the atlas to.
         """
