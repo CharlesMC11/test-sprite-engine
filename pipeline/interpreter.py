@@ -41,6 +41,7 @@ from pipeline import (
     ResourceLayoutWarning,
     SpriteMetadata,
     is_power_of_2,
+    get_bit_maximum,
 )
 
 SCALE_2BIT_TO_8: Final[int] = 0xFF // 0x03
@@ -147,11 +148,10 @@ def _dequantize(
     values: npt.NDArray[np.uint16], bit_count: int
 ) -> npt.NDArray[np.uint8]:
 
-    max_val = (0x01 << bit_count) - 0x01
+    max_val = get_bit_maximum(bit_count)
     masked_values = values & max_val
-    dequantized = (masked_values * 0xFF + max_val // 2) // max_val
 
-    return dequantized.astype(np.uint8)
+    return (masked_values * 0xFF + max_val // 2) // max_val
 
 
 if __name__ == "__main__":

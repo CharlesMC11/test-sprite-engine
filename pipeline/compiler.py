@@ -521,8 +521,7 @@ def _pack_colors_to_16bit(
 
 
 def _quantize(values: npt.NDArray, bit_count: int) -> npt.NDArray:
-
-    max_val = (0x01 << bit_count) - 0x01
+    max_val = get_bit_maximum(bit_count)
 
     return (values * max_val + 0x7F) // 0xFF
 

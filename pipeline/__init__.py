@@ -161,3 +161,7 @@ def calculate_padding_needed(n: int, alignment: int) -> int:
         raise ValueError(f"Alignment must be a power of 2, got {alignment}.")
 
     return (alignment - n % alignment) % alignment
+
+
+def get_bit_maximum(bit_count: int) -> int:
+    return (0x01 << bit_count) - 0x01
