@@ -30,6 +30,7 @@ from warnings import warn
 
 import cv2
 import numpy as np
+import numpy.typing as npt
 
 from pipeline import (
     FOOTER_SIZE_BYTES,
@@ -137,6 +138,10 @@ def _unpack_16bit_to_color(
 
     else:
         raise ValueError("Invalid color encoding.")
+
+    b: npt.NDArray[np.uint16]
+    g: npt.NDArray[np.uint16]
+    r: npt.NDArray[np.uint16]
 
     packed_color = np.frombuffer(packed_buffer, dtype=np.uint16)
     r = dequantize((packed_color >> r_shift) & r_max, src_max=r_max)
