@@ -167,10 +167,6 @@ def calculate_padding_needed(n: int, alignment: int) -> int:
     return (alignment - n % alignment) % alignment
 
 
-def get_bit_max(bit_count: int) -> int:
-    return (0x01 << bit_count) - 0x01
-
-
 def remap[T: (int, npt.NDArray)](value: T, /, src_max: int, dst_max: int) -> T:
     """
     Remap a value from one bit depth to another.
@@ -186,11 +182,4 @@ def remap[T: (int, npt.NDArray)](value: T, /, src_max: int, dst_max: int) -> T:
 
 
 quantize = partial(remap, src_max=0xFF)
-
-quantize_to_6bit = partial(quantize, dst_max=MAX_6_BIT)
-quantize_to_5bit = partial(quantize, dst_max=MAX_5_BIT)
-
 dequantize = partial(remap, dst_max=0xFF)
-
-expand_from_6bit = partial(dequantize, src_max=MAX_6_BIT)
-expand_from_5bit = partial(dequantize, src_max=MAX_5_BIT)

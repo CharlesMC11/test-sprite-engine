@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 from collections.abc import Iterable
 from functools import partial
 
-from pipeline import get_bit_max, quantize
+from pipeline import quantize
 from pipeline.quantize_color_hex import filter_hex_codes, hex_str
 
 # Public function
@@ -34,9 +34,6 @@ def main() -> None:
     generate_aco(args.name, args.hex_codes)
 
 
-expand_to_16bit = partial(quantize, dst_max=get_bit_max(16))
-
-
 def generate_aco(name: str, hex_codes: Iterable[str]) -> None:
 
     filtered_codes = filter_hex_codes(hex_codes)
@@ -50,9 +47,9 @@ def generate_aco(name: str, hex_codes: Iterable[str]) -> None:
     for code in filtered_codes:
         r, g, b = code
 
-        r16 = expand_to_16bit(r)
-        g16 = expand_to_16bit(g)
-        b16 = expand_to_16bit(b)
+        r16 = _expand_to_16bit(r)
+        g16 = _expand_to_16bit(g)
+        b16 = _expand_to_16bit(b)
 
         color_bytes = struct.pack(">HHHHH", 0, r16, g16, b16, 0x0000)
         v1_color_buf.extend(color_bytes)
@@ -72,6 +69,11 @@ def generate_aco(name: str, hex_codes: Iterable[str]) -> None:
 
     with open(f"{name}.aco", "wb") as f:
         f.write(combined_buf)
+
+
+# Private helpers
+
+_expand_to_16bit = partial(quantize, dst_max=0xFFFF)
 
 
 if __name__ == "__main__":

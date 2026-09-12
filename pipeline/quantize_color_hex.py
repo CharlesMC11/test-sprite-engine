@@ -9,18 +9,13 @@ from argparse import ArgumentParser
 from collections.abc import Iterable
 from functools import partial
 
-from pipeline import (
-    expand_from_5bit,
-    expand_from_6bit,
-    quantize_to_5bit,
-    quantize_to_6bit,
-)
+from pipeline import MAX_5_BIT, MAX_6_BIT, dequantize, quantize
 
 # Public function
 
 
 def main() -> None:
-    parser = ArgumentParser(name=__name__, description=__doc__)
+    parser = ArgumentParser(description=__doc__)
     parser.add_argument(
         "hex_codes",
         help="Hexadecimal color codes to quantize",
@@ -47,22 +42,22 @@ def quantize_color_hex_codes(hex_codes: Iterable[str]) -> None:
 
     for r, g, b in unique_codes:
         # 6-bit
-        r6_quantized = quantize_to_6bit(r)
-        g6_quantized = quantize_to_6bit(g)
-        b6_quantized = quantize_to_6bit(b)
+        r6_quantized = _quantize_to_6bit(r)
+        g6_quantized = _quantize_to_6bit(g)
+        b6_quantized = _quantize_to_6bit(b)
 
-        r6_expanded = expand_from_6bit(r6_quantized)
-        g6_expanded = expand_from_6bit(g6_quantized)
-        b6_expanded = expand_from_6bit(b6_quantized)
+        r6_expanded = _expand_from_6bit(r6_quantized)
+        g6_expanded = _expand_from_6bit(g6_quantized)
+        b6_expanded = _expand_from_6bit(b6_quantized)
 
         # 5-bit
-        r5_quantized = quantize_to_5bit(r)
-        g5_quantized = quantize_to_5bit(g)
-        b5_quantized = quantize_to_5bit(b)
+        r5_quantized = _quantize_to_5bit(r)
+        g5_quantized = _quantize_to_5bit(g)
+        b5_quantized = _quantize_to_5bit(b)
 
-        r5_expanded = expand_from_5bit(r5_quantized)
-        g5_expanded = expand_from_5bit(g5_quantized)
-        b5_expanded = expand_from_5bit(b5_quantized)
+        r5_expanded = _expand_from_5bit(r5_quantized)
+        g5_expanded = _expand_from_5bit(g5_quantized)
+        b5_expanded = _expand_from_5bit(b5_quantized)
 
         _print_codes(
             r,
@@ -108,6 +103,12 @@ def hex_str(r: int, g: int, b: int) -> str:
 
 
 # Protected helpers
+
+_quantize_to_6bit = partial(quantize, dst_max=MAX_6_BIT)
+_quantize_to_5bit = partial(quantize, dst_max=MAX_5_BIT)
+
+_expand_from_6bit = partial(dequantize, src_max=MAX_6_BIT)
+_expand_from_5bit = partial(dequantize, src_max=MAX_5_BIT)
 
 
 def _print_codes(
