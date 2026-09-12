@@ -45,6 +45,7 @@ from pipeline import (
     SPRITE_MINIMUM_FILE_SIZE_BYTES,
     BGRImage,
     ColorEncoding,
+    Palette,
     PhysicsType,
     ResourceLayoutError,
     ResourceLayoutWarning,
@@ -59,7 +60,6 @@ from pipeline import (
 type AlphaMask = npt.NDArray[np.uint8]
 type EmissionMask = npt.NDArray[np.uint8]
 type SpecularMask = npt.NDArray[np.uint8]
-type Palette = npt.NDArray[np.uint8]
 
 type PackedColors = npt.NDArray[np.uint16]
 type BakedPixels = npt.NDArray[np.uint8]

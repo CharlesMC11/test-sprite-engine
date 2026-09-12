@@ -8,6 +8,7 @@ from typing import ClassVar, Final, Self
 
 import numpy as np
 import numpy.typing as npt
+
 from pipeline._pipeline import (
     CACHE_ALIGNMENT,
     MAX_2_BIT,
@@ -33,8 +34,9 @@ FOOTER_SIZE_BYTES: Final[int] = (
 )
 """ The total size of the sprite footer in bytes."""
 
-
 type BGRImage = npt.NDArray[np.uint8]
+
+type Palette = npt.NDArray[np.uint8]
 
 
 class ResourceLayoutError(Exception): ...
@@ -54,7 +56,10 @@ class Metadata(ABC):
         """"""
 
         expected_size = cls.EXPECTED_SIZE_BYTES
-        err_msg = f"Buffer size too small for {cls.__name__}. Expected {expected_size}, got"
+        err_msg = (
+            f"Buffer size too small for {cls.__name__}. "
+            f"Expected {expected_size}, got"
+        )
 
         buffer_size = len(buffer)
         if buffer_size < expected_size:
@@ -64,7 +69,8 @@ class Metadata(ABC):
         magic = buffer[:magic_size]
         if magic != cls.MAGIC:
             raise ResourceLayoutError(
-                f"Invalid magic bytes! Expected '{cls.MAGIC}' bytes, got {magic}."
+                "Invalid magic bytes! "
+                f"Expected '{cls.MAGIC}' bytes, got {magic}."
             )
 
         try:
@@ -94,7 +100,7 @@ class SpriteMetadata(Metadata):
     MAGIC: ClassVar[Final[bytes]] = b"SC SP v" + ASSET_LAYOUT_VERSION
 
     STRUCT: ClassVar[Final[Struct]] = Struct("<BBBBffBBBB")
-    """The layout of a 24-byte asset metadata.
+    """The layout of a 24‑byte asset metadata.
 
     - magic
     - bbox
@@ -129,7 +135,7 @@ class AtlasMetadata(Metadata):
     MAGIC: ClassVar[Final[bytes]] = b"SC AT v" + ASSET_LAYOUT_VERSION
 
     STRUCT: ClassVar[Final[Struct]] = Struct("<LHH")
-    """The layout of an 8-byte atlas metadata.
+    """The layout of an 8‑byte atlas metadata.
 
     - magic
     - sprite16_count (uint32)
@@ -138,6 +144,23 @@ class AtlasMetadata(Metadata):
     """
 
     EXPECTED_SIZE_BYTES: ClassVar[Final[int]] = STRUCT.size + len(MAGIC)
+
+
+@dataclass(frozen=True, slots=True)
+class Sprite:
+    meta: SpriteMetadata
+    pixels: BGRImage
+    palette: Palette
+    width: int
+    height: int
+
+    @classmethod
+    def from_bytes(cls, buffer: bytes) -> Self: ...
+
+    def to_bytes(self) -> bytes: ...
+
+
+# Public functions
 
 
 def is_power_of_2(n: int) -> bool:

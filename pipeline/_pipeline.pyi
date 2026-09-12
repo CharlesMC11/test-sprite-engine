@@ -2,7 +2,6 @@
 
 import enum
 
-
 MAX_2_BIT: int = 3
 
 MAX_5_BIT: int = 31
