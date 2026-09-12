@@ -47,7 +47,9 @@ from pipeline import (
     ResourceLayoutWarning,
     SpriteMetadata,
     calculate_padding_needed,
+    get_bit_max,
     is_power_of_2,
+    quantize,
 )
 
 # Types
@@ -405,7 +407,7 @@ def _bake_pixels(
 
     if pixel_components.alpha_mask is not None:
         flattened_alpha = pixel_components.alpha_mask.flatten(order="C")
-        alpha = _quantize(flattened_alpha.astype(np.uint16), 2)
+        alpha = quantize(flattened_alpha.astype(np.uint16), dst_max=2)
     else:
         alpha = np.full(height * width, 0x03, dtype=np.uint16)
 
@@ -487,17 +489,17 @@ def _pack_colors_to_16bit(
     :raises ValueError: If the given color encoding is invalid.
     """
 
-    r_bit_count = g_bit_count = b_bit_count = 5
+    r_max = g_max = b_max = get_bit_max(5)
 
-    r_shift_amt = 11
-    g_shift_amt = 5
+    r_shift = 11
+    g_shift = 5
 
     if encoding == ColorEncoding.NEUTRAL:
-        g_bit_count = 6
+        g_max = get_bit_max(6)
 
     elif encoding == ColorEncoding.WARM:
-        r_bit_count = 6
-        r_shift_amt = 10
+        r_max = get_bit_max(6)
+        r_shift = 10
 
     elif encoding == ColorEncoding.COOL:
         b_bit_count = 6
@@ -506,18 +508,16 @@ def _pack_colors_to_16bit(
     else:
         raise ValueError("Invalid color encoding.")
 
+    b: npt.NDArray[np.uint16]
+    g: npt.NDArray[np.uint16]
+    r: npt.NDArray[np.uint16]
+
     b, g, r = bgr_matrix.astype(np.uint16).T
-    r_quantized = _quantize(r, r_bit_count) << r_shift_amt
-    g_quantized = _quantize(g, g_bit_count) << g_shift_amt
-    b_quantized = _quantize(b, b_bit_count)
+    r_quantized = quantize(r, dst_max=r_max) << r_shift
+    g_quantized = quantize(g, dst_max=g_max) << g_shift
+    b_quantized = quantize(b, dst_max=b_max)
 
     return r_quantized | g_quantized | b_quantized
-
-
-def _quantize(values: npt.NDArray, bit_count: int) -> npt.NDArray:
-    max_val = get_bit_maximum(bit_count)
-
-    return (values * max_val + 0x7F) // 0xFF
 
 
 if __name__ == "__main__":

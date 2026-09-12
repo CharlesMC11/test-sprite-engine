@@ -40,6 +40,8 @@ from pipeline import (
     ColorEncoding,
     ResourceLayoutWarning,
     SpriteMetadata,
+    dequantize,
+    get_bit_max,
     is_power_of_2,
     get_bit_maximum,
 )
@@ -95,12 +97,15 @@ def decompile_asset(source_path: Path) -> BGRImage:
     index_bits = pixels & 0x0F
 
     alpha_bits = (pixels >> 4).astype(np.uint16)
-    alpha_mask = _dequantize(alpha_bits, 2).reshape((height, width))
+    alpha_mask = dequantize(alpha_bits, src_max=0x03).reshape((height, width))
 
     unpacked_palette = _unpack_16bit_to_color(palette_blob, meta.color_encoding)
     image_bgr = unpacked_palette[index_bits].reshape((height, width, 3))
 
-    return cv2.merge((image_bgr, alpha_mask), dtype=np.uint8)
+    return cv2.merge((image_bgr, alpha_mask)).astype(np.uint8)
+
+
+# Protected helpers
 
 
 def _unpack_16bit_to_color(
@@ -117,41 +122,31 @@ def _unpack_16bit_to_color(
     :raises ValueError: If the given color encoding is invalid.
     """
 
-    r_bit_count = g_bit_count = b_bit_count = 5
+    r_max = g_max = b_max = get_bit_max(5)
 
-    r_shift_amt = 11
-    g_shift_amt = 5
+    r_shift = 11
+    g_shift = 5
 
     if encoding == ColorEncoding.NEUTRAL:
-        g_bit_count = 6
+        g_max = get_bit_max(6)
 
     elif encoding == ColorEncoding.WARM:
-        r_bit_count = 6
-        r_shift_amt = 10
+        r_max = get_bit_max(6)
+        r_shift = 10
 
     elif encoding == ColorEncoding.COOL:
-        b_bit_count = 6
-        g_shift_amt = 6
+        b_max = get_bit_max(6)
+        g_shift = 6
 
     else:
         raise ValueError("Invalid color encoding.")
 
     packed_color = np.frombuffer(packed_buffer, dtype=np.uint16)
-    r = _dequantize(packed_color >> r_shift_amt, r_bit_count)
-    g = _dequantize(packed_color >> g_shift_amt, g_bit_count)
-    b = _dequantize(packed_color, b_bit_count)
+    r = dequantize((packed_color >> r_shift) & r_max, src_max=r_max)
+    g = dequantize((packed_color >> g_shift) & g_max, src_max=g_max)
+    b = dequantize(packed_color & b_max, src_max=b_max)
 
     return np.stack((b, g, r), axis=-1)
-
-
-def _dequantize(
-    values: npt.NDArray[np.uint16], bit_count: int
-) -> npt.NDArray[np.uint8]:
-
-    max_val = get_bit_maximum(bit_count)
-    masked_values = values & max_val
-
-    return (masked_values * 0xFF + max_val // 2) // max_val
 
 
 if __name__ == "__main__":

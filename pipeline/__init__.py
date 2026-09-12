@@ -2,6 +2,7 @@ import dataclasses
 import struct
 from abc import ABC
 from dataclasses import dataclass
+from functools import partial
 from struct import Struct
 from typing import ClassVar, Final, Self
 
@@ -163,5 +164,23 @@ def calculate_padding_needed(n: int, alignment: int) -> int:
     return (alignment - n % alignment) % alignment
 
 
-def get_bit_maximum(bit_count: int) -> int:
+def get_bit_max(bit_count: int) -> int:
     return (0x01 << bit_count) - 0x01
+
+
+def remap[T: (int, npt.NDArray)](value: T, /, src_max: int, dst_max: int) -> T:
+    """
+    Remap a value from one bit depth to another.
+
+    :param value: The value to remap.
+    :param src_max: The maximum value for the source bit depth.
+    :param dst_max: The maximum value for the destination bit depth.
+
+    :return: The remapped value.
+    """
+
+    return (value * dst_max + src_max // 2) // src_max
+
+
+quantize = partial(remap, src_max=0xFF)
+dequantize = partial(remap, dst_max=0xFF)
