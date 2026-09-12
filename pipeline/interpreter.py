@@ -8,8 +8,8 @@ The binary layout contains:
     - Magic (8 bytes)
     - Sprite metadata (16 bytes)
         - Bounding box (4 bytes)
-            - u_min, u_max (2 bytes)
-            - v_min, v_max (2 bytes)
+            - u_min, u_max (2 bytes)
+            - v_min, v_max (2 bytes)
         - Anchor (8 bytes)
             - u_anchor (4 bytes)
             - v_anchor (4 bytes)
@@ -17,9 +17,9 @@ The binary layout contains:
         - Physics type (1 byte)
         - Color encoding (1 byte)
         - Palette index (1 byte), set to 0x3F (ASCII for '?') as a placeholder
-- Pixels (height×width bytes): 1-byte packed values [S][E][AA][IIII]
+- Pixels (height×width bytes): 1‑byte packed values [S][E][AA][IIII]
 - Footer (34 bytes): additional metadata
-    - Color palette (32 bytes): 16 2-byte unique colors
+    - Color palette (32 bytes): 16 2‑byte unique colors
     - Width (1 byte): width in pixels
     - Height (1 byte): height in pixels
 """
@@ -71,11 +71,11 @@ def main() -> None:
 
 def decompile_asset(source_path: Path) -> BGRImage:
     """
-    Decompile the asset into a previewable image.
+    Decompile the asset into a viewable image.
 
     :param source_path: The path to the asset to decompile.
 
-    :returns: The previewable image.
+    :returns: The viewable image.
     """
 
     buffer = source_path.read_bytes()
@@ -112,9 +112,9 @@ def _unpack_16bit_to_color(
     packed_buffer: bytes, encoding: ColorEncoding
 ) -> BGRImage:
     """
-    Unpack 2-byte integers into 1-byte BGR channels.
+    Unpack 2‑byte integers into 1‑byte BGR channels.
 
-    :param packed_buffer: The buffer containing the 2-byte integers.
+    :param packed_buffer: The buffer containing the 2‑byte integers.
     :param encoding: The color encoding to use.
 
     :returns: The unpacked BGR image.
