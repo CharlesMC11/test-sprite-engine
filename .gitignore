@@ -4,29 +4,29 @@
 
 # Python-generated files
 __pycache__/
-build*/
-dist/
-wheels/
 *.egg-info
 *.py[oc]
+dist/
+wheels/
 
+build*/
 *.so
 
 # Virtual environments
 .venv/
 
 # System files
+.idea/
+.vscode/
 .DS_Store
-.idea
-.vscode
 
 # Project files
 assets/
 !src/assets/
 vendor/
 
+*.atlas
 *.clip
 *.png
-*.atlas
 *.sprite
 *_ids.hh
