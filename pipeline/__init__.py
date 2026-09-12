@@ -9,9 +9,9 @@ from typing import ClassVar, Final, Self
 import numpy as np
 import numpy.typing as npt
 from pipeline._pipeline import (
-    NEON_ALIGNMENT,
     CACHE_ALIGNMENT,
     MAX_PALETTE_SIZE,
+    NEON_ALIGNMENT,
     PACKED_COLOR_SIZE_BYTES,
     PALETTE_SIZE_BYTES,
     ColorEncoding,
