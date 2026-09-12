@@ -13,6 +13,10 @@ NB_MODULE(_pipeline, m)
 {
     m.doc() = "Pipeline Bridge Library";
 
+    m.attr("MAX_2_BIT") = sc::core::k2BitMax;
+    m.attr("MAX_5_BIT") = sc::core::k5BitMax;
+    m.attr("MAX_6_BIT") = sc::core::k6BitMax;
+
     m.attr("NEON_ALIGNMENT") = sc::core::kNeonAlignment;
     m.attr("CACHE_ALIGNMENT") = sc::core::kCacheAlignment;
 

@@ -23,6 +23,10 @@
 
 namespace sc::core {
 
+    inline SC_CONSTEXPR auto k2BitMax{0x03U};
+    inline SC_CONSTEXPR auto k5BitMax{0x1FU};
+    inline SC_CONSTEXPR auto k6BitMax{0x3FU};
+
     using index_t = uint32_t;
     inline SC_CONSTEXPR auto kInvalidIndex{static_cast<index_t>(-1)};
 

@@ -37,6 +37,9 @@ import numpy as np
 import numpy.typing as npt
 
 from pipeline import (
+    MAX_2_BIT,
+    MAX_5_BIT,
+    MAX_6_BIT,
     MAX_PALETTE_SIZE,
     NEON_ALIGNMENT,
     SPRITE_MINIMUM_FILE_SIZE_BYTES,
@@ -47,7 +50,6 @@ from pipeline import (
     ResourceLayoutWarning,
     SpriteMetadata,
     calculate_padding_needed,
-    get_bit_max,
     is_power_of_2,
     quantize,
 )
@@ -407,9 +409,9 @@ def _bake_pixels(
 
     if pixel_components.alpha_mask is not None:
         flattened_alpha = pixel_components.alpha_mask.flatten(order="C")
-        alpha = quantize(flattened_alpha.astype(np.uint16), dst_max=2)
+        alpha = quantize(flattened_alpha.astype(np.uint16), dst_max=MAX_2_BIT)
     else:
-        alpha = np.full(height * width, 0x03, dtype=np.uint16)
+        alpha = np.full(height * width, MAX_2_BIT, dtype=np.uint16)
 
     if pixel_components.emission_mask is not None:
         flattened_emission = pixel_components.emission_mask.flatten(order="C")
@@ -489,20 +491,20 @@ def _pack_colors_to_16bit(
     :raises ValueError: If the given color encoding is invalid.
     """
 
-    r_max = g_max = b_max = get_bit_max(5)
+    r_max = g_max = b_max = MAX_5_BIT
 
     r_shift = 11
     g_shift = 5
 
     if encoding == ColorEncoding.NEUTRAL:
-        g_max = get_bit_max(6)
+        g_max = MAX_6_BIT
 
     elif encoding == ColorEncoding.WARM:
-        r_max = get_bit_max(6)
+        r_max = MAX_6_BIT
         r_shift = 10
 
     elif encoding == ColorEncoding.COOL:
-        b_max = get_bit_max(6)
+        b_max = MAX_6_BIT
         g_shift = 6
 
     else:

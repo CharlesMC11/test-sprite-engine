@@ -33,13 +33,15 @@ import numpy as np
 
 from pipeline import (
     FOOTER_SIZE_BYTES,
+    MAX_2_BIT,
+    MAX_5_BIT,
+    MAX_6_BIT,
     SPRITE_DIMENSIONS_SIZE_BYTES,
     BGRImage,
     ColorEncoding,
     ResourceLayoutWarning,
     SpriteMetadata,
     dequantize,
-    get_bit_max,
     is_power_of_2,
 )
 
@@ -90,7 +92,9 @@ def decompile_asset(source_path: Path) -> BGRImage:
     index_bits = pixels & 0x0F
 
     alpha_bits = (pixels >> 4).astype(np.uint16)
-    alpha_mask = dequantize(alpha_bits, src_max=0x03).reshape((height, width))
+    alpha_mask = dequantize(alpha_bits, src_max=MAX_2_BIT).reshape(
+        (height, width)
+    )
 
     unpacked_palette = _unpack_16bit_to_color(palette_blob, meta.color_encoding)
     image_bgr = unpacked_palette[index_bits].reshape((height, width, 3))
@@ -115,20 +119,20 @@ def _unpack_16bit_to_color(
     :raises ValueError: If the given color encoding is invalid.
     """
 
-    r_max = g_max = b_max = get_bit_max(5)
+    r_max = g_max = b_max = MAX_5_BIT
 
     r_shift = 11
     g_shift = 5
 
     if encoding == ColorEncoding.NEUTRAL:
-        g_max = get_bit_max(6)
+        g_max = MAX_6_BIT
 
     elif encoding == ColorEncoding.WARM:
-        r_max = get_bit_max(6)
+        r_max = MAX_6_BIT
         r_shift = 10
 
     elif encoding == ColorEncoding.COOL:
-        b_max = get_bit_max(6)
+        b_max = MAX_6_BIT
         g_shift = 6
 
     else:

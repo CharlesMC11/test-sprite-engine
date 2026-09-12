@@ -10,6 +10,9 @@ import numpy as np
 import numpy.typing as npt
 from pipeline._pipeline import (
     CACHE_ALIGNMENT,
+    MAX_2_BIT,
+    MAX_5_BIT,
+    MAX_6_BIT,
     MAX_PALETTE_SIZE,
     NEON_ALIGNMENT,
     PACKED_COLOR_SIZE_BYTES,
