@@ -26,12 +26,10 @@ The binary layout contains:
 
 import sys
 from pathlib import Path
-from typing import Final
 from warnings import warn
 
 import cv2
 import numpy as np
-import numpy.typing as npt
 
 from pipeline import (
     FOOTER_SIZE_BYTES,
@@ -43,12 +41,7 @@ from pipeline import (
     dequantize,
     get_bit_max,
     is_power_of_2,
-    get_bit_maximum,
 )
-
-SCALE_2BIT_TO_8: Final[int] = 0xFF // 0x03
-SCALE_5BIT_TO_8: Final[int] = 0xFF // 0x1F
-SCALE_6BIT_TO_8: Final[int] = 0xFF // 0x3F
 
 
 def main() -> None:
