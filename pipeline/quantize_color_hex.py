@@ -8,6 +8,8 @@ their ANSI color representations.
 from argparse import ArgumentParser
 from collections.abc import Iterable
 
+from pipeline import dequantize, get_bit_max, quantize
+
 
 def main(hex_codes: Iterable[str]) -> None:
 
@@ -22,16 +24,27 @@ def main(hex_codes: Iterable[str]) -> None:
         f"{'Entered':<7} {'Neutral':^14} {'Warm':^14} {'Cool':^14} {'Patches':<7}"
     )
 
+    max6 = get_bit_max(6)
+    max5 = get_bit_max(5)
+
     for r, g, b in sorted(unique_codes):
         # 6-bit
-        r6_quantized, r6_expanded = quantize_and_expand(r, 6)
-        g6_quantized, g6_expanded = quantize_and_expand(g, 6)
-        b6_quantized, b6_expanded = quantize_and_expand(b, 6)
+        r6_quantized = quantize(r, dst_max=max6)
+        g6_quantized = quantize(g, dst_max=max6)
+        b6_quantized = quantize(b, dst_max=max6)
+
+        r6_expanded = dequantize(r6_quantized, src_max=max6)
+        g6_expanded = dequantize(g6_quantized, src_max=max6)
+        b6_expanded = dequantize(b6_quantized, src_max=max6)
 
         # 5-bit
-        r5_quantized, r5_expanded = quantize_and_expand(r, 5)
-        g5_quantized, g5_expanded = quantize_and_expand(g, 5)
-        b5_quantized, b5_expanded = quantize_and_expand(b, 5)
+        r5_quantized = quantize(r, dst_max=max5)
+        g5_quantized = quantize(g, dst_max=max5)
+        b5_quantized = quantize(b, dst_max=max5)
+
+        r5_expanded = dequantize(r5_quantized, src_max=max5)
+        g5_expanded = dequantize(g5_quantized, src_max=max5)
+        b5_expanded = dequantize(b5_quantized, src_max=max5)
 
         print_codes(
             r,
@@ -68,14 +81,6 @@ def filter_hex_codes(raw_hex_codes: Iterable[str]) -> set[tuple[int, int, int]]:
         result.add((r, g, b))
 
     return result
-
-
-def quantize_and_expand(value: int, bit_count: int) -> tuple[int, int]:
-
-    max_val = (0x01 << bit_count) - 0x01
-    quantized = (value * max_val + 0x7F) // 0xFF
-
-    return quantized, (quantized * 0xFF + max_val // 2) // max_val
 
 
 def print_codes(

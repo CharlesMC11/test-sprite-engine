@@ -49,8 +49,8 @@ namespace sc::assets {
 
     static_assert(sizeof(sprites::metadata) == core::kNeonAlignment,
             "Sprite metadata must be 16 B.");
-    static_assert(sizeof(sprite16) == 272, "Sprite16 must be 272 B.");
-    static_assert(sizeof(sprite<>) == 1'040, "Sprite32 must be 1,040 B.");
+    static_assert(sizeof(sprite16) == 272UZ, "Sprite16 must be 272 B.");
+    static_assert(sizeof(sprite<>) == 1'040UZ, "Sprite32 must be 1,040 B.");
 
 } // namespace sc::assets
 

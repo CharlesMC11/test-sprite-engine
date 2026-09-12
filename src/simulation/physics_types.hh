@@ -18,10 +18,10 @@ namespace sc::physics {
     enum class type : core::physics_t {
         UNDEFINED = 0U,
         NONE = 1U,
-        ACTOR = 1U << 1,
-        STATIC = 1U << 2,
-        SENSOR = 1U << 3,
-        PROJECTILE = 1U << 4,
+        ACTOR = 1U << 1U,
+        STATIC = 1U << 2U,
+        SENSOR = 1U << 3U,
+        PROJECTILE = 1U << 4U,
     };
 
     struct aabb final {
