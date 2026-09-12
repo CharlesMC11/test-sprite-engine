@@ -36,18 +36,18 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
     using enum sc::graphics::color_encoding;
     switch (encoding) {
     case neutral:
-        r = static_cast<float>((packed_color >> 11) & k5BitMask) * k5BitNorm;
-        g = static_cast<float>((packed_color >> 5) & k6BitMask) * k6BitNorm;
+        r = static_cast<float>((packed_color >> 11U) & k5BitMask) * k5BitNorm;
+        g = static_cast<float>((packed_color >> 5U) & k6BitMask) * k6BitNorm;
         b = static_cast<float>(packed_color & k5BitMask) * k5BitNorm;
         break;
     case warm:
-        r = static_cast<float>((packed_color >> 10) & k6BitMask) * k6BitNorm;
-        g = static_cast<float>((packed_color >> 5) & k5BitMask) * k5BitNorm;
+        r = static_cast<float>((packed_color >> 10U) & k6BitMask) * k6BitNorm;
+        g = static_cast<float>((packed_color >> 5U) & k5BitMask) * k5BitNorm;
         b = static_cast<float>(packed_color & k5BitMask) * k5BitNorm;
         break;
     case cool:
-        r = static_cast<float>((packed_color >> 11) & k5BitMask) * k5BitNorm;
-        g = static_cast<float>((packed_color >> 6) & k5BitMask) * k5BitNorm;
+        r = static_cast<float>((packed_color >> 11U) & k5BitMask) * k5BitNorm;
+        g = static_cast<float>((packed_color >> 6U) & k5BitMask) * k5BitNorm;
         b = static_cast<float>(packed_color & k6BitMask) * k6BitNorm;
         break;
     default:
@@ -100,7 +100,7 @@ inline float4 unpack_color(const sc::graphics::packed_color_t packed_color,
                         sc::assets::sprites::kDefaultSize +
                 local_coord.x]};
 
-        const auto alpha_raw{(pixel & sc::graphics::kMaskAlpha) >> 4};
+        const auto alpha_raw{(pixel & sc::graphics::kMaskAlpha) >> 4U};
         if (alpha_raw == 0x00U)
             continue;
 
