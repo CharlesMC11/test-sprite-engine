@@ -2,6 +2,12 @@
 
 import enum
 
+MAX_2_BIT: int = 3
+
+MAX_5_BIT: int = 31
+
+MAX_6_BIT: int = 63
+
 NEON_ALIGNMENT: int = 16
 
 CACHE_ALIGNMENT: int = 128
