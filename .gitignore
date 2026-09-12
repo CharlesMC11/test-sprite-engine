@@ -25,6 +25,7 @@ assets/
 !src/assets/
 vendor/
 
+*.aco
 *.atlas
 *.clip
 *.png
