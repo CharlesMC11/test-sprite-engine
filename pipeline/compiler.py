@@ -502,8 +502,8 @@ def _pack_colors_to_16bit(
         r_shift = 10
 
     elif encoding == ColorEncoding.COOL:
-        b_bit_count = 6
-        g_shift_amt = 6
+        b_max = get_bit_max(6)
+        g_shift = 6
 
     else:
         raise ValueError("Invalid color encoding.")
