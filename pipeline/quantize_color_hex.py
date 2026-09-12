@@ -7,11 +7,32 @@ their ANSI color representations.
 
 from argparse import ArgumentParser
 from collections.abc import Iterable
+from functools import partial
 
-from pipeline import dequantize, get_bit_max, quantize
+from pipeline import (
+    expand_from_5bit,
+    expand_from_6bit,
+    quantize_to_5bit,
+    quantize_to_6bit,
+)
+
+# Public function
 
 
-def main(hex_codes: Iterable[str]) -> None:
+def main() -> None:
+    parser = ArgumentParser(name=__name__, description=__doc__)
+    parser.add_argument(
+        "hex_codes",
+        help="Hexadecimal color codes to quantize",
+        nargs="+",
+        type=str,
+    )
+    args = parser.parse_args()
+
+    quantize_color_hex_codes(args.hex_codes)
+
+
+def quantize_color_hex_codes(hex_codes: Iterable[str]) -> None:
 
     unique_codes: set[tuple[int, int, int]] = filter_hex_codes(hex_codes)
 
@@ -20,33 +41,30 @@ def main(hex_codes: Iterable[str]) -> None:
     unit = "bit" if bit_count == 1 else "bits"
 
     print(
-        f"{palette_size} colors ({bit_count}\u202f{unit})\n"
+        f"{palette_size} colors ({bit_count} {unit})\n"
         f"{'Entered':<7} {'Neutral':^14} {'Warm':^14} {'Cool':^14} {'Patches':<7}"
     )
 
-    max6 = get_bit_max(6)
-    max5 = get_bit_max(5)
-
-    for r, g, b in sorted(unique_codes):
+    for r, g, b in unique_codes:
         # 6-bit
-        r6_quantized = quantize(r, dst_max=max6)
-        g6_quantized = quantize(g, dst_max=max6)
-        b6_quantized = quantize(b, dst_max=max6)
+        r6_quantized = quantize_to_6bit(r)
+        g6_quantized = quantize_to_6bit(g)
+        b6_quantized = quantize_to_6bit(b)
 
-        r6_expanded = dequantize(r6_quantized, src_max=max6)
-        g6_expanded = dequantize(g6_quantized, src_max=max6)
-        b6_expanded = dequantize(b6_quantized, src_max=max6)
+        r6_expanded = expand_from_6bit(r6_quantized)
+        g6_expanded = expand_from_6bit(g6_quantized)
+        b6_expanded = expand_from_6bit(b6_quantized)
 
         # 5-bit
-        r5_quantized = quantize(r, dst_max=max5)
-        g5_quantized = quantize(g, dst_max=max5)
-        b5_quantized = quantize(b, dst_max=max5)
+        r5_quantized = quantize_to_5bit(r)
+        g5_quantized = quantize_to_5bit(g)
+        b5_quantized = quantize_to_5bit(b)
 
-        r5_expanded = dequantize(r5_quantized, src_max=max5)
-        g5_expanded = dequantize(g5_quantized, src_max=max5)
-        b5_expanded = dequantize(b5_quantized, src_max=max5)
+        r5_expanded = expand_from_5bit(r5_quantized)
+        g5_expanded = expand_from_5bit(g5_quantized)
+        b5_expanded = expand_from_5bit(b5_quantized)
 
-        print_codes(
+        _print_codes(
             r,
             g,
             b,
@@ -65,7 +83,9 @@ def main(hex_codes: Iterable[str]) -> None:
         )
 
 
-def filter_hex_codes(raw_hex_codes: Iterable[str]) -> set[tuple[int, int, int]]:
+def filter_hex_codes(
+    raw_hex_codes: Iterable[str],
+) -> list[tuple[int, int, int]]:
     result: set[tuple[int, int, int]] = set()
 
     for raw_code in raw_hex_codes:
@@ -80,10 +100,17 @@ def filter_hex_codes(raw_hex_codes: Iterable[str]) -> set[tuple[int, int, int]]:
 
         result.add((r, g, b))
 
-    return result
+    return sorted(result)
 
 
-def print_codes(
+def hex_str(r: int, g: int, b: int) -> str:
+    return f"#{r:02X}{g:02X}{b:02X}"
+
+
+# Protected helpers
+
+
+def _print_codes(
     r: int,
     g: int,
     b: int,
@@ -113,10 +140,10 @@ def print_codes(
     cool_expanded = hex_str(r5_expanded, g5_expanded, b6_expanded)
 
     patches = (
-        f"{ansi_str(r, g, b)}"
-        f"{ansi_str(r5_expanded, g6_expanded, b5_expanded)}"
-        f"{ansi_str(r6_expanded, g5_expanded, b5_expanded)}"
-        f"{ansi_str(r5_expanded, g5_expanded, b6_expanded)}"
+        f"{_ansi_str(r, g, b)}"
+        f"{_ansi_str(r5_expanded, g6_expanded, b5_expanded)}"
+        f"{_ansi_str(r6_expanded, g5_expanded, b5_expanded)}"
+        f"{_ansi_str(r5_expanded, g5_expanded, b6_expanded)}"
     )
 
     print(
@@ -128,22 +155,9 @@ def print_codes(
     )
 
 
-def hex_str(r: int, g: int, b: int) -> str:
-    return f"#{r:02X}{g:02X}{b:02X}"
-
-
-def ansi_str(r: int, g: int, b: int) -> str:
+def _ansi_str(r: int, g: int, b: int) -> str:
     return f"\x1b[48;2;{r};{g};{b}m  \x1b[0m"
 
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument(
-        "hex_codes",
-        help="Hexadecimal color codes to quantize",
-        nargs="+",
-        type=str,
-    )
-    args = parser.parse_args()
-
-    main(args.hex_codes)
+    main()

@@ -186,4 +186,11 @@ def remap[T: (int, npt.NDArray)](value: T, /, src_max: int, dst_max: int) -> T:
 
 
 quantize = partial(remap, src_max=0xFF)
+
+quantize_to_6bit = partial(quantize, dst_max=MAX_6_BIT)
+quantize_to_5bit = partial(quantize, dst_max=MAX_5_BIT)
+
 dequantize = partial(remap, dst_max=0xFF)
+
+expand_from_6bit = partial(dequantize, src_max=MAX_6_BIT)
+expand_from_5bit = partial(dequantize, src_max=MAX_5_BIT)
